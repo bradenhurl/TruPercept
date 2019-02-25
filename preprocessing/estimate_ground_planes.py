@@ -4,6 +4,7 @@ import sys
 import random
 import cv2
 from wavedata.tools.obj_detection import obj_utils
+from avod.builders.dataset_builder import DatasetBuilder
 
 testing = False
 #Which method to use for determining plane coefficients
@@ -14,7 +15,7 @@ use_ground_points = 0
 ransac = 1
 moose = 2
 
-def estimate_ground_planes(base_dir, plane_method=0, specific_idx=-1):
+def estimate_ground_planes(base_dir, dataset_config, plane_method=0, specific_idx=-1):
     velo_dir = base_dir + 'velodyne'
     plane_dir = base_dir + 'planes'
     if plane_method == 1:
@@ -25,9 +26,15 @@ def estimate_ground_planes(base_dir, plane_method=0, specific_idx=-1):
     num_files = len(files)
     file_idx = 0
 
+    #For checking ground planes
+    dataset = DatasetBuilder.build_kitti_dataset(dataset_config,
+                                                     use_defaults=False)
+    kitti_utils = dataset.kitti_utils
+
     if not os.path.exists(plane_dir):
         os.makedirs(plane_dir)
 
+    #Estimate each idx
     for file in files:
         filepath = velo_dir + '/' + file
 
@@ -35,6 +42,7 @@ def estimate_ground_planes(base_dir, plane_method=0, specific_idx=-1):
         if specific_idx != -1:
             idx = specific_idx
         planes_file = plane_dir + '/%06d.txt' % idx
+        print("Index: ", idx)
 
         x,y,z,i = read_lidar(filepath)
         all_points = np.vstack((-y, -z, x)).T
@@ -42,6 +50,7 @@ def estimate_ground_planes(base_dir, plane_method=0, specific_idx=-1):
         # Remove nan points
         nan_mask = ~np.any(np.isnan(all_points), axis=1)
         point_cloud = all_points[nan_mask].T
+        print("PC shape: ", point_cloud.shape)
 
         ground_points_failed = False
         if plane_method == use_ground_points:
@@ -52,9 +61,13 @@ def estimate_ground_planes(base_dir, plane_method=0, specific_idx=-1):
             else:
                 m = estimate(s)
                 a, b, c, d = m
+                plane = loadKittiPlane(m)
+                ground_points_failed = checkBadSlices(point_cloud, plane, kitti_utils)
         
         if plane_method == ransac or ground_points_failed:
+            print("PC shape: ", point_cloud.shape)
             points = point_cloud.T
+            print(points.shape)
             all_points_near = points[
                 (points[:, 0] > -3.0) &
                 (points[:, 0] < 3.0) &
@@ -63,6 +76,7 @@ def estimate_ground_planes(base_dir, plane_method=0, specific_idx=-1):
                 (points[:, 2] < 10.0) &
                 (points[:, 2] > 2.0)]
             n = all_points_near.shape[0]
+            print("Number of points near: ", n)
             max_iterations = 100
             goal_inliers = n * 0.5
             m, b = run_ransac(all_points_near, lambda x, y: is_inlier(x, y, 0.2), 3, goal_inliers, max_iterations)
@@ -86,7 +100,50 @@ def estimate_ground_planes(base_dir, plane_method=0, specific_idx=-1):
 
         if testing and idx == 2 or specific_idx != -1:
             quit()
-    
+
+#Modified from obj_utils.py in wavedata
+def loadKittiPlane(plane_coeffs):
+    print("Plane coeffs: ", plane_coeffs)
+    plane = np.asarray(plane_coeffs)
+    print(plane)
+
+    # Ensure normal is always facing up.
+    # In Kitti's frame of reference, +y is down
+    if plane[1] > 0:
+        plane = -plane
+
+    # Normalize the plane coefficients
+    norm = np.linalg.norm(plane[0:3])
+    plane = plane / norm
+    return plane
+
+#Returns true (bad) if any slices doesn't hit at least one point (otherwise it will fail in AVOD)
+def checkBadSlices(point_cloud, ground_plane, kitti_utils):
+    num_slices = kitti_utils.bev_generator.num_slices
+    print("kitti num slices: ", num_slices)
+    height_hi_set = kitti_utils.bev_generator.height_hi
+    height_lo_set = kitti_utils.bev_generator.height_lo
+    height_per_division = (height_hi_set - height_lo_set) / num_slices
+    for slice_idx in range(num_slices):
+
+        height_lo = height_lo_set + slice_idx * height_per_division
+        height_hi = height_lo + height_per_division
+
+        slice_filter = kitti_utils.create_slice_filter(
+            point_cloud,
+            kitti_utils.area_extents,
+            ground_plane,
+            height_lo,
+            height_hi)
+
+        # Apply slice filter
+        slice_points = point_cloud.T[slice_filter]
+
+        if len(slice_points) <= 1:
+            print("Found bad slice!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+            return True
+
+    return False
 
 def loadGroundPointsFromFile(idx, ground_points_dir, grid_points_dir):
     file = ground_points_dir + '/%06d.txt' % idx

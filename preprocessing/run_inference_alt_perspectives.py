@@ -18,6 +18,7 @@ from avod.core.evaluator import Evaluator
 
 import estimate_ground_planes
 import create_split
+import save_kitti_predictions
 
 #python run_inference_alt_perspectives.py --checkpoint_name='pyramid_people_gta_40k_constantlr' --ckpt_indices=98 --base_dir='/home/bradenhurl/wavedata-dev/demos/gta/'
 
@@ -70,7 +71,7 @@ def inference(model_config, eval_config,
 
         entity_perspect_dir = altPerspect_dir + entity_str + '/'
 
-        estimate_ground_planes.estimate_ground_planes(entity_perspect_dir, 0)
+        estimate_ground_planes.estimate_ground_planes(entity_perspect_dir, dataset_config, 0)
         create_split.create_split(altPerspect_dir, entity_perspect_dir, entity_str)
 
         # Build the dataset object
@@ -78,8 +79,8 @@ def inference(model_config, eval_config,
                                                      use_defaults=False)
 
         #Switch inference output directory
-        model_config.pred_dir = altPerspect_dir + entity_str + '/predictions/'
-        print("Prediction directory: ", model_config.pred_dir)
+        model_config.paths_config.pred_dir = altPerspect_dir + entity_str + '/predictions/'
+        print("Prediction directory: ", model_config.paths_config.pred_dir)
 
         with tf.Graph().as_default():
             if model_name == 'avod_model':
@@ -97,6 +98,8 @@ def inference(model_config, eval_config,
                                         dataset_config,
                                         eval_config)
             model_evaluator.run_latest_checkpoints()
+
+        save_kitti_predictions.convertPredictionsToKitti(dataset, model_config.paths_config.pred_dir)
 
 
 def main(_):
