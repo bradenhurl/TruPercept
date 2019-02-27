@@ -87,6 +87,7 @@ def load_position(pos_dir, img_idx):
     return pos
 
 
+#Changes gt_detections
 def to_world(gt_detections, perspect_dir, img_idx):
     pos_dir = perspect_dir + '/position_world/'
     gta_position = load_position(pos_dir, img_idx)
@@ -112,7 +113,7 @@ def to_world(gt_detections, perspect_dir, img_idx):
         obj.ry = rot_y
 
 
-
+#Changes gt_detections
 def to_perspective(gt_detections, perspect_dir, img_idx):
     pos_dir = perspect_dir + '/position_world/'
     gta_position = load_position(pos_dir, img_idx)

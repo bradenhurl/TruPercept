@@ -19,6 +19,7 @@ from avod.core.evaluator import Evaluator
 import estimate_ground_planes
 import create_split
 import save_kitti_predictions
+import certainty_utils
 
 #python run_inference_alt_perspectives.py --checkpoint_name='pyramid_people_gta_40k_constantlr' --ckpt_indices=98 --base_dir='/home/bradenhurl/wavedata-dev/demos/gta/'
 
@@ -71,35 +72,36 @@ def inference(model_config, eval_config,
 
         entity_perspect_dir = altPerspect_dir + entity_str + '/'
 
-        estimate_ground_planes.estimate_ground_planes(entity_perspect_dir, dataset_config, 0)
-        create_split.create_split(altPerspect_dir, entity_perspect_dir, entity_str)
+        # estimate_ground_planes.estimate_ground_planes(entity_perspect_dir, dataset_config, 0)
+        # create_split.create_split(altPerspect_dir, entity_perspect_dir, entity_str)
 
-        # Build the dataset object
-        dataset = DatasetBuilder.build_kitti_dataset(dataset_config,
-                                                     use_defaults=False)
+        # # Build the dataset object
+        # dataset = DatasetBuilder.build_kitti_dataset(dataset_config,
+        #                                              use_defaults=False)
 
-        #Switch inference output directory
-        model_config.paths_config.pred_dir = altPerspect_dir + entity_str + '/predictions/'
-        print("Prediction directory: ", model_config.paths_config.pred_dir)
+        # #Switch inference output directory
+        # model_config.paths_config.pred_dir = altPerspect_dir + entity_str + '/predictions/'
+        # print("Prediction directory: ", model_config.paths_config.pred_dir)
 
-        with tf.Graph().as_default():
-            if model_name == 'avod_model':
-                model = AvodModel(model_config,
-                                  train_val_test=eval_config.eval_mode,
-                                  dataset=dataset)
-            elif model_name == 'rpn_model':
-                model = RpnModel(model_config,
-                                 train_val_test=eval_config.eval_mode,
-                                 dataset=dataset)
-            else:
-                raise ValueError('Invalid model name {}'.format(model_name))
+        # with tf.Graph().as_default():
+        #     if model_name == 'avod_model':
+        #         model = AvodModel(model_config,
+        #                           train_val_test=eval_config.eval_mode,
+        #                           dataset=dataset)
+        #     elif model_name == 'rpn_model':
+        #         model = RpnModel(model_config,
+        #                          train_val_test=eval_config.eval_mode,
+        #                          dataset=dataset)
+        #     else:
+        #         raise ValueError('Invalid model name {}'.format(model_name))
 
-            model_evaluator = Evaluator(model,
-                                        dataset_config,
-                                        eval_config)
-            model_evaluator.run_latest_checkpoints()
+        #     model_evaluator = Evaluator(model,
+        #                                 dataset_config,
+        #                                 eval_config)
+        #     model_evaluator.run_latest_checkpoints()
 
-        save_kitti_predictions.convertPredictionsToKitti(dataset, model_config.paths_config.pred_dir)
+        # save_kitti_predictions.convertPredictionsToKitti(dataset, model_config.paths_config.pred_dir)
+        certainty_utils.save_num_points_in_3d_boxes(entity_perspect_dir)
 
 
 def main(_):
