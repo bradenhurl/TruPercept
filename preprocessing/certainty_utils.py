@@ -14,7 +14,6 @@ Z = [0., 0., 1.]
 def save_num_points_in_3d_boxes(base_dir):
     velo_dir = base_dir + 'velodyne'
     certainty_dir = base_dir + 'certainty'
-    labels_dir = base_dir + 'predictions'
     calib_dir = base_dir + 'calib'
 
     files = os.listdir(velo_dir)
@@ -36,10 +35,13 @@ def save_num_points_in_3d_boxes(base_dir):
         point_cloud = all_points[nan_mask].T
         print("PC shape: ", point_cloud.shape)
 
-        pred_dir = base_dir + "predictions"
-        objects = obj_utils.read_labels(pred_dir, idx, results=True)
+        pred_dir = base_dir + "label_2"#"predictions"
+        objects = obj_utils.read_labels(pred_dir, idx)#, results=True)
 
         if objects == None:
+            continue
+        if point_cloud.shape[1] == 0:
+            print("Point cloud failed to load!!!!!!!!!!!!!!!!!!!!!!!!")
             continue
 
         certainty_file = certainty_dir + '/{:06d}.txt'.format(idx)
@@ -58,14 +60,11 @@ def point_to_world(point, gta_position):
 
     matrix = np.vstack((x,y,z))
 
-    # Velodyne is x forward, y left, z up
-    #TODO ensure points are coming from velodyne and this is correct
     rel_pos_GTACam = np.array((point[0], point[2], -point[1])).reshape((1,3))
     rel_pos_WC = np.dot(rel_pos_GTACam, matrix)
     position = gta_position.camPos + rel_pos_WC
-    point_wc = (position[0,0], position[0,1], position[0,2])
 
-    return point_wc
+    return position.reshape((3,))
 
 
 # Checks if a point is between two planes created by a perpendicular unit vector and two points
@@ -73,6 +72,8 @@ def checkDirection(uVec, point, minP, maxP):
     dotPoint = np.dot(point, uVec)
     dotMax = np.dot(maxP, uVec)
     dotMin = np.dot(minP, uVec)
+
+    # print("dotmin, point, max: ", dotMin, dotPoint, dotMax)
 
     if ((dotMax <= dotPoint and dotPoint <= dotMin) or
                 (dotMax >= dotPoint and dotPoint >= dotMin)):
@@ -87,15 +88,51 @@ def in3DBox(point, obj, gta_position):
     right = np.array([0, obj.w, 0])
     up = np.array([0, 0, obj.h])
 
-    forward = point_to_world(forward, gta_position)
-    right = point_to_world(right, gta_position)
-    up = point_to_world(up, gta_position)
+    camPos = np.array([gta_position.camPos[0], gta_position.camPos[1], gta_position.camPos[2]])
+    forward = point_to_world(forward, gta_position) - gta_position.camPos
+    right = point_to_world(right, gta_position) - gta_position.camPos
+    up = point_to_world(up, gta_position) - gta_position.camPos
 
-    rearBotLeft = np.array([obj.t[0] - forward[0] - right[0] - up[0],
-                            obj.t[1] - forward[1] - right[1] - up[1],
-                            obj.t[2] - forward[2] - right[2] - up[2]])
 
-    print(rearBotLeft.shape)
+    objPosition = np.array([obj.t[0], obj.t[1], obj.t[2]])
+    objWorld = point_to_world(objPosition, gta_position)
+
+    rearBotLeft = np.array([objWorld[0] - forward[0] - right[0] - up[0],
+                            objWorld[1] - forward[1] - right[1] - up[1],
+                            objWorld[2] - forward[2] - right[2] - up[2]])
+
+    frontBotLeft = np.array([objWorld[0] + forward[0] - right[0] - up[0],
+                             objWorld[1] + forward[1] - right[1] - up[1],
+                             objWorld[2] + forward[2] - right[2] - up[2]])
+
+    rearTopLeft = np.array([objWorld[0] - forward[0] - right[0] + up[0],
+                            objWorld[1] - forward[1] - right[1] + up[1],
+                            objWorld[2] - forward[2] - right[2] + up[2]])
+
+    rearBotRight = np.array([objWorld[0] - forward[0] + right[0] - up[0],
+                             objWorld[1] - forward[1] + right[1] - up[1],
+                             objWorld[2] - forward[2] + right[2] - up[2]])
+
+
+    u = (frontBotLeft - rearBotLeft) / np.linalg.norm(frontBotLeft - rearBotLeft)
+    v = (rearTopLeft - rearBotLeft) / np.linalg.norm(rearTopLeft - rearBotLeft)
+    w = (rearBotRight - rearBotLeft) / np.linalg.norm(rearBotRight - rearBotLeft)
+
+    # print("Forward: ", forward)
+    # print("Obj world: ", objWorld)
+    # print("world point: ", world_point)
+    # print("Obj: ", objWorld)
+    # print("RearBotLeft: ", rearBotLeft)
+    # print("u,v,w: ", u, v, w)
+
+    if not checkDirection(u, world_point, rearBotLeft, frontBotLeft):
+        return False
+    if not checkDirection(v, world_point, rearBotLeft, rearTopLeft):
+        return False
+    if not checkDirection(w, world_point, rearBotLeft, rearBotRight):
+        return False
+
+    return True
 
 
 def numPointsIn3DBox(obj, point_cloud, perspect_dir, img_idx):
@@ -107,5 +144,12 @@ def numPointsIn3DBox(obj, point_cloud, perspect_dir, img_idx):
     for idx in range(0, point_cloud.shape[0]):
         if in3DBox(point_cloud[idx, :], obj, gta_position):
             point_count = point_count + 1
+
+    # For testing individual points
+    # point = np.array([obj.t[0], obj.t[1]+ (obj.l - 1)/2, obj.t[2]])
+    # result = in3DBox(point, obj, gta_position)
+    # print("Result is: ", result)
+
+    print("Point count: ", point_count)
 
     return point_count
