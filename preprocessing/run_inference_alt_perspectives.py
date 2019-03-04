@@ -26,8 +26,9 @@ import certainty_utils
 
 def inference(model_config, eval_config,
               dataset_config, base_dir,
-              ckpt_indices):
+              ckpt_indices, additional_cls):
 
+    print("Additional class: ", additional_cls)
     # Overwrite the defaults
     dataset_config = config_builder.proto_to_obj(dataset_config)
 
@@ -72,36 +73,37 @@ def inference(model_config, eval_config,
 
         entity_perspect_dir = altPerspect_dir + entity_str + '/'
 
-        # estimate_ground_planes.estimate_ground_planes(entity_perspect_dir, dataset_config, 0)
-        # create_split.create_split(altPerspect_dir, entity_perspect_dir, entity_str)
+        if not additional_cls:
+            estimate_ground_planes.estimate_ground_planes(entity_perspect_dir, dataset_config, 0)
+        create_split.create_split(altPerspect_dir, entity_perspect_dir, entity_str)
 
-        # # Build the dataset object
-        # dataset = DatasetBuilder.build_kitti_dataset(dataset_config,
-        #                                              use_defaults=False)
+        # Build the dataset object
+        dataset = DatasetBuilder.build_kitti_dataset(dataset_config,
+                                                     use_defaults=False)
 
-        # #Switch inference output directory
-        # model_config.paths_config.pred_dir = altPerspect_dir + entity_str + '/predictions/'
-        # print("Prediction directory: ", model_config.paths_config.pred_dir)
+        #Switch inference output directory
+        model_config.paths_config.pred_dir = altPerspect_dir + entity_str + '/predictions/'
+        print("Prediction directory: ", model_config.paths_config.pred_dir)
 
-        # with tf.Graph().as_default():
-        #     if model_name == 'avod_model':
-        #         model = AvodModel(model_config,
-        #                           train_val_test=eval_config.eval_mode,
-        #                           dataset=dataset)
-        #     elif model_name == 'rpn_model':
-        #         model = RpnModel(model_config,
-        #                          train_val_test=eval_config.eval_mode,
-        #                          dataset=dataset)
-        #     else:
-        #         raise ValueError('Invalid model name {}'.format(model_name))
+        with tf.Graph().as_default():
+            if model_name == 'avod_model':
+                model = AvodModel(model_config,
+                                  train_val_test=eval_config.eval_mode,
+                                  dataset=dataset)
+            elif model_name == 'rpn_model':
+                model = RpnModel(model_config,
+                                 train_val_test=eval_config.eval_mode,
+                                 dataset=dataset)
+            else:
+                raise ValueError('Invalid model name {}'.format(model_name))
 
-        #     model_evaluator = Evaluator(model,
-        #                                 dataset_config,
-        #                                 eval_config)
-        #     model_evaluator.run_latest_checkpoints()
+            model_evaluator = Evaluator(model,
+                                        dataset_config,
+                                        eval_config)
+            model_evaluator.run_latest_checkpoints()
 
-        # save_kitti_predictions.convertPredictionsToKitti(dataset, model_config.paths_config.pred_dir)
-        certainty_utils.save_num_points_in_3d_boxes(entity_perspect_dir)
+        save_kitti_predictions.convertPredictionsToKitti(dataset, model_config.paths_config.pred_dir, additional_cls)
+        certainty_utils.save_num_points_in_3d_boxes(entity_perspect_dir, additional_cls)
 
 
 def main(_):
@@ -113,6 +115,7 @@ def main(_):
     # --ckpt_indices=50 100 112
     # Optional arg:
     # --device=0
+    # --additional_cls=False
 
     parser.add_argument('--checkpoint_name',
                         type=str,
@@ -142,6 +145,15 @@ def main(_):
                         default='0',
                         help='CUDA device id')
 
+    parser.add_argument('--additional_cls',
+                        type=bool,
+                        dest='additional_cls',
+                        default=False,
+                        help='If detections are from an additional class\
+                        i.e. another class has already been pre-processed.')
+
+
+
     args = parser.parse_args()
     if len(sys.argv) == 1:
         parser.print_help()
@@ -160,7 +172,7 @@ def main(_):
     os.environ['CUDA_VISIBLE_DEVICES'] = args.device
     inference(model_config, eval_config,
               dataset_config, args.base_dir,
-              args.ckpt_indices)
+              args.ckpt_indices, args.additional_cls)
 
 
 if __name__ == '__main__':

@@ -11,10 +11,23 @@ X = [1., 0., 0.]
 Y = [0., 1., 0.]
 Z = [0., 0., 1.]
 
-def save_num_points_in_3d_boxes(base_dir):
+def save_num_points_in_3d_boxes(base_dir, additional_cls):
+
     velo_dir = base_dir + 'velodyne'
     certainty_dir = base_dir + 'certainty'
     calib_dir = base_dir + 'calib'
+
+    open_mode = 'w+'
+    if additional_cls:
+        open_mode = 'a+'
+    elif os.path.exists(certainty_dir):
+        for the_file in os.listdir(certainty_dir):
+            file_path = os.path.join(certainty_dir, the_file)
+            try:
+                if os.path.isfile(file_path):
+                    os.unlink(file_path)
+            except Exception as e:
+                print(e)
 
     files = os.listdir(velo_dir)
     num_files = len(files)
@@ -35,21 +48,31 @@ def save_num_points_in_3d_boxes(base_dir):
         point_cloud = all_points[nan_mask].T
         print("PC shape: ", point_cloud.shape)
 
-        pred_dir = base_dir + "label_2"#"predictions"
+        pred_dir = base_dir + "predictions"
         objects = obj_utils.read_labels(pred_dir, idx)#, results=True)
 
         if objects == None:
             continue
         if point_cloud.shape[1] == 0:
+            print("Base dir: ", base_dir)
             print("Point cloud failed to load!!!!!!!!!!!!!!!!!!!!!!!!")
-            continue
+            all_points = read_lidar(filepath)
+            if point_cloud.shape[1] == 0:
+                print("Point cloud failed to load2!!!!!!!!!!!!!!!!!!!!!!!!")
+                continue
+            print("Point cloud load2 successful!!!!!!!!!!!!!!!!!!!!!!!!")
 
         certainty_file = certainty_dir + '/{:06d}.txt'.format(idx)
-        with open(certainty_file, 'w+') as f:
+        with open(certainty_file, open_mode) as f:
             for obj in objects:
                 num_points = numPointsIn3DBox(obj, point_cloud, base_dir, idx)
-
                 f.write('{}\n'.format(num_points))
+
+            #TODO Speed up by passing list
+            # num_points_list = numPointsIn3DBox(objects, point_cloud, base_dir, idx)
+
+            # for num_points in num_points_list:
+            #     f.write('{}\n'.format(num_points))
         
 
 # Takes a point or vector in cam coordinates. Returns it in world coordinates (wc)
@@ -153,3 +176,40 @@ def numPointsIn3DBox(obj, point_cloud, perspect_dir, img_idx):
     print("Point count: ", point_count)
 
     return point_count
+
+
+def read_lidar(filepath):
+    """Reads in PointCloud from Kitti Dataset.
+        Keyword Arguments:
+        ------------------
+        velo_dir : Str
+                    Directory of the velodyne files.
+        img_idx : Int
+                  Index of the image.
+        Returns:
+        --------
+        x : Numpy Array
+                   Contains the x coordinates of the pointcloud.
+        y : Numpy Array
+                   Contains the y coordinates of the pointcloud.
+        z : Numpy Array
+                   Contains the z coordinates of the pointcloud.
+        i : Numpy Array
+                   Contains the intensity values of the pointcloud.
+        [] : if file is not found
+        """
+
+    if os.path.exists(filepath):
+        with open(filepath, 'rb') as fid:
+            data_array = np.fromfile(fid, np.single)
+
+        xyzi = data_array.reshape(-1, 4)
+
+        x = xyzi[:, 0]
+        y = xyzi[:, 1]
+        z = xyzi[:, 2]
+        i = xyzi[:, 3]
+
+        return x, y, z, i
+    else:
+        return []

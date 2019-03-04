@@ -3,6 +3,7 @@ import sys
 
 import numpy as np
 import os
+import shutil
 from PIL import Image
 
 from wavedata.tools.core import calib_utils
@@ -13,10 +14,13 @@ from avod.builders.dataset_builder import DatasetBuilder
 from avod.core import box_3d_projector
 
 
-def convertPredictionsToKitti(dataset, predictions_root_dir):
+def convertPredictionsToKitti(dataset, predictions_root_dir, additional_cls):
     """ Converts a set of network predictions into text files required for
     KITTI evaluation.
     """
+    open_mode = 'w+'
+    if additional_cls:
+        open_mode = 'a+'
 
     ##############################
     # Options
@@ -246,8 +250,18 @@ def convertPredictionsToKitti(dataset, predictions_root_dir):
                 np.savetxt(kitti_predictions_2d_file_path, kitti_text_2d,
                            newline='\r\n', fmt='%s')
             if save_3d:
-                np.savetxt(kitti_predictions_3d_file_path, kitti_text_3d,
-                           newline='\r\n', fmt='%s')
+                with open(kitti_predictions_3d_file_path, open_mode) as f:
+                    np.savetxt(f, kitti_text_3d,
+                               newline='\r\n', fmt='%s')
 
         print('\nNum valid:', num_valid_samples)
         print('Num samples:', num_samples)
+
+    for the_file in os.listdir(predictions_root_dir):
+        file_path = os.path.join(predictions_root_dir, the_file)
+        try:
+            if os.path.isdir(file_path):
+                shutil.rmtree(file_path)
+                print("Removing folder: ", file_path)
+        except Exception as e:
+            print(e)
