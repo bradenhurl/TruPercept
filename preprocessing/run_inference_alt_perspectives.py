@@ -33,6 +33,7 @@ def inference(model_config, eval_config,
     dataset_config = config_builder.proto_to_obj(dataset_config)
 
     dataset_config.data_dir = base_dir
+    dataset_config.dataset_dir = base_dir
 
     dataset_config.data_split = 'train'
     dataset_config.data_split_dir = 'training'
@@ -52,59 +53,62 @@ def inference(model_config, eval_config,
     dataset_config.aug_list = []
 
     # Setup the model
-    model_name = model_config.model_name
     # Overwrite repeated field
     model_config = config_builder.proto_to_obj(model_config)
     # Switch path drop off during evaluation
     model_config.path_drop_probabilities = [1.0, 1.0]
 
+    inferPerspective(model_config, eval_config, dataset_config, additional_cls)
+
     altPerspect_dir = base_dir + dataset_config.data_split_dir + '/alt_perspective/'
-    dataset_config.dataset_dir = base_dir
 
     for entity_str in os.listdir(altPerspect_dir):
         if not os.path.isdir(os.path.join(altPerspect_dir, entity_str)):
             continue
+
         dataset_config.data_split = entity_str
         dataset_config.data_split_dir = entity_str
         dataset_config.dataset_dir = altPerspect_dir
-        filename = altPerspect_dir + '/{}.txt'.format(entity_str)
-        with open(filename, 'w+') as f:
-            print("Infering perspective: ", entity_str)
+        inferPerspective(model_config, eval_config, dataset_config, additional_cls)
 
-        entity_perspect_dir = altPerspect_dir + entity_str + '/'
+def inferPerspective(model_config, eval_config, dataset_config, additional_cls):
+    model_name = model_config.model_name
 
-        if not additional_cls:
-            estimate_ground_planes.estimate_ground_planes(entity_perspect_dir, dataset_config, 0)
-        create_split.create_split(altPerspect_dir, entity_perspect_dir, entity_str)
+    print("Inferring perspective: ", dataset_config.data_split)
 
-        # Build the dataset object
-        dataset = DatasetBuilder.build_kitti_dataset(dataset_config,
-                                                     use_defaults=False)
+    entity_perspect_dir = dataset_config.dataset_dir + dataset_config.data_split_dir + '/'
 
-        #Switch inference output directory
-        model_config.paths_config.pred_dir = altPerspect_dir + entity_str + '/predictions/'
-        print("Prediction directory: ", model_config.paths_config.pred_dir)
+    if not additional_cls:
+        estimate_ground_planes.estimate_ground_planes(entity_perspect_dir, dataset_config, 0)
+    create_split.create_split(dataset_config.dataset_dir, entity_perspect_dir, dataset_config.data_split)
 
-        with tf.Graph().as_default():
-            if model_name == 'avod_model':
-                model = AvodModel(model_config,
-                                  train_val_test=eval_config.eval_mode,
-                                  dataset=dataset)
-            elif model_name == 'rpn_model':
-                model = RpnModel(model_config,
-                                 train_val_test=eval_config.eval_mode,
-                                 dataset=dataset)
-            else:
-                raise ValueError('Invalid model name {}'.format(model_name))
+    # Build the dataset object
+    dataset = DatasetBuilder.build_kitti_dataset(dataset_config,
+                                                 use_defaults=False)
 
-            model_evaluator = Evaluator(model,
-                                        dataset_config,
-                                        eval_config)
-            model_evaluator.run_latest_checkpoints()
+    #Switch inference output directory
+    model_config.paths_config.pred_dir = entity_perspect_dir + '/predictions/'
+    print("Prediction directory: ", model_config.paths_config.pred_dir)
 
-        save_kitti_predictions.convertPredictionsToKitti(dataset, model_config.paths_config.pred_dir, additional_cls)
-        certainty_utils.save_num_points_in_3d_boxes(entity_perspect_dir, additional_cls)
+    with tf.Graph().as_default():
+        if model_name == 'avod_model':
+            model = AvodModel(model_config,
+                              train_val_test=eval_config.eval_mode,
+                              dataset=dataset)
+        elif model_name == 'rpn_model':
+            model = RpnModel(model_config,
+                             train_val_test=eval_config.eval_mode,
+                             dataset=dataset)
+        else:
+            raise ValueError('Invalid model name {}'.format(model_name))
 
+        model_evaluator = Evaluator(model,
+                                    dataset_config,
+                                    eval_config)
+        model_evaluator.run_latest_checkpoints()
+
+    save_kitti_predictions.convertPredictionsToKitti(dataset, model_config.paths_config.pred_dir, additional_cls)
+    certainty_utils.save_num_points_in_3d_boxes(entity_perspect_dir, additional_cls)
 
 def main(_):
     parser = argparse.ArgumentParser()
