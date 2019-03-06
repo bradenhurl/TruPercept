@@ -150,8 +150,8 @@ def main(_):
                         help='CUDA device id')
 
     parser.add_argument('--additional_cls',
-                        type=bool,
                         dest='additional_cls',
+                        action='store_true',
                         default=False,
                         help='If detections are from an additional class\
                         i.e. another class has already been pre-processed.')
