@@ -22,6 +22,8 @@ def estimate_ground_planes(base_dir, dataset_config, plane_method=0, specific_id
         plane_dir = plane_dir + '_ransac'
     ground_points_dir = base_dir + 'ground_points'
     grid_points_dir = base_dir + 'ground_points_grid'
+    calib_dir = base_dir + 'calib'
+
     files = os.listdir(velo_dir)
     num_files = len(files)
     file_idx = 0
@@ -44,12 +46,9 @@ def estimate_ground_planes(base_dir, dataset_config, plane_method=0, specific_id
         planes_file = plane_dir + '/%06d.txt' % idx
         print("Index: ", idx)
 
-        x,y,z,i = read_lidar(filepath)
-        all_points = np.vstack((-y, -z, x)).T
-
-        # Remove nan points
-        nan_mask = ~np.any(np.isnan(all_points), axis=1)
-        point_cloud = all_points[nan_mask].T
+        lidar_point_cloud = obj_utils.get_lidar_point_cloud(idx, calib_dir, velo_dir)
+        # Reshape points into N x [x, y, z]
+        point_cloud = np.array(lidar_point_cloud).transpose().reshape((-1,3)).T
         print("PC shape: ", point_cloud.shape)
 
         ground_points_failed = False
