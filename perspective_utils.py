@@ -87,8 +87,8 @@ def load_position(pos_dir, img_idx):
     return pos
 
 
-#Changes gt_detections
-def to_world(gt_detections, perspect_dir, img_idx):
+#Changes objects
+def to_world(objects, perspect_dir, img_idx):
     pos_dir = perspect_dir + '/position_world/'
     gta_position = load_position(pos_dir, img_idx)
 
@@ -98,7 +98,7 @@ def to_world(gt_detections, perspect_dir, img_idx):
 
     matrix = np.vstack((x,y,z))
 
-    for obj in gt_detections:
+    for obj in objects:
         rel_pos_GTACam = np.array((obj.t[0], obj.t[2], -obj.t[1])).reshape((1,3))
         rel_pos_WC = np.dot(rel_pos_GTACam, matrix)
         position = gta_position.camPos + rel_pos_WC
@@ -113,14 +113,14 @@ def to_world(gt_detections, perspect_dir, img_idx):
         obj.ry = rot_y
 
 
-#Changes gt_detections
-def to_perspective(gt_detections, perspect_dir, img_idx):
+#Changes objects
+def to_perspective(objects, perspect_dir, img_idx):
     pos_dir = perspect_dir + '/position_world/'
     gta_position = load_position(pos_dir, img_idx)
 
     mat = gta_position.matrix
 
-    for obj in gt_detections:
+    for obj in objects:
         rel_pos_WC = np.array(obj.t).reshape((1,3)) - gta_position.camPos
         rel_pos_GTACam = np.dot(gta_position.matrix, rel_pos_WC.T)
         obj.t = (rel_pos_GTACam[0,0], -rel_pos_GTACam[2,0], rel_pos_GTACam[1,0])
@@ -134,18 +134,37 @@ def to_perspective(gt_detections, perspect_dir, img_idx):
         obj.ry = rot_y
 
 
-def get_detections(main_perspect_dir, altPerspect_dir, img_idx, entity_str):
+def get_detections(main_perspect_dir, altPerspect_dir, img_idx, entity_str, results=False):
     perspect_idx = int(entity_str)
     perspect_dir = altPerspect_dir + entity_str
-    label_dir = perspect_dir + '/label_2/'
+    if results:
+        label_dir = perspect_dir + '/predictions/'
+    else:
+        label_dir = perspect_dir + '/label_2/'
 
     label_path = label_dir + '{:06d}.txt'.format(img_idx)
     if not os.path.isfile(label_path):
         return None
 
-    gt_detections = obj_utils.read_labels(label_dir, img_idx)
+    detections = obj_utils.read_labels(label_dir, img_idx, results=results)
 
-    to_world(gt_detections, perspect_dir, img_idx)
-    to_perspective(gt_detections, main_perspect_dir, img_idx)
+    if detections != None:
+        to_world(detections, perspect_dir, img_idx)
+        to_perspective(detections, main_perspect_dir, img_idx)
 
-    return gt_detections
+    return detections
+
+# Retrieves list of predictions for nearby vehicles if they 
+def get_all_detections(main_perspect_dir, idx, results):
+    all_perspect_detections = []
+
+    altPerspect_dir = main_perspect_dir + '/alt_perspective/'
+
+    for entity_str in os.listdir(altPerspect_dir):
+        if not os.path.isdir(os.path.join(altPerspect_dir, entity_str)):
+            continue
+        
+        perspect_detections = get_detections(main_perspect_dir, altPerspect_dir, idx, entity_str, results)
+        all_perspect_detections.append(perspect_detections)
+
+    return all_perspect_detections
