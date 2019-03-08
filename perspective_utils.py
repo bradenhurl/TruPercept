@@ -2,6 +2,8 @@ import numpy as np
 import math
 import os
 from wavedata.tools.obj_detection import obj_utils
+import certainty_utils
+import trust_utils
 
 X = [1., 0., 0.]
 Y = [0., 1., 0.]
@@ -50,15 +52,15 @@ class GTAPosition:
             return True
 
 
-def load_position(pos_dir, img_idx):
+def load_position(pos_dir, idx):
     # Extract the list
-    if os.stat(pos_dir + "/%06d.txt" % img_idx).st_size == 0:
+    if os.stat(pos_dir + "/%06d.txt" % idx).st_size == 0:
         print("Failed to load position information!")
         return None
 
     col_count = 3
 
-    p = np.loadtxt(pos_dir + "/%06d.txt" % img_idx, delimiter=' ',
+    p = np.loadtxt(pos_dir + "/%06d.txt" % idx, delimiter=' ',
                     dtype=str,
                     usecols=np.arange(start=0, step=1, stop=col_count))
 
@@ -88,9 +90,9 @@ def load_position(pos_dir, img_idx):
 
 
 #Changes objects
-def to_world(objects, perspect_dir, img_idx):
+def to_world(objects, perspect_dir, idx):
     pos_dir = perspect_dir + '/position_world/'
-    gta_position = load_position(pos_dir, img_idx)
+    gta_position = load_position(pos_dir, idx)
 
     x = np.dot(X, gta_position.matrix)
     y = np.dot(Y, gta_position.matrix)
@@ -114,9 +116,9 @@ def to_world(objects, perspect_dir, img_idx):
 
 
 #Changes objects
-def to_perspective(objects, perspect_dir, img_idx):
+def to_perspective(objects, perspect_dir, idx):
     pos_dir = perspect_dir + '/position_world/'
-    gta_position = load_position(pos_dir, img_idx)
+    gta_position = load_position(pos_dir, idx)
 
     mat = gta_position.matrix
 
@@ -134,7 +136,7 @@ def to_perspective(objects, perspect_dir, img_idx):
         obj.ry = rot_y
 
 
-def get_detections(main_perspect_dir, altPerspect_dir, img_idx, entity_str, results=False):
+def get_detections(main_perspect_dir, altPerspect_dir, idx, entity_str, results=False):
     perspect_idx = int(entity_str)
     perspect_dir = altPerspect_dir + entity_str
     if results:
@@ -142,19 +144,21 @@ def get_detections(main_perspect_dir, altPerspect_dir, img_idx, entity_str, resu
     else:
         label_dir = perspect_dir + '/label_2/'
 
-    label_path = label_dir + '{:06d}.txt'.format(img_idx)
+    label_path = label_dir + '{:06d}.txt'.format(idx)
     if not os.path.isfile(label_path):
         return None
 
-    detections = obj_utils.read_labels(label_dir, img_idx, results=results)
+    detections = obj_utils.read_labels(label_dir, idx, results=results)
 
     if detections != None:
-        to_world(detections, perspect_dir, img_idx)
-        to_perspective(detections, main_perspect_dir, img_idx)
+        to_world(detections, perspect_dir, idx)
+        to_perspective(detections, main_perspect_dir, idx)
+
+        return trust_utils.createTrustObjects(perspect_dir, idx, int(entity_str), detections)
 
     return detections
 
-# Retrieves list of predictions for nearby vehicles if they 
+# Returns list of predictions for nearby vehicles
 def get_all_detections(main_perspect_dir, idx, results):
     all_perspect_detections = []
 
@@ -163,8 +167,14 @@ def get_all_detections(main_perspect_dir, idx, results):
     for entity_str in os.listdir(altPerspect_dir):
         if not os.path.isdir(os.path.join(altPerspect_dir, entity_str)):
             continue
-        
+
         perspect_detections = get_detections(main_perspect_dir, altPerspect_dir, idx, entity_str, results)
+
+        self_detection = get_self_detection()
+        if perspect_detections == None:
+            perspect_detections = [self_detection]
+        else:
+            perspect_detections.append(self_detection)
         all_perspect_detections.append(perspect_detections)
 
     return all_perspect_detections

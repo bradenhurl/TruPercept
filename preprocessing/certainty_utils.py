@@ -11,6 +11,20 @@ X = [1., 0., 0.]
 Y = [0., 1., 0.]
 Z = [0., 0., 1.]
 
+def load_certainties(c_dir, idx):
+    filepath = c_dir + '/certainty/{:06d}.txt'.format(idx)
+    print("Certainty dir/filepath: ", c_dir, filepath)
+
+    if os.path.exists(filepath):
+        with open(filepath, 'rb') as fid:
+            data_array = np.fromfile(fid, np.single)
+            print(data_array)
+            data_array.reshape(-1)
+            print("Found certainties: ", data_array)
+            return data_array
+
+    return []
+
 def save_num_points_in_3d_boxes(base_dir, additional_cls):
 
     velo_dir = base_dir + 'velodyne'
