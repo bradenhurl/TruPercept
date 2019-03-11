@@ -74,13 +74,13 @@ def inference(model_config, eval_config,
 def inferPerspective(model_config, eval_config, dataset_config, additional_cls):
     model_name = model_config.model_name
 
-    print("Inferring perspective: ", dataset_config.data_split)
-
     entity_perspect_dir = dataset_config.dataset_dir + dataset_config.data_split_dir + '/'
 
+    print("Inferring perspective: ", dataset_config.data_split, entity_perspect_dir, dataset_config.dataset_dir)
+
+    create_split.create_split(dataset_config.dataset_dir, entity_perspect_dir, dataset_config.data_split)
     if not additional_cls:
         estimate_ground_planes.estimate_ground_planes(entity_perspect_dir, dataset_config, 0)
-    create_split.create_split(dataset_config.dataset_dir, entity_perspect_dir, dataset_config.data_split)
 
     # Build the dataset object
     dataset = DatasetBuilder.build_kitti_dataset(dataset_config,
