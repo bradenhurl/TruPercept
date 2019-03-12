@@ -146,17 +146,15 @@ def get_detections(main_perspect_dir, altPerspect_dir, idx, entity_str, results=
 
     label_path = label_dir + '{:06d}.txt'.format(idx)
     if not os.path.isfile(label_path):
-        return None
+        return []
 
     detections = obj_utils.read_labels(label_dir, idx, results=results)
-
-    if detections != None:
+    if detections is not None:
         to_world(detections, perspect_dir, idx)
         to_perspective(detections, main_perspect_dir, idx)
-
         return trust_utils.createTrustObjects(perspect_dir, idx, int(entity_str), detections)
 
-    return detections
+    return []
 
 # Returns list of predictions for nearby vehicles
 def get_all_detections(main_perspect_dir, idx, results):
@@ -170,11 +168,9 @@ def get_all_detections(main_perspect_dir, idx, results):
 
         perspect_detections = get_detections(main_perspect_dir, altPerspect_dir, idx, entity_str, results)
 
-        self_detection = get_self_detection()
-        if perspect_detections == None:
-            perspect_detections = [self_detection]
-        else:
-            perspect_detections.append(self_detection)
+        self_detection = trust_utils.getEgoTrustObject(main_perspect_dir, idx, int(entity_str))
+        perspect_detections.append(self_detection)
+
         all_perspect_detections.append(perspect_detections)
 
     return all_perspect_detections

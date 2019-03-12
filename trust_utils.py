@@ -18,6 +18,13 @@ class TrustDetection:
         self.matched = False
         self.trust = 0.
 
+def getEgoTrustObject(base_dir, idx, entity_id):
+    ego_dir = base_dir + '/ego_object/'
+    ego_detection = obj_utils.read_labels(ego_dir, idx)
+    ego_detection[0].score = 1.0
+    ego_tDet = TrustDetection(entity_id, ego_detection, 1.0)
+    return ego_tDet
+
 
 def createTrustObjects(base_dir, idx, entity_id, detections):
 
@@ -32,5 +39,12 @@ def createTrustObjects(base_dir, idx, entity_id, detections):
         tDet = TrustDetection(entity_id, det, certainties[c_idx])
         trust_detections.append(tDet)
         c_idx += 1
+
+    # Add ego object (self)
+    ego_dir = base_dir + '/ego_object/'
+    ego_detection = obj_utils.read_labels(ego_dir, idx)
+    ego_detection[0].score = 1.0
+    ego_tDet = getEgoTrustObject(base_dir, idx, entity_id)
+    trust_detections.append(ego_tDet)
 
     return trust_detections
