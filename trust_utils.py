@@ -34,7 +34,7 @@ def createTrustObjects(base_dir, idx, entity_id, detections):
     trust_detections.append(ego_tDet)
 
     # Convert detections to trust objects
-    if detections is not None:
+    if detections is not None and len(detections) > 0:
         certainties = certainty_utils.load_certainties(base_dir, idx)
 
         c_idx = 0
