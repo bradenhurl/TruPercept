@@ -13,14 +13,11 @@ Z = [0., 0., 1.]
 
 def load_certainties(c_dir, idx):
     filepath = c_dir + '/certainty/{:06d}.txt'.format(idx)
-    print("Certainty dir/filepath: ", c_dir, filepath)
 
     if os.path.exists(filepath):
         with open(filepath, 'r') as fid:
             data_array = np.loadtxt(fid)
-            print(data_array)
             data_array.reshape(-1)
-            print("Found certainties: ", data_array)
             return data_array
 
     return []
