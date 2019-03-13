@@ -166,11 +166,10 @@ def get_all_detections(main_perspect_dir, idx, results):
         if not os.path.isdir(os.path.join(altPerspect_dir, entity_str)):
             continue
 
+        # get_detections includes ego (self) detection
         perspect_detections = get_detections(main_perspect_dir, altPerspect_dir, idx, entity_str, results)
-
-        self_detection = trust_utils.getEgoTrustObject(main_perspect_dir, idx, int(entity_str))
-        perspect_detections.append(self_detection)
-
-        all_perspect_detections.append(perspect_detections)
+        if perspect_detections is not None and len(perspect_detections) > 0:
+            for obj in perspect_detections:
+                all_perspect_detections.append(obj)
 
     return all_perspect_detections
