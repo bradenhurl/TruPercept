@@ -32,13 +32,13 @@ def main():
         ego_trust_objs = trust_utils.createTrustObjects(dataset_dir, idx, trust_utils.self_id, ego_preds)
 
         # Load predictions from nearby vehicles
-        perspect_preds = p_utils.get_all_detections(dataset_dir, idx, results=True)
+        perspect_trust_objs = p_utils.get_all_detections(dataset_dir, idx, results=True)
 
         # Add fake detections to perspect_preds
 
         # Find matching pairs
         # Returns a list of lists of objects which have been matched
-        matching_objs = matching_utils.match_iou3ds(ego_preds, perspect_preds)
+        matching_objs = matching_utils.match_iou3ds(ego_trust_objs, perspect_trust_objs)
 
         # Calculate trust from received detections
 
@@ -47,8 +47,9 @@ def main():
         # Add to vehicle trust
 
         print("Index: ", idx)
-        print("Ego preds: ", ego_preds)
-        print("perspect_preds: ", perspect_preds)
+        print("Ego preds: ", ego_trust_objs)
+        print("perspect_preds: ", perspect_trust_objs)
+        print("Matching objs: ", matching_objs)
 
         sys.stdout.write("\rWorking on idx: {} / {}".format(
                 file_idx + 1, num_files))
