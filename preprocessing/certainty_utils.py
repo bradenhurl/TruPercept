@@ -16,8 +16,8 @@ def load_certainties(c_dir, idx):
 
     if os.path.exists(filepath):
         with open(filepath, 'r') as fid:
-            data_array = np.loadtxt(fid)
-            data_array.reshape(-1)
+            data = np.loadtxt(fid)
+            data_array = np.array(data, ndmin=1)
             return data_array
 
     return []
