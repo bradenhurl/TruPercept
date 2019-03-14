@@ -16,6 +16,7 @@ def main():
     calib_dir = dataset_dir + 'calib'
     predictions_dir = dataset_dir + 'predictions'
     output_dir = dataset_dir + 'predictions_tru_percept'
+    matching_dir = dataset_dir + 'matching_test'
 
     # Do this for every sample index
     velo_files = os.listdir(velo_dir)
@@ -38,7 +39,19 @@ def main():
 
         # Find matching pairs
         # Returns a list of lists of objects which have been matched
-        matching_objs = matching_utils.match_iou3ds(ego_trust_objs, perspect_trust_objs)
+        perspect_trust_objs.insert(0, ego_trust_objs)
+        matching_objs = matching_utils.match_iou3ds(perspect_trust_objs)
+
+        # Print matching objects to test with visualization
+        # out_file = matching_dir + '/{:06d}.txt'.format(idx)
+        # if os.path.exists(out_file):
+        #     os.remove(out_file)
+        # else:
+        #     print("Can not delete the file as it doesn't exists")
+        # for match_list in matching_objs:
+        #     if len(match_list) > 1:
+        #         objs = trust_utils.strip_objs(match_list)
+        #         save_filtered_objs(objs, idx, matching_dir)
 
         # Calculate trust from received detections
 
@@ -46,15 +59,25 @@ def main():
 
         # Add to vehicle trust
 
-        print("Index: ", idx)
-        print("Ego preds: ", ego_trust_objs)
-        print("perspect_preds: ", perspect_trust_objs)
-        print("Matching objs: ", matching_objs)
-
         sys.stdout.write("\rWorking on idx: {} / {}".format(
                 file_idx + 1, num_files))
         sys.stdout.flush()
         file_idx = file_idx + 1
+
+
+
+def save_filtered_objs(gt_objs, idx, out_dir):
+    out_file = out_dir + '/{:06d}.txt'.format(idx)
+
+    with open(out_file, 'a+') as f:
+        if gt_objs is None:
+            return
+        for obj in gt_objs:
+            kitti_text_3d = '{} {} {} {} {:d} {:d} {:d} {:d} {} {} {} {} {} {} {}'.format(obj.type,
+                obj.truncation, obj.occlusion, obj.alpha, int(obj.x1), int(obj.y1), int(obj.x2),
+                int(obj.y2), obj.h, obj.w, obj.l, obj.t[0], obj.t[1], obj.t[2], obj.ry)
+
+            f.write('%s\n' % kitti_text_3d)
 
 
 main()
