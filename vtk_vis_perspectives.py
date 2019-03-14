@@ -13,6 +13,7 @@ from wavedata.tools.visualization.vtk_boxes import VtkBoxes
 from wavedata.tools.visualization import vis_utils
 
 import perspective_utils
+import trust_utils
 
 import vtk
 
@@ -27,6 +28,8 @@ def main():
     dataset_dir = os.path.expanduser('~') + '/wavedata-dev/demos/gta'
     #dataset_dir = os.path.expanduser('~') + '/Kitti/object/'
 
+    #Set to true to see predictions (results) from all perspectives
+    use_results = True
     altPerspective = False
     perspID = 30210
     perspStr = '%07d' % perspID
@@ -43,9 +46,13 @@ def main():
         else:
             dataset_dir = '/media/bradenhurl/hd/data/'
     image_dir = os.path.join(dataset_dir, data_set) + '/image_2'
-    label_dir = os.path.join(dataset_dir, data_set) + '/label_2'
     velo_dir = os.path.join(dataset_dir, data_set) + '/velodyne'
     calib_dir = os.path.join(dataset_dir, data_set) + '/calib'
+
+    if use_results:
+        label_dir = os.path.join(dataset_dir, data_set) + '/predictions'
+    else:
+        label_dir = os.path.join(dataset_dir, data_set) + '/label_2'
 
     base_dir = os.path.join(dataset_dir,data_set)
 
@@ -81,7 +88,7 @@ def main():
 
     fulcrum_of_points = True
     use_intensity = False
-    img_idx = 1
+    img_idx = 2
 
     print('=== Loading image: {:06d}.png ==='.format(img_idx))
     print(image_dir)
@@ -154,15 +161,20 @@ def main():
     print("Voxelized in {} s".format(end_time - start_time))
 
     # Get bounding boxes
-    gt_detections = obj_utils.read_labels(label_dir, img_idx)
+    gt_detections = obj_utils.read_labels(label_dir, img_idx, results=use_results)
     print(len(gt_detections))
 
     #perspective_utils.to_world(gt_detections, base_dir, img_idx)
     #perspective_utils.to_perspective(gt_detections, base_dir, img_idx)
     for entity_str in os.listdir(altPerspect_dir):
-        perspect_detections = perspective_utils.get_detections(base_dir, altPerspect_dir, img_idx, entity_str)
-        if perspect_detections != None:
-            gt_detections = gt_detections + perspect_detections
+        if os.path.isdir(os.path.join(altPerspect_dir, entity_str)):
+            perspect_detections = perspective_utils.get_detections(base_dir, altPerspect_dir, img_idx, entity_str, results=use_results)
+            if perspect_detections != None:
+                if use_results:
+                    stripped_detections = trust_utils.strip_objs(perspect_detections)
+                    gt_detections = gt_detections + stripped_detections
+                else:
+                    gt_detections = gt_detections + perspect_detections
 
     # Create VtkPointCloud for visualization
     vtk_point_cloud = VtkPointCloud()
