@@ -2,7 +2,7 @@ import numpy as np
 import math
 import os
 from wavedata.tools.obj_detection import obj_utils
-import certainty_utils
+import preprocessing.certainty_utils
 import trust_utils
 
 X = [1., 0., 0.]
@@ -149,10 +149,14 @@ def get_detections(main_perspect_dir, altPerspect_dir, idx, entity_str, results=
         return []
 
     detections = obj_utils.read_labels(label_dir, idx, results=results)
+    #TODO Filter objects?
     if detections is not None:
         to_world(detections, perspect_dir, idx)
         to_perspective(detections, main_perspect_dir, idx)
-        return trust_utils.createTrustObjects(perspect_dir, idx, int(entity_str), detections)
+        if results:
+            return trust_utils.createTrustObjects(perspect_dir, idx, int(entity_str), detections)
+        else:
+            return detections
 
     return []
 
@@ -169,7 +173,6 @@ def get_all_detections(main_perspect_dir, idx, results):
         # get_detections includes ego (self) detection
         perspect_detections = get_detections(main_perspect_dir, altPerspect_dir, idx, entity_str, results)
         if perspect_detections is not None and len(perspect_detections) > 0:
-            for obj in perspect_detections:
-                all_perspect_detections.append(obj)
+            all_perspect_detections.append(perspect_detections)
 
     return all_perspect_detections

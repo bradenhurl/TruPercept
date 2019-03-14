@@ -1,5 +1,5 @@
 from wavedata.tools.obj_detection import obj_utils
-import certainty_utils
+import preprocessing.certainty_utils as certainty_utils
 
 self_id = 0
 
@@ -22,6 +22,7 @@ def getEgoTrustObject(base_dir, idx, entity_id):
     ego_dir = base_dir + '/ego_object/'
     ego_detection = obj_utils.read_labels(ego_dir, idx)
     ego_detection[0].score = 1.0
+    # TODO Filter object?
     ego_tDet = TrustDetection(entity_id, ego_detection[0], 1.0)
     return ego_tDet
 
@@ -44,3 +45,11 @@ def createTrustObjects(base_dir, idx, entity_id, detections):
             c_idx += 1
 
     return trust_detections
+
+def strip_objs(trust_objs):
+    stripped_objs = []
+    if trust_objs is not None:
+        for trust_obj in trust_objs:
+            stripped_objs.append(trust_obj.obj)
+
+    return stripped_objs
