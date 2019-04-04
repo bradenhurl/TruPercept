@@ -11,6 +11,11 @@ X = [1., 0., 0.]
 Y = [0., 1., 0.]
 Z = [0., 0., 1.]
 
+# Certainty threshold scores
+# TODO Probabilistic approach to certainty
+gamma_upper = 500
+gamma_lower = 10
+
 def load_certainties(c_dir, idx):
     filepath = c_dir + '/certainty/{:06d}.txt'.format(idx)
 
@@ -21,6 +26,10 @@ def load_certainties(c_dir, idx):
             return data_array
 
     return []
+
+# See certainty eqn in paper
+def certainty_from_num_3d_points(num_points):
+    return min(1.0, (max(0, num_points - gamma_lower) / float(gamma_upper - gamma_lower)))
 
 def save_num_points_in_3d_boxes(base_dir, additional_cls):
 
