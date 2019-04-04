@@ -32,6 +32,9 @@ def main():
         ego_preds = obj_utils.read_labels(predictions_dir, idx, results=True)
         ego_trust_objs = trust_utils.createTrustObjects(dataset_dir, idx, trust_utils.self_id, ego_preds)
 
+        if trust_utils.self_id == 0:
+            trust_utils.self_id = ego_trust_objs[0].id
+
         # Load predictions from nearby vehicles
         perspect_trust_objs = p_utils.get_all_detections(dataset_dir, idx, results=True)
 
@@ -54,10 +57,12 @@ def main():
         #         save_filtered_objs(objs, idx, matching_dir)
 
         # Calculate trust from received detections
+        msg_trusts = trust_utils.get_message_trust_values(matching_objs)
 
         # Adjust predictions
 
-        # Add to vehicle trust
+        # Update vehicle trust values
+        trust_utils.update_trust_values(msg_trusts)
 
         sys.stdout.write("\rWorking on idx: {} / {}".format(
                 file_idx + 1, num_files))

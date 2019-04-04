@@ -2,6 +2,11 @@ from wavedata.tools.obj_detection import obj_utils
 import preprocessing.certainty_utils as certainty_utils
 
 self_id = 0
+DEFAULT_TRUST_VAL = 0.5
+
+# Dictionary for vehicle trust values
+trust_map = {}
+
 
 class TrustDetection:
     """A single detection 
@@ -17,6 +22,15 @@ class TrustDetection:
         self.pointsInBox = points
         self.matched = False
         self.trust = 0.
+
+class VehicleTrust:
+    """The trust object unique per vehicle
+    """
+
+    def __init__(self, entity_id, trust_val, trust_messages):
+        self.id = entity_id
+        self.tVal = trust_val
+        self.messages = trust_messages
 
 def getEgoTrustObject(base_dir, idx, entity_id):
     ego_dir = base_dir + '/ego_object/'
@@ -53,3 +67,21 @@ def strip_objs(trust_objs):
             stripped_objs.append(trust_obj.obj)
 
     return stripped_objs
+
+# todo should we only update trust with messages we are certain of?
+def get_message_trust_values(matching_objs):
+
+    for match_list in matching_objs:
+        if len(matching_objs) > 1:
+            v_id = matching_objs[0].id
+            if v_id in trust_map:
+                trust = trust_map[v_id].trust_val
+            else:
+                trust_map[v_id] = DEFAULT_TRUST_VAL
+
+        for trust_obj in matching_objs:
+            # TODO Need to update based on 
+
+
+def trust_from_message(trust_msg, related_trust_msgs):
+
