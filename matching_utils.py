@@ -39,11 +39,17 @@ def get_iou3d_matches(ego_objs, objs_perspectives):
         return max_ious_3d, max_iou_pred_indices
 
 # Returns a list of lists of objects which have been matched
-def match_iou3ds(trust_objs):
+def match_iou3ds(trust_objs, only_ego_matches):
     matched_objs = []
 
     base_idx = 0
-    for v_idx in range(0,len(trust_objs)):
+
+    #If only_ego_matches only try matching detections from the first trust_obj
+    end_idx = len(trust_objs)
+    if only_ego_matches:
+        end_idx = 1
+
+    for v_idx in range(0,end_idx):
         v_trust_objs = []
 
         # Add lists for all objs from v to matched_objs
