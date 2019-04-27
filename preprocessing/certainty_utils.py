@@ -31,11 +31,12 @@ def load_certainties(c_dir, idx):
 def certainty_from_num_3d_points(num_points):
     return min(1.0, (max(0, num_points - gamma_lower) / float(gamma_upper - gamma_lower)))
 
-def save_num_points_in_3d_boxes(base_dir, additional_cls):
 
-    velo_dir = base_dir + 'velodyne'
-    certainty_dir = base_dir + 'certainty'
-    calib_dir = base_dir + 'calib'
+def save_num_points_in_3d_boxes(perspect_dir, additional_cls):
+
+    velo_dir = perspect_dir + 'velodyne'
+    certainty_dir = perspect_dir + 'certainty'
+    calib_dir = perspect_dir + 'calib'
 
     open_mode = 'w+'
     if additional_cls:
@@ -61,20 +62,15 @@ def save_num_points_in_3d_boxes(base_dir, additional_cls):
         filepath = velo_dir + '/' + file
         idx = int(os.path.splitext(file)[0])
 
-        all_points = obj_utils.get_lidar_point_cloud(idx, calib_dir, velo_dir)
+        point_cloud = get_nan_point_cloud(perspect_dir, idx)
 
-        # Remove nan points
-        nan_mask = ~np.any(np.isnan(all_points), axis=1)
-        point_cloud = all_points[nan_mask].T
-        print("PC shape: ", point_cloud.shape)
-
-        pred_dir = base_dir + "predictions"
+        pred_dir = perspect_dir + "predictions"
         objects = obj_utils.read_labels(pred_dir, idx)#, results=True)
 
         if objects == None:
             continue
         if point_cloud.shape[1] == 0:
-            print("Base dir: ", base_dir)
+            print("Base dir: ", perspect_dir)
             print("Point cloud failed to load!!!!!!!!!!!!!!!!!!!!!!!!")
             all_points = read_lidar(filepath)
             if point_cloud.shape[1] == 0:
@@ -85,15 +81,24 @@ def save_num_points_in_3d_boxes(base_dir, additional_cls):
         certainty_file = certainty_dir + '/{:06d}.txt'.format(idx)
         with open(certainty_file, open_mode) as f:
             for obj in objects:
-                num_points = numPointsIn3DBox(obj, point_cloud, base_dir, idx)
+                num_points = numPointsIn3DBox(obj, point_cloud, perspect_dir, idx)
                 f.write('{}\n'.format(num_points))
 
             #TODO Speed up by passing list
-            # num_points_list = numPointsIn3DBox(objects, point_cloud, base_dir, idx)
+            # num_points_list = numPointsIn3DBox(objects, point_cloud, perspect_dir, idx)
 
             # for num_points in num_points_list:
             #     f.write('{}\n'.format(num_points))
-        
+
+def get_nan_point_cloud(perspect_dir, idx):
+    calib_dir = perspect_dir + '/calib'
+    velo_dir = perspect_dir + '/velodyne'
+    all_points = obj_utils.get_lidar_point_cloud(idx, calib_dir, velo_dir)
+
+    # Remove nan points
+    nan_mask = ~np.any(np.isnan(all_points), axis=1)
+    point_cloud = all_points[nan_mask].T
+    return point_cloud
 
 # Takes a point or vector in cam coordinates. Returns it in world coordinates (wc)
 def point_to_world(point, gta_position):
