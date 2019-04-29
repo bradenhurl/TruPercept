@@ -1,11 +1,14 @@
 import cv2
 import numpy as np
 import os
+import shutil
 import sys
 from wavedata.tools.obj_detection import obj_utils
 import perspective_utils as p_utils
 import matching_utils
 import trust_utils
+
+MSG_EVALS_SUBDIR = 'msg_evals'
 
 #TODO - Create this as a function and pass in the dataset_dir
 # Change this folder to point to the Trust Perception dataset
@@ -22,7 +25,7 @@ def compute_message_evals(base_dir):
     ego_info = obj_utils.read_labels(ego_folder, 0, synthetic=True)
     ego_id = ego_info[0].id
     
-    trust_utils.delete_msg_evals(base_dir)
+    delete_msg_evals(base_dir)
 
     # First for the ego vehicle
     compute_perspect_eval(base_dir, base_dir, ego_id, ego_id)
@@ -85,8 +88,61 @@ def compute_perspect_eval(base_dir, perspect_dir, persp_id, ego_id):
 
         # Calculate trust from received detections
         trust_utils.get_message_trust_values(matching_objs, perspect_dir, idx)
-        trust_utils.save_msg_evals(matching_objs, base_dir, ego_id, idx)
+        save_msg_evals(matching_objs, base_dir, ego_id, idx)
 
+def save_msg_evals(msg_trusts, base_dir, ego_id, idx):
+    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Save msg evals in trust")
+    if msg_trusts is None:
+        print("Msg trusts is none")
+        return
+
+    for matched_msgs in msg_trusts:
+        first_obj = True
+        print("Outputting list of matched objects")
+        for trust_obj in matched_msgs:
+            if first_obj:
+                #Skip first object as it is from self
+                first_obj = False
+                print("Skipping first object")
+                continue
+
+            # Fill the array to write
+            msg_trust_output = np.zeros([1, 4])
+            #TODO - fill in correct values
+            msg_trust_output[0,0] = 0#trust_obj.msg_id
+            msg_trust_output[0,1] = 1#trust_obj.confidence
+            msg_trust_output[0,2] = trust_obj.pointsInBox#certainty
+            msg_trust_output[0,3] = ego_id
+
+            print("********************Saving trust val to id: ", trust_obj.id, " at idx: ", idx)
+            # Save to text file
+            file_path = p_utils.get_folder(base_dir, ego_id, trust_obj.id) + '/{}/{:06d}.txt'.format(MSG_EVALS_SUBDIR,idx)
+            print("Writing msg evals to file: ", file_path)
+            make_dir(file_path)
+            with open(file_path, 'a+') as f:
+                np.savetxt(f, msg_trust_output,
+                           newline='\r\n', fmt='%s')
+
+def make_dir(filepath):
+    if not os.path.exists(os.path.dirname(filepath)):
+        try:
+            os.makedirs(os.path.dirname(filepath))
+        except OSError as exc: # Guard against race condition
+            if exc.errno != errno.EEXIST:
+                raise
+
+def delete_msg_evals(base_dir):
+    dirpath = os.path.join(base_dir, MSG_EVALS_SUBDIR)
+    if os.path.exists(dirpath) and os.path.isdir(dirpath):
+        shutil.rmtree(dirpath)
+
+    altPerspect_dir = base_dir + '/alt_perspective/'
+    for entity_str in os.listdir(altPerspect_dir):
+        perspect_dir = os.path.join(altPerspect_dir, entity_str)
+        dirpath = os.path.join(perspect_dir, MSG_EVALS_SUBDIR)
+        if os.path.exists(dirpath) and os.path.isdir(dirpath):
+            print("Deleting directory: ", dirpath)
+            shutil.rmtree(dirpath)
 
 
 compute_message_evals(dataset_dir)

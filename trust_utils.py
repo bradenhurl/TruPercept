@@ -1,13 +1,8 @@
 from wavedata.tools.obj_detection import obj_utils
 import preprocessing.certainty_utils as certainty_utils
-import os
-import shutil
-import numpy as np
-import perspective_utils
 
 self_id = 0
 DEFAULT_TRUST_VAL = 0.5
-MSG_EVALS_SUBDIR = 'msg_evals'
 
 # Dictionary for vehicle trust values
 trust_map = {}
@@ -97,57 +92,3 @@ def get_vehicle_trust_value(entity_id):
 def trust_from_message(trust_msg, related_trust_msgs):
     #TODO
     print("Trust from msg")
-
-def save_msg_evals(msg_trusts, base_dir, ego_id, idx):
-    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Save msg evals in trust")
-    if msg_trusts is None:
-        print("Msg trusts is none")
-        return
-
-    for matched_msgs in msg_trusts:
-        first_obj = True
-        print("Outputting list of matched objects")
-        for trust_obj in matched_msgs:
-            if first_obj:
-                #Skip first object as it is from self
-                first_obj = False
-                print("Skipping first object")
-                continue
-
-            # Fill the array to write
-            msg_trust_output = np.zeros([1, 4])
-            #TODO - fill in correct values
-            msg_trust_output[0,0] = 0#trust_obj.msg_id
-            msg_trust_output[0,1] = 1#trust_obj.confidence
-            msg_trust_output[0,2] = trust_obj.pointsInBox#certainty
-            msg_trust_output[0,3] = ego_id
-
-            print("********************Saving trust val to id: ", trust_obj.id, " at idx: ", idx)
-            # Save to text file
-            file_path = perspective_utils.get_folder(base_dir, ego_id, trust_obj.id) + '/{}/{:06d}.txt'.format(MSG_EVALS_SUBDIR,idx)
-            print("Writing msg evals to file: ", file_path)
-            make_dir(file_path)
-            with open(file_path, 'a+') as f:
-                np.savetxt(f, msg_trust_output,
-                           newline='\r\n', fmt='%s')
-
-def make_dir(filepath):
-    if not os.path.exists(os.path.dirname(filepath)):
-        try:
-            os.makedirs(os.path.dirname(filepath))
-        except OSError as exc: # Guard against race condition
-            if exc.errno != errno.EEXIST:
-                raise
-
-def delete_msg_evals(base_dir):
-    dirpath = os.path.join(base_dir, MSG_EVALS_SUBDIR)
-    if os.path.exists(dirpath) and os.path.isdir(dirpath):
-        shutil.rmtree(dirpath)
-
-    altPerspect_dir = base_dir + '/alt_perspective/'
-    for entity_str in os.listdir(altPerspect_dir):
-        perspect_dir = os.path.join(altPerspect_dir, entity_str)
-        dirpath = os.path.join(perspect_dir, MSG_EVALS_SUBDIR)
-        if os.path.exists(dirpath) and os.path.isdir(dirpath):
-            print("Deleting directory: ", dirpath)
-            shutil.rmtree(dirpath)
