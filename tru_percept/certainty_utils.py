@@ -3,21 +3,16 @@ import os
 import sys
 import random
 import cv2
+
 from wavedata.tools.obj_detection import obj_utils
 from avod.builders.dataset_builder import DatasetBuilder
+
 import perspective_utils
+import config as cfg
+import constants as const
 
-X = [1., 0., 0.]
-Y = [0., 1., 0.]
-Z = [0., 0., 1.]
-
-# Certainty threshold scores
-# TODO Probabilistic approach to certainty
-gamma_upper = 500
-gamma_lower = 10
-
-def load_certainties(c_dir, idx):
-    filepath = c_dir + '/certainty/{:06d}.txt'.format(idx)
+def load_certainties(persp_dir, idx):
+    filepath = persp_dir + '/certainty/{:06d}.txt'.format(idx)
 
     if os.path.exists(filepath):
         with open(filepath, 'r') as fid:
@@ -29,7 +24,7 @@ def load_certainties(c_dir, idx):
 
 # See certainty eqn in paper
 def certainty_from_num_3d_points(num_points):
-    return min(1.0, (max(0, num_points - gamma_lower) / float(gamma_upper - gamma_lower)))
+    return min(1.0, (max(0, num_points - cfg.gamma_lower) / float(cfg.gamma_upper - cfg.gamma_lower)))
 
 
 def save_num_points_in_3d_boxes(perspect_dir, additional_cls):
@@ -102,9 +97,9 @@ def get_nan_point_cloud(perspect_dir, idx):
 
 # Takes a point or vector in cam coordinates. Returns it in world coordinates (wc)
 def point_to_world(point, gta_position):
-    x = np.dot(X, gta_position.matrix)
-    y = np.dot(Y, gta_position.matrix)
-    z = np.dot(Z, gta_position.matrix)
+    x = np.dot(const.X, gta_position.matrix)
+    y = np.dot(const.Y, gta_position.matrix)
+    z = np.dot(const.Z, gta_position.matrix)
 
     matrix = np.vstack((x,y,z))
 

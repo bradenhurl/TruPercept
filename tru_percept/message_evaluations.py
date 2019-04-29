@@ -9,39 +9,35 @@ from wavedata.tools.obj_detection import obj_utils
 import perspective_utils as p_utils
 import matching_utils
 import trust_utils
-
-
-#TODO - Create this as a function and pass in the dataset_dir
-# Change this folder to point to the Trust Perception dataset
-dataset_dir = os.path.expanduser('~') + '/wavedata-dev/demos/gta/training/'
+import config as cfg
 
 # Compute and save message evals for each vehicle
 # Files get saved to the base directory under message_evaluations
 # The format is:
 # Message ID, Confidence, Certainty, Evaluator ID
-def compute_message_evals(base_dir):
+def compute_message_evals():
 
     # Obtain the ego ID
-    ego_folder = base_dir + '/ego_object'
+    ego_folder = cfg.DATASET_DIR + '/ego_object'
     ego_info = obj_utils.read_labels(ego_folder, 0, synthetic=True)
     ego_id = ego_info[0].id
     
-    delete_msg_evals(base_dir)
+    delete_msg_evals()
 
     # First for the ego vehicle
-    compute_perspect_eval(base_dir, base_dir, ego_id, ego_id)
+    compute_perspect_eval(cfg.DATASET_DIR, ego_id, ego_id)
 
     # Then for all the alternate perspectives
-    alt_pers_dir = base_dir + '/alt_perspective/'
+    alt_pers_dir = cfg.DATASET_DIR + '/alt_perspective/'
 
     for entity_str in os.listdir(alt_pers_dir):
         perspect_dir = os.path.join(alt_pers_dir, entity_str)
         if not os.path.isdir(perspect_dir):
             continue
-        compute_perspect_eval(base_dir, perspect_dir, int(entity_str), ego_id)
+        compute_perspect_eval(perspect_dir, int(entity_str), ego_id)
 
 
-def compute_perspect_eval(base_dir, perspect_dir, persp_id, ego_id):
+def compute_perspect_eval(perspect_dir, persp_id, ego_id):
     print("**********************************************************************")
     print("Computing evaluations for perspective: ", persp_id)
     velo_dir = perspect_dir + '/velodyne'
@@ -68,7 +64,7 @@ def compute_perspect_eval(base_dir, perspect_dir, persp_id, ego_id):
 
         # Load predictions from own and nearby vehicles
         # First object in list will correspond to the ego_entity_id
-        perspect_trust_objs = p_utils.get_all_detections(dataset_dir, ego_id, idx, persp_id, results=False, filter_area=True)
+        perspect_trust_objs = p_utils.get_all_detections(ego_id, idx, persp_id, results=False, filter_area=True)
 
         # Add fake detections to perspect_preds
 
@@ -89,9 +85,9 @@ def compute_perspect_eval(base_dir, perspect_dir, persp_id, ego_id):
 
         # Calculate trust from received detections
         trust_utils.get_message_trust_values(matching_objs, perspect_dir, idx)
-        save_msg_evals(matching_objs, base_dir, ego_id, idx)
+        save_msg_evals(matching_objs, ego_id, idx)
 
-def save_msg_evals(msg_trusts, base_dir, ego_id, idx):
+def save_msg_evals(msg_trusts, ego_id, idx):
     print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Save msg evals in trust")
     if msg_trusts is None:
         print("Msg trusts is none")
@@ -117,7 +113,7 @@ def save_msg_evals(msg_trusts, base_dir, ego_id, idx):
 
             print("********************Saving trust val to id: ", trust_obj.id, " at idx: ", idx)
             # Save to text file
-            file_path = p_utils.get_folder(base_dir, ego_id, trust_obj.id) + '/{}/{:06d}.txt'.format(MSG_EVALS_SUBDIR,idx)
+            file_path = p_utils.get_folder(ego_id, trust_obj.id) + '/{}/{:06d}.txt'.format(cfg.MSG_EVALS_SUBDIR,idx)
             print("Writing msg evals to file: ", file_path)
             make_dir(file_path)
             with open(file_path, 'a+') as f:
@@ -132,18 +128,18 @@ def make_dir(filepath):
             if exc.errno != errno.EEXIST:
                 raise
 
-def delete_msg_evals(base_dir):
-    dirpath = os.path.join(base_dir, MSG_EVALS_SUBDIR)
+def delete_msg_evals():
+    dirpath = os.path.join(cfg.DATASET_DIR, cfg.MSG_EVALS_SUBDIR)
     if os.path.exists(dirpath) and os.path.isdir(dirpath):
         shutil.rmtree(dirpath)
 
-    altPerspect_dir = base_dir + '/alt_perspective/'
+    altPerspect_dir = cfg.DATASET_DIR + '/alt_perspective/'
     for entity_str in os.listdir(altPerspect_dir):
         perspect_dir = os.path.join(altPerspect_dir, entity_str)
-        dirpath = os.path.join(perspect_dir, MSG_EVALS_SUBDIR)
+        dirpath = os.path.join(perspect_dir, cfg.MSG_EVALS_SUBDIR)
         if os.path.exists(dirpath) and os.path.isdir(dirpath):
             print("Deleting directory: ", dirpath)
             shutil.rmtree(dirpath)
 
 
-compute_message_evals(dataset_dir)
+compute_message_evals()

@@ -1,9 +1,12 @@
+import os
 import numpy as np
 import math
-import os
+
 from wavedata.tools.obj_detection import obj_utils
-import preprocessing.certainty_utils
+
+import certainty_utils
 import trust_utils
+import config as cfg
 
 # Notes on terminology:
 # ego_id = The entity_id of the vehicle which is driving
@@ -176,28 +179,28 @@ def get_detections(to_persp_dir, det_persp_dir, idx, det_persp_id, results=False
 # Returns list of predictions for nearby vehicles
 # Includes detections from ego vehicle and from the perspective vehicle of persp_id
 # The first list of predictions will be for the persp_id detections
-def get_all_detections(base_dir, ego_id, idx, persp_id, results, filter_area=False):
+def get_all_detections(ego_id, idx, persp_id, results, filter_area=False):
     all_perspect_detections = []
 
     # Load predictions from persp_id vehicle
     #TODO Test if certainty values are corresponding correctly
-    persp_dir = get_folder(base_dir, ego_id, persp_id)
+    persp_dir = get_folder(ego_id, persp_id)
     predictions_dir = persp_dir + 'predictions'
     preds_file = predictions_dir + '{:06d}.txt'.format(idx)
     if os.path.isfile(preds_file):
         persp_preds = obj_utils.read_labels(predictions_dir, idx, results=True)
     else:
         persp_preds = []
-    persp_trust_objs = trust_utils.createTrustObjects(base_dir, idx, persp_id, persp_preds, results)
+    persp_trust_objs = trust_utils.createTrustObjects(persp_dir, idx, persp_id, persp_preds, results)
 
-    # Load detections from base_dir if ego_vehicle is not the persp_id
+    # Load detections from cfg.DATASET_DIR if ego_vehicle is not the persp_id
     if persp_id != ego_id:
-        perspect_detections = get_detections(persp_dir, base_dir, idx, ego_id, results, filter_area)
+        perspect_detections = get_detections(persp_dir, cfg.DATASET_DIR, idx, ego_id, results, filter_area)
         if perspect_detections is not None and len(perspect_detections) > 0:
             all_perspect_detections.append(perspect_detections)
 
     # Load detections from remaining perspectives
-    alt_persp_dir = base_dir + '/alt_perspective/'
+    alt_persp_dir = cfg.DATASET_DIR + '/alt_perspective/'
     for entity_str in os.listdir(alt_persp_dir):
         other_persp_dir = os.path.join(alt_persp_dir, entity_str)
         if os.path.isdir(other_persp_dir):
@@ -213,13 +216,12 @@ def get_all_detections(base_dir, ego_id, idx, persp_id, results, filter_area=Fal
     # todo - Also change tru_percept to correspond correctly
     return all_perspect_detections
 
-def get_folder(base_dir, ego_id, persp_id):
+def get_folder(ego_id, persp_id):
     if persp_id == ego_id:
-        return base_dir
+        return cfg.DATASET_DIR
     else:
-        alt_persp_dir = base_dir + '/alt_perspective/'
-        perspect_dir = alt_persp_dir + '/{:07d}/'.format(persp_id)
-        return perspect_dir
+        persp_dir = cfg.DATASET_DIR + '/alt_perspective' + '/{:07d}/'.format(persp_id)
+        return persp_dir
 
 
 
