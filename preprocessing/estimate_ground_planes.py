@@ -61,7 +61,7 @@ def estimate_ground_planes(base_dir, dataset_config, plane_method=0, specific_id
                 m = estimate(s)
                 a, b, c, d = m
                 plane = loadKittiPlane(m)
-                ground_points_failed = checkBadSlices(point_cloud, plane, kitti_utils)
+                #ground_points_failed = checkBadSlices(point_cloud, plane, kitti_utils)
         
         if plane_method == ransac or ground_points_failed:
             print("PC shape: ", point_cloud.shape)
@@ -72,7 +72,7 @@ def estimate_ground_planes(base_dir, dataset_config, plane_method=0, specific_id
                 (points[:, 0] < 3.0) &
                 (points[:, 1] > -3.0) &
                 (points[:, 1] < 0.0) &
-                (points[:, 2] < 10.0) &
+                (points[:, 2] < 20.0) &
                 (points[:, 2] > 2.0)]
             n = all_points_near.shape[0]
             print("Number of points near: ", n)
