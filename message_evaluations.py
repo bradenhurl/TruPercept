@@ -1,14 +1,15 @@
-import cv2
-import numpy as np
 import os
 import shutil
 import sys
+import numpy as np
+import cv2
+
 from wavedata.tools.obj_detection import obj_utils
+
 import perspective_utils as p_utils
 import matching_utils
 import trust_utils
 
-MSG_EVALS_SUBDIR = 'msg_evals'
 
 #TODO - Create this as a function and pass in the dataset_dir
 # Change this folder to point to the Trust Perception dataset
