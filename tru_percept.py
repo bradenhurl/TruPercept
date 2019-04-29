@@ -43,7 +43,7 @@ def main():
         # Find matching pairs
         # Returns a list of lists of objects which have been matched
         perspect_trust_objs.insert(0, ego_trust_objs)
-        matching_objs = matching_utils.match_iou3ds(perspect_trust_objs)
+        matching_objs = matching_utils.match_iou3ds(perspect_trust_objs, False)
 
         # Print matching objects to test with visualization
         # out_file = matching_dir + '/{:06d}.txt'.format(idx)
@@ -58,6 +58,7 @@ def main():
 
         # Calculate trust from received detections
         msg_trusts = trust_utils.get_message_trust_values(matching_objs)
+        trust_utils.save_message_evals(msg_trusts)
 
         # Adjust predictions
 
