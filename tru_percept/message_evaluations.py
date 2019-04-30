@@ -84,7 +84,7 @@ def compute_perspect_eval(perspect_dir, persp_id, ego_id):
         #         save_filtered_objs(objs, idx, matching_dir)
 
         # Calculate trust from received detections
-        trust_utils.get_message_trust_values(matching_objs, perspect_dir, idx)
+        trust_utils.get_message_trust_values(matching_objs, perspect_dir, persp_id, idx)
         save_msg_evals(matching_objs, ego_id, idx)
 
 def save_msg_evals(msg_trusts, ego_id, idx):
@@ -104,16 +104,18 @@ def save_msg_evals(msg_trusts, ego_id, idx):
                 continue
 
             # Fill the array to write
-            msg_trust_output = np.zeros([1, 4])
+            msg_trust_output = np.zeros([1, 6])
             #TODO - fill in correct values
-            msg_trust_output[0,0] = 0#trust_obj.msg_id
-            msg_trust_output[0,1] = 1#trust_obj.confidence
-            msg_trust_output[0,2] = trust_obj.pointsInBox#certainty
-            msg_trust_output[0,3] = ego_id
+            msg_trust_output[0,0] = trust_obj.det_idx
+            msg_trust_output[0,1] = trust_obj.obj.score
+            msg_trust_output[0,2] = trust_obj.detector_certainty
+            msg_trust_output[0,3] = trust_obj.evaluator_id
+            msg_trust_output[0,4] = trust_obj.evaluator_certainty
+            msg_trust_output[0,5] = trust_obj.evaluator_score
 
-            print("********************Saving trust val to id: ", trust_obj.id, " at idx: ", idx)
+            print("********************Saving trust val to id: ", trust_obj.detector_id, " at idx: ", idx)
             # Save to text file
-            file_path = p_utils.get_folder(ego_id, trust_obj.id) + '/{}/{:06d}.txt'.format(cfg.MSG_EVALS_SUBDIR,idx)
+            file_path = p_utils.get_folder(ego_id, trust_obj.detector_id) + '/{}/{:06d}.txt'.format(cfg.MSG_EVALS_SUBDIR,idx)
             print("Writing msg evals to file: ", file_path)
             make_dir(file_path)
             with open(file_path, 'a+') as f:

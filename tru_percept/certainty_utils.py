@@ -11,6 +11,7 @@ import perspective_utils
 import config as cfg
 import constants as const
 
+# Right now this actually loads number of points in 3D box
 def load_certainties(persp_dir, idx):
     filepath = persp_dir + '/certainty/{:06d}.txt'.format(idx)
 
