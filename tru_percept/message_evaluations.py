@@ -55,8 +55,7 @@ def compute_perspect_eval(perspect_dir, persp_id, ego_id):
         filepath = velo_dir + '/' + file
         idx = int(os.path.splitext(file)[0])
 
-        #TODO Testing 3 indices remove this when finished testing
-        if idx < 7 or idx > 10:
+        if idx < cfg.MIN_IDX or idx > cfg.MAX_IDX:
             continue
         print("**********************************Index: ", idx)
 
@@ -120,7 +119,7 @@ def save_msg_evals(msg_trusts, ego_id, idx):
             make_dir(file_path)
             with open(file_path, 'a+') as f:
                 np.savetxt(f, msg_trust_output,
-                           newline='\r\n', fmt='%s')
+                           newline='\r\n', fmt='%i %f %f %i %f %f')
 
 def make_dir(filepath):
     if not os.path.exists(os.path.dirname(filepath)):
