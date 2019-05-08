@@ -58,6 +58,9 @@ def inference(model_config, eval_config,
     # Switch path drop off during evaluation
     model_config.path_drop_probabilities = [1.0, 1.0]
 
+    # Create validation split
+    create_split.create_split(dataset_config.dataset_dir, dataset_config.dataset_dir + dataset_config.data_split_dir + '/', 'val')
+
     inferPerspective(model_config, eval_config, dataset_config, additional_cls)
 
     altPerspect_dir = base_dir + dataset_config.data_split_dir + '/alt_perspective/'
