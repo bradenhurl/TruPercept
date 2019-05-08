@@ -41,9 +41,6 @@ def compute_perspect_eval(perspect_dir, persp_id, ego_id):
     print("**********************************************************************")
     print("Computing evaluations for perspective: ", persp_id)
     velo_dir = perspect_dir + '/velodyne'
-    calib_dir = perspect_dir + '/calib'
-    predictions_dir = perspect_dir + '/predictions'
-    output_dir = perspect_dir + '/predictions_tru_percept'
     matching_dir = perspect_dir + '/matching_test'
 
     # Do this for every sample index
@@ -69,7 +66,7 @@ def compute_perspect_eval(perspect_dir, persp_id, ego_id):
 
         # Find matching pairs
         # Returns a list of lists of objects which have been matched
-        matching_objs = matching_utils.match_iou3ds(perspect_trust_objs, False)
+        matching_objs = matching_utils.match_iou3ds(perspect_trust_objs, only_ego_matches=True)
 
         # Print matching objects to test with visualization
         # out_file = matching_dir + '/{:06d}.txt'.format(idx)
@@ -141,6 +138,3 @@ def delete_msg_evals():
         if os.path.exists(dirpath) and os.path.isdir(dirpath):
             print("Deleting directory: ", dirpath)
             shutil.rmtree(dirpath)
-
-
-compute_message_evals()
