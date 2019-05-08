@@ -11,6 +11,16 @@ import perspective_utils
 import config as cfg
 import constants as const
 
+class BoxObj():
+    def __init__(self, u, v, w, rearBotLeft, frontBotLeft, rearTopLeft, rearBotRight):
+        self.u = u
+        self.v = v
+        self.w = w
+        self.rearBotLeft = rearBotLeft
+        self.frontBotLeft = frontBotLeft
+        self.rearTopLeft = rearTopLeft
+        self.rearBotRight = rearBotRight
+
 # Right now this actually loads number of points in 3D box
 def load_certainties(persp_dir, idx):
     filepath = persp_dir + '/certainty/{:06d}.txt'.format(idx)
@@ -47,7 +57,7 @@ def save_num_points_in_3d_boxes(perspect_dir, additional_cls):
                 print(e)
 
     files = os.listdir(velo_dir)
-    num_files = len(files)
+    num_files = min(len(files), cfg.MAX_IDX - cfg.MIN_IDX)
     file_idx = 0
 
     if not os.path.exists(certainty_dir):
@@ -57,6 +67,8 @@ def save_num_points_in_3d_boxes(perspect_dir, additional_cls):
     for file in files:
         filepath = velo_dir + '/' + file
         idx = int(os.path.splitext(file)[0])
+        if idx < cfg.MIN_IDX or idx > cfg.MAX_IDX:
+            continue
 
         point_cloud = get_nan_point_cloud(perspect_dir, idx)
 
@@ -66,13 +78,10 @@ def save_num_points_in_3d_boxes(perspect_dir, additional_cls):
         if objects == None:
             continue
         if point_cloud.shape[1] == 0:
-            print("Base dir: ", perspect_dir)
-            print("Point cloud failed to load!!!!!!!!!!!!!!!!!!!!!!!!")
             all_points = read_lidar(filepath)
             if point_cloud.shape[1] == 0:
-                print("Point cloud failed to load2!!!!!!!!!!!!!!!!!!!!!!!!")
+                print("Point cloud failed to load!!!!!!!!!!!!!!!!!!!!!!!!")
                 continue
-            print("Point cloud load2 successful!!!!!!!!!!!!!!!!!!!!!!!!")
 
         certainty_file = certainty_dir + '/{:06d}.txt'.format(idx)
         with open(certainty_file, open_mode) as f:
@@ -85,6 +94,11 @@ def save_num_points_in_3d_boxes(perspect_dir, additional_cls):
 
             # for num_points in num_points_list:
             #     f.write('{}\n'.format(num_points))
+
+        sys.stdout.flush()
+        sys.stdout.write('\rFinished point count for idx: {} / {}'.format(
+            file_idx, num_files))
+        file_idx += 1
 
 def get_nan_point_cloud(perspect_dir, idx):
     calib_dir = perspect_dir + '/calib'
@@ -125,8 +139,29 @@ def checkDirection(uVec, point, minP, maxP):
 
     return False
 
-def in3DBox(point, obj, gta_position):
+def in3DBox(point, boxObj, gta_position):
     world_point = point_to_world(point, gta_position)
+
+    # print("Forward: ", forward)
+    # print("Obj world: ", objWorld)
+    # print("world point: ", world_point)
+    # print("Obj: ", objWorld)
+    # print("RearBotLeft: ", rearBotLeft)
+    # print("u,v,w: ", u, v, w)
+
+    if not checkDirection(boxObj.u, world_point, boxObj.rearBotLeft, boxObj.frontBotLeft):
+        return False
+    if not checkDirection(boxObj.v, world_point, boxObj.rearBotLeft, boxObj.rearTopLeft):
+        return False
+    if not checkDirection(boxObj.w, world_point, boxObj.rearBotLeft, boxObj.rearBotRight):
+        return False
+
+    return True
+
+
+def numPointsIn3DBox(obj, point_cloud, perspect_dir, img_idx):
+    pos_dir = perspect_dir + '/position_world/'
+    gta_position = perspective_utils.load_position(pos_dir, img_idx)
 
     forward = np.array([obj.l, 0, 0])
     right = np.array([0, obj.w, 0])
@@ -162,39 +197,18 @@ def in3DBox(point, obj, gta_position):
     v = (rearTopLeft - rearBotLeft) / np.linalg.norm(rearTopLeft - rearBotLeft)
     w = (rearBotRight - rearBotLeft) / np.linalg.norm(rearBotRight - rearBotLeft)
 
-    # print("Forward: ", forward)
-    # print("Obj world: ", objWorld)
-    # print("world point: ", world_point)
-    # print("Obj: ", objWorld)
-    # print("RearBotLeft: ", rearBotLeft)
-    # print("u,v,w: ", u, v, w)
-
-    if not checkDirection(u, world_point, rearBotLeft, frontBotLeft):
-        return False
-    if not checkDirection(v, world_point, rearBotLeft, rearTopLeft):
-        return False
-    if not checkDirection(w, world_point, rearBotLeft, rearBotRight):
-        return False
-
-    return True
-
-
-def numPointsIn3DBox(obj, point_cloud, perspect_dir, img_idx):
-    pos_dir = perspect_dir + '/position_world/'
-    gta_position = perspective_utils.load_position(pos_dir, img_idx)
+    boxObj = BoxObj(u,v,w, rearBotLeft, frontBotLeft, rearTopLeft, rearBotRight)
 
     point_count = 0
 
     for idx in range(0, point_cloud.shape[0]):
-        if in3DBox(point_cloud[idx, :], obj, gta_position):
+        if in3DBox(point_cloud[idx, :], boxObj, gta_position):
             point_count = point_count + 1
 
     # For testing individual points
     # point = np.array([obj.t[0], obj.t[1]+ (obj.l - 1)/2, obj.t[2]])
     # result = in3DBox(point, obj, gta_position)
     # print("Result is: ", result)
-
-    print("Point count: ", point_count)
 
     return point_count
 
