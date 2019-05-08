@@ -26,3 +26,4 @@ DEFAULT_VEHICLE_TRUST_VAL = 0.5
 MSG_EVALS_SUBDIR = 'msg_evals'
 V_TRUST_SUBDIR = 'vehicle_trust_scores'
 FINAL_DETS_SUBDIR = 'final_detections'
+LABEL_DIR = 'label_2'
