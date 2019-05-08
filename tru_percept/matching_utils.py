@@ -47,7 +47,7 @@ def match_iou3ds(trust_objs, only_ego_matches):
     #If only_ego_matches only try matching detections from the first trust_obj
     end_idx = len(trust_objs)
     if only_ego_matches:
-        end_idx = 1
+        end_idx = min(end_idx, 1)
 
     for v_idx in range(0,end_idx):
         v_trust_objs = []
