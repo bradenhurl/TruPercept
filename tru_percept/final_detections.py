@@ -107,7 +107,7 @@ def output_final_dets(objects, idx):
         # Occlusion, truncation, and alpha not used
         kitti_predictions[i, 1] = -1
         kitti_predictions[i, 2] = -1
-        kitti_predictions[i, 3] = -10.0
+        kitti_predictions[i, 3] = -10
         # 2D Box
         kitti_predictions[i, 4] = obj.x1
         kitti_predictions[i, 5] = obj.y1
@@ -130,8 +130,13 @@ def output_final_dets(objects, idx):
     # Round detections to 3 decimal places
     kitti_predictions = np.round(kitti_predictions, 3)
 
+    # Empty Truncation, Occlusion
+    kitti_empty_1 = -1 * np.ones((len(kitti_predictions), 2),
+                                 dtype=np.int32)
+
     kitti_text = np.column_stack([obj_types,
-                                  kitti_predictions[:,1:16]])
+                                  kitti_empty_1,
+                                  kitti_predictions[:,3:16]])
 
     with open(filepath, 'w+') as f:
         np.savetxt(f, kitti_text, newline='\r\n',
