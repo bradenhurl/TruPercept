@@ -254,8 +254,7 @@ def _check_distance(obj):
         3 is used as a safety factor for objects which
         may be partially truncated
     """
-
-    print("Object position: ", obj.t)
+    
     # Checks if in front of vehicle
     if obj.t[2] < 0:
         return False
@@ -269,6 +268,5 @@ def _check_distance(obj):
     if obj_dist > (MAX_LIDAR_DIST + SAFETY_FACTOR):
         return False
 
-    print("??????????????????????????????????????Not filtered")
     return True
 #####################################################################
