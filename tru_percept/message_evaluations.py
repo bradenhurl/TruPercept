@@ -66,6 +66,8 @@ def compute_perspect_eval(perspect_dir, persp_id, ego_id):
 
         # Find matching pairs
         # Returns a list of lists of objects which have been matched
+        # TODO should set this to match all, have evaluations of zero confidence with some
+        # certainty for unmatched detections
         matching_objs = matching_utils.match_iou3ds(perspect_trust_objs, only_ego_matches=True)
 
         # Print matching objects to test with visualization
@@ -138,3 +140,17 @@ def delete_msg_evals():
         if os.path.exists(dirpath) and os.path.isdir(dirpath):
             print("Deleting directory: ", dirpath)
             shutil.rmtree(dirpath)
+
+# Function for outputting objects for visualization tests
+def save_filtered_objs(gt_objs, idx, out_dir):
+    out_file = out_dir + '/{:06d}.txt'.format(idx)
+
+    with open(out_file, 'a+') as f:
+        if gt_objs is None:
+            return
+        for obj in gt_objs:
+            kitti_text_3d = '{} {} {} {} {:d} {:d} {:d} {:d} {} {} {} {} {} {} {}'.format(obj.type,
+                obj.truncation, obj.occlusion, obj.alpha, int(obj.x1), int(obj.y1), int(obj.x2),
+                int(obj.y2), obj.h, obj.w, obj.l, obj.t[0], obj.t[1], obj.t[2], obj.ry)
+
+            f.write('%s\n' % kitti_text_3d)
