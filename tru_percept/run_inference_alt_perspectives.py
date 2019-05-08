@@ -62,6 +62,8 @@ def inference(model_config, eval_config,
 
     altPerspect_dir = base_dir + dataset_config.data_split_dir + '/alt_perspective/'
 
+    p_idx = 0
+    p_count = len(os.listdir(altPerspect_dir))
     for entity_str in os.listdir(altPerspect_dir):
         if not os.path.isdir(os.path.join(altPerspect_dir, entity_str)):
             continue
@@ -70,6 +72,9 @@ def inference(model_config, eval_config,
         dataset_config.data_split_dir = entity_str
         dataset_config.dataset_dir = altPerspect_dir
         inferPerspective(model_config, eval_config, dataset_config, additional_cls)
+        p_idx += 1
+        print('\n\n********************Finished perspective: {} / {} ***********************\n\n'.format(
+            p_idx, p_count))
 
 def inferPerspective(model_config, eval_config, dataset_config, additional_cls):
     model_name = model_config.model_name
@@ -78,7 +83,14 @@ def inferPerspective(model_config, eval_config, dataset_config, additional_cls):
 
     print("Inferring perspective: ", dataset_config.data_split, entity_perspect_dir, dataset_config.dataset_dir)
 
-    create_split.create_split(dataset_config.dataset_dir, entity_perspect_dir, dataset_config.data_split)
+    files_in_range = create_split.create_split(dataset_config.dataset_dir, entity_perspect_dir, dataset_config.data_split)
+    
+    # If there are no files within the range cfg.MIN_IDX, cfg.MAX_IDX
+    # then skip this perspective
+    if not files_in_range:
+        print("No files within the range cfg.MIN_IDX, cfg.MAX_IDX, skipping perspective")
+        return
+
     if not additional_cls:
         estimate_ground_planes.estimate_ground_planes(entity_perspect_dir, dataset_config, 0)
 

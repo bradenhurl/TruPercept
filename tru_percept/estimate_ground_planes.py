@@ -6,6 +6,8 @@ import cv2
 from wavedata.tools.obj_detection import obj_utils
 from avod.builders.dataset_builder import DatasetBuilder
 
+import config as cfg
+
 testing = False
 #Which method to use for determining plane coefficients
 # 0 - Ground truth points
@@ -39,8 +41,11 @@ def estimate_ground_planes(base_dir, dataset_config, plane_method=0, specific_id
     #Estimate each idx
     for file in files:
         filepath = velo_dir + '/' + file
-
         idx = int(os.path.splitext(file)[0])
+
+        if idx < cfg.MIN_IDX or idx > cfg.MAX_IDX:
+            continue
+
         if specific_idx != -1:
             idx = specific_idx
         planes_file = plane_dir + '/%06d.txt' % idx
