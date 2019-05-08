@@ -224,5 +224,3 @@ def load_msg_evals(persp_dir, idx):
         msg_evals.append(trust_obj)
 
     return msg_evals
-
-calculate_vehicle_trusts()

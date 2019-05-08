@@ -31,5 +31,3 @@ def run_kitti_native_script(score_threshold):
                      str(cfg.FINAL_DETS_SUBDIR),
                      str(cfg.DATASET_DIR),
                      str(label_dir)])
-
-run_kitti_native_script(0.1)

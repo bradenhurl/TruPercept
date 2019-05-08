@@ -154,5 +154,3 @@ def delete_final_detections():
     dirpath = os.path.join(cfg.DATASET_DIR, cfg.FINAL_DETS_SUBDIR)
     if os.path.exists(dirpath) and os.path.isdir(dirpath):
         shutil.rmtree(dirpath)
-
-compute_final_detections()

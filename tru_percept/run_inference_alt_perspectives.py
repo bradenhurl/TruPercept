@@ -20,6 +20,7 @@ import estimate_ground_planes
 import create_split
 import save_kitti_predictions
 import certainty_utils
+import config as cfg
 
 #python run_inference_alt_perspectives.py --checkpoint_name='pyramid_people_gta_40k_constantlr' --ckpt_indices=98 --base_dir='/home/bradenhurl/wavedata-dev/demos/gta/'
 
@@ -29,6 +30,7 @@ def inference(model_config, eval_config,
               ckpt_indices, additional_cls):
 
     print("Additional class: ", additional_cls)
+    print("ckpt_indices: ", ckpt_indices)
     # Overwrite the defaults
     dataset_config = config_builder.proto_to_obj(dataset_config)
 
@@ -66,8 +68,9 @@ def inference(model_config, eval_config,
     altPerspect_dir = base_dir + dataset_config.data_split_dir + '/alt_perspective/'
 
     p_idx = 0
-    p_count = len(os.listdir(altPerspect_dir))
-    for entity_str in os.listdir(altPerspect_dir):
+    perspective_dirs = [ name for name in os.listdir(altPerspect_dir) if os.path.isdir(os.path.join(altPerspect_dir, name)) ]
+    p_count = len(perspective_dirs)
+    for entity_str in perspective_dirs:
         if not os.path.isdir(os.path.join(altPerspect_dir, entity_str)):
             continue
 
@@ -124,6 +127,26 @@ def inferPerspective(model_config, eval_config, dataset_config, additional_cls):
 
     save_kitti_predictions.convertPredictionsToKitti(dataset, model_config.paths_config.pred_dir, additional_cls)
     certainty_utils.save_num_points_in_3d_boxes(entity_perspect_dir, additional_cls)
+
+
+def infer_main(checkpoint_name, ckpt_indices, additional_cls):
+    experiment_config = checkpoint_name + '.config'
+
+    # Read the config from the experiment folder
+    experiment_config_path = avod.root_dir() + '/data/outputs/' +\
+        checkpoint_name + '/' + experiment_config
+
+    model_config, _, eval_config, dataset_config = \
+        config_builder.get_configs_from_pipeline_file(
+            experiment_config_path, is_training=False)
+
+    base_dir = os.path.split(cfg.DATASET_DIR)[0] + '/'
+
+    os.environ['CUDA_VISIBLE_DEVICES'] = cfg.CUDA_DEVICE
+    inference(model_config, eval_config,
+              dataset_config, base_dir,
+              ckpt_indices, additional_cls)
+
 
 def main(_):
     parser = argparse.ArgumentParser()
