@@ -27,7 +27,8 @@ import config as cfg
 
 def inference(model_config, eval_config,
               dataset_config, base_dir,
-              ckpt_indices, additional_cls):
+              ckpt_indices, additional_cls,
+              start_perspective=0):
 
     print("Additional class: ", additional_cls)
     print("ckpt_indices: ", ckpt_indices)
@@ -60,25 +61,32 @@ def inference(model_config, eval_config,
     # Switch path drop off during evaluation
     model_config.path_drop_probabilities = [1.0, 1.0]
 
-    # Create validation split
-    create_split.create_split(dataset_config.dataset_dir, dataset_config.dataset_dir + dataset_config.data_split_dir + '/', 'val')
+    if start_perspective == 0:
+        # Create validation split
+        create_split.create_split(dataset_config.dataset_dir, dataset_config.dataset_dir + dataset_config.data_split_dir + '/', 'val')
 
-    inferPerspective(model_config, eval_config, dataset_config, additional_cls)
+        inferPerspective(model_config, eval_config, dataset_config, additional_cls)
 
     altPerspect_dir = base_dir + dataset_config.data_split_dir + '/alt_perspective/'
 
     p_idx = 0
     perspective_dirs = [ name for name in os.listdir(altPerspect_dir) if os.path.isdir(os.path.join(altPerspect_dir, name)) ]
+    perspective_dirs.sort(key=float)
     p_count = len(perspective_dirs)
     for entity_str in perspective_dirs:
         if not os.path.isdir(os.path.join(altPerspect_dir, entity_str)):
+            continue
+
+        p_idx += 1
+
+        # Option to skip some perspectives
+        if int(entity_str) < start_perspective:
             continue
 
         dataset_config.data_split = entity_str
         dataset_config.data_split_dir = entity_str
         dataset_config.dataset_dir = altPerspect_dir
         inferPerspective(model_config, eval_config, dataset_config, additional_cls)
-        p_idx += 1
         print('\n\n********************Finished perspective: {} / {} ***********************\n\n'.format(
             p_idx, p_count))
 
@@ -129,7 +137,7 @@ def inferPerspective(model_config, eval_config, dataset_config, additional_cls):
     certainty_utils.save_num_points_in_3d_boxes(entity_perspect_dir, additional_cls)
 
 
-def infer_main(checkpoint_name, ckpt_indices, additional_cls):
+def infer_main(checkpoint_name, ckpt_indices, additional_cls, start_perspective=0):
     experiment_config = checkpoint_name + '.config'
 
     # Read the config from the experiment folder
@@ -145,7 +153,7 @@ def infer_main(checkpoint_name, ckpt_indices, additional_cls):
     os.environ['CUDA_VISIBLE_DEVICES'] = cfg.CUDA_DEVICE
     inference(model_config, eval_config,
               dataset_config, base_dir,
-              ckpt_indices, additional_cls)
+              ckpt_indices, additional_cls, start_perspective=start_perspective)
 
 
 def main(_):
