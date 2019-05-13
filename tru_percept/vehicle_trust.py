@@ -6,6 +6,7 @@ from wavedata.tools.obj_detection import obj_utils
 
 import config as cfg
 import trust_utils
+import std_utils
 
 def calculate_vehicle_trusts():
 
@@ -165,18 +166,10 @@ def write_trust_vals(trust_dict, idx):
         v_count += 1
 
     filepath = cfg.DATASET_DIR + '/' + cfg.V_TRUST_SUBDIR + '/{:06d}.txt'.format(idx)
-    make_dir(filepath)
+    std_utils.make_dir(filepath)
     with open(filepath, 'w+') as f:
         np.savetxt(f, trust_vals_array,
                newline='\r\n', fmt='%i %f %f %i')
-
-def make_dir(filepath):
-    if not os.path.exists(os.path.dirname(filepath)):
-        try:
-            os.makedirs(os.path.dirname(filepath))
-        except OSError as exc: # Guard against race condition
-            if exc.errno != errno.EEXIST:
-                raise
 
 def load_msg_evals(persp_dir, idx):
     # Define the list

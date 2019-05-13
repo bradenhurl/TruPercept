@@ -11,6 +11,7 @@ import matching_utils
 import trust_utils
 import config as cfg
 import vehicle_trust as v_trust
+import std_utils
 
 # Compute and save final detections
 # Only for the ego vehicle as all other vehicles are not
@@ -83,7 +84,7 @@ def aggregate_msgs(matching_objs, trust_dict, ego_id):
 
 def output_final_dets(objects, idx):
     filepath = os.path.join(cfg.DATASET_DIR, cfg.FINAL_DETS_SUBDIR) + '/{:06d}.txt'.format(idx)
-    make_dir(filepath)
+    std_utils.make_dir(filepath)
 
     # If no predictions, skip to next file
     if objects is None or len(objects) == 0:
@@ -141,14 +142,6 @@ def output_final_dets(objects, idx):
     with open(filepath, 'w+') as f:
         np.savetxt(f, kitti_text, newline='\r\n',
             fmt='%s')
-
-def make_dir(filepath):
-    if not os.path.exists(os.path.dirname(filepath)):
-        try:
-            os.makedirs(os.path.dirname(filepath))
-        except OSError as exc: # Guard against race condition
-            if exc.errno != errno.EEXIST:
-                raise
 
 def delete_final_detections():
     dirpath = os.path.join(cfg.DATASET_DIR, cfg.FINAL_DETS_SUBDIR)

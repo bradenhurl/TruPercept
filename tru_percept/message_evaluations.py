@@ -10,6 +10,7 @@ import perspective_utils as p_utils
 import matching_utils
 import trust_utils
 import config as cfg
+import std_utils
 
 # Compute and save message evals for each vehicle
 # Files get saved to the base directory under message_evaluations
@@ -115,18 +116,10 @@ def save_msg_evals(msg_trusts, ego_id, idx):
             # Save to text file
             file_path = p_utils.get_folder(ego_id, trust_obj.detector_id) + '/{}/{:06d}.txt'.format(cfg.MSG_EVALS_SUBDIR,idx)
             print("Writing msg evals to file: ", file_path)
-            make_dir(file_path)
+            std_utils.make_dir(file_path)
             with open(file_path, 'a+') as f:
                 np.savetxt(f, msg_trust_output,
                            newline='\r\n', fmt='%i %f %f %i %f %f')
-
-def make_dir(filepath):
-    if not os.path.exists(os.path.dirname(filepath)):
-        try:
-            os.makedirs(os.path.dirname(filepath))
-        except OSError as exc: # Guard against race condition
-            if exc.errno != errno.EEXIST:
-                raise
 
 def delete_msg_evals():
     dirpath = os.path.join(cfg.DATASET_DIR, cfg.MSG_EVALS_SUBDIR)
