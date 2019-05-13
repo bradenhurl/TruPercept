@@ -1,5 +1,6 @@
 import os
 import sys
+import logging
 
 # Base dataset directory
 DATASET_DIR = os.path.expanduser('~') + '/GTAData/TruPercept/object_tru_percept4/training'
@@ -29,3 +30,5 @@ MSG_EVALS_SUBDIR = 'msg_evals'
 V_TRUST_SUBDIR = 'vehicle_trust_scores'
 FINAL_DETS_SUBDIR = 'final_detections'
 LABEL_DIR = 'label_2'
+AVOD_OUTPUT_DIR = 'predictions'
+KITTI_EVAL_SUBDIR = 'kitti_native_eval'
