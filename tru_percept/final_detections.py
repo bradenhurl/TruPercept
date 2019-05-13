@@ -3,6 +3,7 @@ import shutil
 import sys
 import numpy as np
 import cv2
+import logging
 
 from wavedata.tools.obj_detection import obj_utils
 
@@ -49,12 +50,12 @@ def compute_final_detections():
         # Returns a list of lists of objects which have been matched
         matching_objs = matching_utils.match_iou3ds(perspect_trust_objs, only_ego_matches=False)
 
-        print("Matching objects!!!!!!!!!!!!!!!!!!!!!!!!!")
-        print(matching_objs)
+        logging.debug("Matching objects!!!!!!!!!!!!!!!!!!!!!!!!!")
+        logging.debug(matching_objs)
         # Aggregate messages into final detections
         final_dets = aggregate_msgs(matching_objs, trust_dict, ego_id)
-        print("Final detections!!!!!!!!!!!!!!!!!!!!!")
-        print(final_dets)
+        logging.debug("Final detections!!!!!!!!!!!!!!!!!!!!!")
+        logging.debug(final_dets)
 
         output_final_dets(final_dets, idx)
 

@@ -3,6 +3,7 @@ import os
 import sys
 import random
 import cv2
+import logging
 
 from wavedata.tools.obj_detection import obj_utils
 from avod.builders.dataset_builder import DatasetBuilder
@@ -55,6 +56,7 @@ def save_num_points_in_3d_boxes(perspect_dir, additional_cls):
                     os.unlink(file_path)
             except Exception as e:
                 print(e)
+                logging.exception(e)
 
     files = os.listdir(velo_dir)
     num_files = min(len(files), cfg.MAX_IDX - cfg.MIN_IDX)
@@ -80,7 +82,7 @@ def save_num_points_in_3d_boxes(perspect_dir, additional_cls):
         if point_cloud.shape[1] == 0:
             all_points = read_lidar(filepath)
             if point_cloud.shape[1] == 0:
-                print("Point cloud failed to load!!!!!!!!!!!!!!!!!!!!!!!!")
+                logging.critical("Point cloud failed to load!!!!!!!!!!!!!!!!!!!!!!!!")
                 continue
 
         certainty_file = certainty_dir + '/{:06d}.txt'.format(idx)
@@ -131,7 +133,7 @@ def checkDirection(uVec, point, minP, maxP):
     dotMax = np.dot(maxP, uVec)
     dotMin = np.dot(minP, uVec)
 
-    # print("dotmin, point, max: ", dotMin, dotPoint, dotMax)
+    # logging.debug("dotmin, point, max: ", dotMin, dotPoint, dotMax)
 
     if ((dotMax <= dotPoint and dotPoint <= dotMin) or
                 (dotMax >= dotPoint and dotPoint >= dotMin)):
@@ -142,12 +144,12 @@ def checkDirection(uVec, point, minP, maxP):
 def in3DBox(point, boxObj, gta_position):
     world_point = point_to_world(point, gta_position)
 
-    # print("Forward: ", forward)
-    # print("Obj world: ", objWorld)
-    # print("world point: ", world_point)
-    # print("Obj: ", objWorld)
-    # print("RearBotLeft: ", rearBotLeft)
-    # print("u,v,w: ", u, v, w)
+    # logging.debug("Forward: ", forward)
+    # logging.debug("Obj world: ", objWorld)
+    # logging.debug("world point: ", world_point)
+    # logging.debug("Obj: ", objWorld)
+    # logging.debug("RearBotLeft: ", rearBotLeft)
+    # logging.debug("u,v,w: ", u, v, w)
 
     if not checkDirection(boxObj.u, world_point, boxObj.rearBotLeft, boxObj.frontBotLeft):
         return False
@@ -208,7 +210,7 @@ def numPointsIn3DBox(obj, point_cloud, perspect_dir, img_idx):
     # For testing individual points
     # point = np.array([obj.t[0], obj.t[1]+ (obj.l - 1)/2, obj.t[2]])
     # result = in3DBox(point, obj, gta_position)
-    # print("Result is: ", result)
+    # logging.debug("Result is: ", result)
 
     return point_count
 

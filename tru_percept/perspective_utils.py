@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import math
+import logging
 
 from wavedata.tools.obj_detection import obj_utils
 
@@ -64,7 +65,7 @@ class GTAPosition:
 def load_position(pos_dir, idx):
     # Extract the list
     if os.stat(pos_dir + "/%06d.txt" % idx).st_size == 0:
-        print("Failed to load position information!")
+        logging.debug("Failed to load position information!")
         return None
 
     col_count = 3
@@ -159,7 +160,7 @@ def get_detections(to_persp_dir, det_persp_dir, idx, det_persp_id, results=False
         return []
 
     detections = obj_utils.read_labels(label_dir, idx, results=results)
-    print("det_persp_id: ", det_persp_id, " det_persp_dir: ", det_persp_dir)
+    logging.debug("det_persp_id: ", det_persp_id, " det_persp_dir: ", det_persp_dir)
     if detections is not None:
         to_world(detections, det_persp_dir, idx)
         to_perspective(detections, to_persp_dir, idx)

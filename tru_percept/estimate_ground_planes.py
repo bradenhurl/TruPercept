@@ -1,8 +1,10 @@
-import numpy as np
 import os
 import sys
 import random
+import logging
 import cv2
+import numpy as np
+
 from wavedata.tools.obj_detection import obj_utils
 from avod.builders.dataset_builder import DatasetBuilder
 
@@ -49,18 +51,18 @@ def estimate_ground_planes(base_dir, dataset_config, plane_method=0, specific_id
         if specific_idx != -1:
             idx = specific_idx
         planes_file = plane_dir + '/%06d.txt' % idx
-        print("Index: ", idx)
+        logging.debug("Index: ", idx)
 
         lidar_point_cloud = obj_utils.get_lidar_point_cloud(idx, calib_dir, velo_dir)
         # Reshape points into N x [x, y, z]
         point_cloud = np.array(lidar_point_cloud).transpose().reshape((-1,3)).T
-        print("PC shape: ", point_cloud.shape)
+        logging.debug("PC shape: ", point_cloud.shape)
 
         ground_points_failed = False
         if plane_method == use_ground_points:
             s = loadGroundPointsFromFile(idx, ground_points_dir, grid_points_dir)
             if s.shape[0] < 4:
-                print("Not enough points at idx: ", idx)
+                logging.debug("Not enough points at idx: ", idx)
                 ground_points_failed = True
             else:
                 m = estimate(s)
@@ -69,9 +71,9 @@ def estimate_ground_planes(base_dir, dataset_config, plane_method=0, specific_id
                 #ground_points_failed = checkBadSlices(point_cloud, plane, kitti_utils)
         
         if plane_method == ransac or ground_points_failed:
-            print("PC shape: ", point_cloud.shape)
+            logging.debug("PC shape: ", point_cloud.shape)
             points = point_cloud.T
-            print(points.shape)
+            logging.debug(points.shape)
             all_points_near = points[
                 (points[:, 0] > -3.0) &
                 (points[:, 0] < 3.0) &
@@ -80,7 +82,7 @@ def estimate_ground_planes(base_dir, dataset_config, plane_method=0, specific_id
                 (points[:, 2] < 20.0) &
                 (points[:, 2] > 2.0)]
             n = all_points_near.shape[0]
-            print("Number of points near: ", n)
+            logging.debug("Number of points near: ", n)
             max_iterations = 100
             goal_inliers = n * 0.5
             m, b = run_ransac(all_points_near, lambda x, y: is_inlier(x, y, 0.2), 3, goal_inliers, max_iterations)
@@ -94,7 +96,6 @@ def estimate_ground_planes(base_dir, dataset_config, plane_method=0, specific_id
                 coeff_string = '%.6e %.6e %.6e %.6e' % (a,b,c,d)
             else:
                 coeff_string = '%.6e %.6e %.6e %.6e' % (plane_coeffs[0], plane_coeffs[1], plane_coeffs[2], plane_coeffs[3])
-            #print(coeff_string)
             f.write(coeff_string)
 
         sys.stdout.write("\rGenerating plane {} / {}".format(
@@ -107,9 +108,9 @@ def estimate_ground_planes(base_dir, dataset_config, plane_method=0, specific_id
 
 #Modified from obj_utils.py in wavedata
 def loadKittiPlane(plane_coeffs):
-    print("Plane coeffs: ", plane_coeffs)
+    logging.debug("Plane coeffs: ", plane_coeffs)
     plane = np.asarray(plane_coeffs)
-    print(plane)
+    logging.debug(plane)
 
     # Ensure normal is always facing up.
     # In Kitti's frame of reference, +y is down
@@ -124,7 +125,7 @@ def loadKittiPlane(plane_coeffs):
 #Returns true (bad) if any slices doesn't hit at least one point (otherwise it will fail in AVOD)
 def checkBadSlices(point_cloud, ground_plane, kitti_utils):
     num_slices = kitti_utils.bev_generator.num_slices
-    print("kitti num slices: ", num_slices)
+    logging.debug("kitti num slices: ", num_slices)
     height_hi_set = kitti_utils.bev_generator.height_hi
     height_lo_set = kitti_utils.bev_generator.height_lo
     height_per_division = (height_hi_set - height_lo_set) / num_slices
@@ -144,7 +145,7 @@ def checkBadSlices(point_cloud, ground_plane, kitti_utils):
         slice_points = point_cloud.T[slice_filter]
 
         if len(slice_points) <= 1:
-            print("Found bad slice!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+            logging.debug("Found bad slice!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
             return True
 
     return False
@@ -211,7 +212,7 @@ def getGridIndex(x,y):
     interval = 2
     row = (2*max_dist)/2 + 1
     idx = max_dist + x/interval + (y/interval + 1)*row
-    print("x: ", x, " y: ", y, " idx: ", idx)
+    logging.debug("x: ", x, " y: ", y, " idx: ", idx)
     return idx
 
 def read_lidar(filepath):
@@ -338,7 +339,7 @@ def estimate_ground_plane(point_cloud):
         # Sort by y for cropping
         # sort_start_time = time.time()
         y_order = np.argsort(points_in_bin[:, 1])
-        # print('sort', time.time() - sort_start_time)
+        # logging.debug('sort', time.time() - sort_start_time)
 
         # Crop each bin
         num_points_in_bin = len(points_in_bin)
@@ -348,7 +349,7 @@ def estimate_ground_plane(point_cloud):
                                  int(num_points_in_bin * 0.98)])
         points_cropped = points_in_bin[
             y_order[crop_indices[0]:crop_indices[1]]]
-        # print('crop', time.time() - crop_start_time)
+        # logging.debug('crop', time.time() - crop_start_time)
 
         all_cropped_points.extend(points_cropped)
     all_cropped_points = np.asarray(all_cropped_points)
@@ -368,8 +369,8 @@ def augment(xyzs):
 
 def estimate(xyzs):
     axyz = augment(xyzs[:])
-    #print(axyz)
-    #print(np.linalg.svd(axyz)[-1][-1, :])
+    #logging.debug(axyz)
+    #logging.debug(np.linalg.svd(axyz)[-1][-1, :])
     return np.linalg.svd(axyz)[-1][-1, :]
 
 def is_inlier(coeffs, xyz, threshold):
@@ -389,14 +390,14 @@ def run_ransac(data, is_inlier, sample_size, goal_inliers, max_iterations, stop_
             if is_inlier(m, data[j]):
                 ic += 1
 
-        #print(s)
-        #print('estimate:', m,)
-        #print('# inliers:', ic)
+        #logging.debug(s)
+        #logging.debug('estimate:', m,)
+        #logging.debug('# inliers:', ic)
 
         if ic > best_ic:
             best_ic = ic
             best_model = m
             if ic > goal_inliers and stop_at_goal:
                 break
-    print('took iterations:', i+1, 'best model:', best_model, 'explains:', best_ic)
+    logging.debug('took iterations:', i+1, 'best model:', best_model, 'explains:', best_ic)
     return best_model, best_ic

@@ -6,6 +6,7 @@ This runs the DetectionModel evaluator in test mode to output detections.
 import argparse
 import os
 import sys
+import logging
 
 import tensorflow as tf
 
@@ -30,8 +31,8 @@ def inference(model_config, eval_config,
               ckpt_indices, additional_cls,
               start_perspective=0):
 
-    print("Additional class: ", additional_cls)
-    print("ckpt_indices: ", ckpt_indices)
+    logging.info("Additional class: ", additional_cls)
+    logging.info("ckpt_indices: ", ckpt_indices)
     # Overwrite the defaults
     dataset_config = config_builder.proto_to_obj(dataset_config)
 
@@ -87,7 +88,7 @@ def inference(model_config, eval_config,
         dataset_config.data_split_dir = entity_str
         dataset_config.dataset_dir = altPerspect_dir
         inferPerspective(model_config, eval_config, dataset_config, additional_cls)
-        print('\n\n********************Finished perspective: {} / {} ***********************\n\n'.format(
+        logging.info('\n\n********************Finished perspective: {} / {} ***********************\n\n'.format(
             p_idx, p_count))
 
 def inferPerspective(model_config, eval_config, dataset_config, additional_cls):
@@ -95,14 +96,14 @@ def inferPerspective(model_config, eval_config, dataset_config, additional_cls):
 
     entity_perspect_dir = dataset_config.dataset_dir + dataset_config.data_split_dir + '/'
 
-    print("Inferring perspective: ", dataset_config.data_split, entity_perspect_dir, dataset_config.dataset_dir)
+    logging.debug("Inferring perspective: ", dataset_config.data_split, entity_perspect_dir, dataset_config.dataset_dir)
 
     files_in_range = create_split.create_split(dataset_config.dataset_dir, entity_perspect_dir, dataset_config.data_split)
     
     # If there are no files within the range cfg.MIN_IDX, cfg.MAX_IDX
     # then skip this perspective
     if not files_in_range:
-        print("No files within the range cfg.MIN_IDX, cfg.MAX_IDX, skipping perspective")
+        logging.debug("No files within the range cfg.MIN_IDX, cfg.MAX_IDX, skipping perspective")
         return
 
     if not additional_cls:
@@ -114,7 +115,7 @@ def inferPerspective(model_config, eval_config, dataset_config, additional_cls):
 
     #Switch inference output directory
     model_config.paths_config.pred_dir = entity_perspect_dir + '/predictions/'
-    print("Prediction directory: ", model_config.paths_config.pred_dir)
+    logging.debug("Prediction directory: ", model_config.paths_config.pred_dir)
 
     with tf.Graph().as_default():
         if model_name == 'avod_model':

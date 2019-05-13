@@ -16,7 +16,7 @@ gamma_lower = 10
 MIN_IDX = 0
 MAX_IDX = sys.maxsize
 # MIN_IDX = 7
-# MAX_IDX = 2
+MAX_IDX = 10
 
 SCORE_THRESHOLD = 0.1
 
@@ -32,3 +32,8 @@ FINAL_DETS_SUBDIR = 'final_detections'
 LABEL_DIR = 'label_2'
 AVOD_OUTPUT_DIR = 'predictions'
 KITTI_EVAL_SUBDIR = 'kitti_native_eval'
+
+# Set and initialize logging
+LOG_LVL = logging.WARNING
+LOG_FILE = DATASET_DIR + '/log.txt'
+logging.basicConfig(filename=LOG_FILE, level=LOG_LVL, format='%(levelname)s: %(filename)s(%(lineno)d): %(message)s')

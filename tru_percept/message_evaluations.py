@@ -3,6 +3,7 @@ import shutil
 import sys
 import numpy as np
 import cv2
+import logging
 
 from wavedata.tools.obj_detection import obj_utils
 
@@ -39,8 +40,8 @@ def compute_message_evals():
 
 
 def compute_perspect_eval(perspect_dir, persp_id, ego_id):
-    print("**********************************************************************")
-    print("Computing evaluations for perspective: ", persp_id)
+    logging.info("**********************************************************************")
+    logging.info("Computing evaluations for perspective: ", persp_id)
     velo_dir = perspect_dir + '/velodyne'
     matching_dir = perspect_dir + '/matching_test'
 
@@ -55,9 +56,9 @@ def compute_perspect_eval(perspect_dir, persp_id, ego_id):
 
         if idx < cfg.MIN_IDX or idx > cfg.MAX_IDX:
             continue
-        print("**********************************Index: ", idx)
+        logging.debug("**********************************Index: ", idx)
 
-        print("Need to get ego detections from whichever entity_id we're on")
+        logging.critical("Need to get ego detections from whichever entity_id we're on")
 
         # Load predictions from own and nearby vehicles
         # First object in list will correspond to the ego_entity_id
@@ -76,7 +77,7 @@ def compute_perspect_eval(perspect_dir, persp_id, ego_id):
         # if os.path.exists(out_file):
         #     os.remove(out_file)
         # else:
-        #     print("Can not delete the file as it doesn't exists")
+        #     logging.debug("Cannot delete the file as it doesn't exists")
         # for match_list in matching_objs:
         #     if len(match_list) > 1:
         #         objs = trust_utils.strip_objs(match_list)
@@ -87,24 +88,23 @@ def compute_perspect_eval(perspect_dir, persp_id, ego_id):
         save_msg_evals(matching_objs, ego_id, idx)
 
 def save_msg_evals(msg_trusts, ego_id, idx):
-    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Save msg evals in trust")
+    logging.debug("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Save msg evals in trust")
     if msg_trusts is None:
-        print("Msg trusts is none")
+        logging.debug("Msg trusts is none")
         return
 
     for matched_msgs in msg_trusts:
         first_obj = True
-        print("Outputting list of matched objects")
+        logging.debug("Outputting list of matched objects")
         for trust_obj in matched_msgs:
             if first_obj:
                 #Skip first object as it is from self
                 first_obj = False
-                print("Skipping first object")
+                logging.debug("Skipping first object")
                 continue
 
             # Fill the array to write
             msg_trust_output = np.zeros([1, 6])
-            #TODO - fill in correct values
             msg_trust_output[0,0] = trust_obj.det_idx
             msg_trust_output[0,1] = trust_obj.obj.score
             msg_trust_output[0,2] = trust_obj.detector_certainty
@@ -112,10 +112,10 @@ def save_msg_evals(msg_trusts, ego_id, idx):
             msg_trust_output[0,4] = trust_obj.evaluator_certainty
             msg_trust_output[0,5] = trust_obj.evaluator_score
 
-            print("********************Saving trust val to id: ", trust_obj.detector_id, " at idx: ", idx)
+            logging.debug("********************Saving trust val to id: ", trust_obj.detector_id, " at idx: ", idx)
             # Save to text file
             file_path = p_utils.get_folder(ego_id, trust_obj.detector_id) + '/{}/{:06d}.txt'.format(cfg.MSG_EVALS_SUBDIR,idx)
-            print("Writing msg evals to file: ", file_path)
+            logging.debug("Writing msg evals to file: ", file_path)
             std_utils.make_dir(file_path)
             with open(file_path, 'a+') as f:
                 np.savetxt(f, msg_trust_output,
@@ -131,7 +131,7 @@ def delete_msg_evals():
         perspect_dir = os.path.join(altPerspect_dir, entity_str)
         dirpath = os.path.join(perspect_dir, cfg.MSG_EVALS_SUBDIR)
         if os.path.exists(dirpath) and os.path.isdir(dirpath):
-            print("Deleting directory: ", dirpath)
+            logging.debug("Deleting directory: ", dirpath)
             shutil.rmtree(dirpath)
 
 # Function for outputting objects for visualization tests

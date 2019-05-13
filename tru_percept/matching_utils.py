@@ -1,6 +1,9 @@
 import numpy as np
+import logging
+
 from wavedata.tools.obj_detection import obj_utils, evaluation
 from avod.core import box_3d_encoder
+
 import trust_utils
 
 # Returns indices of objects
@@ -17,8 +20,6 @@ def get_iou3d_matches(ego_objs, objs_perspectives):
                          for objs_perspective in objs_perspectives]
 
         # Convert to iou format
-        #print("Ego objs: ", ego_objs)
-        #print("objs_perspectives: ", objs_perspectives)
         ego_objs_iou_fmt = box_3d_encoder.box_3d_to_3d_iou_format(ego_objs_boxes_3d)
         perspect_objs_iou_fmt = box_3d_encoder.box_3d_to_3d_iou_format(perspect_objs_boxes_3d)
 
@@ -79,7 +80,6 @@ def match_iou3ds(trust_objs, only_ego_matches):
                         obj.matched = True
                         obj.matched_idx = matched_idx
                         matched_objs[matched_idx].append(obj)
-                        print("Matched idx: ", matched_idx)
 
         # Update index
         base_idx += base_idx_increase
