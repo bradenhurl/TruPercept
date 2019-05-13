@@ -6,6 +6,7 @@ import eval_utils
 import config as cfg
 
 # Note (TODO):
+# From tru_percept4
 # Removed perspectives 30556, 33031, 692038, 88425, 129917, 138858, 194129, 603986 due to a bug
 # All these perspectives are buses or large vehicles with a very high up perspective
 # Original data can be found on server

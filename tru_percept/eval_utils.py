@@ -6,7 +6,7 @@ import config as cfg
 import constants as const
 import std_utils
 
-def run_kitti_native_script(score_threshold):
+def run_kitti_native_script(score_threshold, evaluate_avod=True):
     """Runs the kitti native code script."""
 
     script_folder = const.top_dir() + \
@@ -33,9 +33,7 @@ def run_kitti_native_script(score_threshold):
     avod_eval_dir = cfg.DATASET_DIR + '/' + cfg.KITTI_EVAL_SUBDIR + '/' + cfg.AVOD_OUTPUT_DIR
 
     std_utils.make_dir(preds_eval_dir)
-    std_utils.make_dir(avod_eval_dir)
     copy_tree(predictions_dir, preds_eval_dir + '/data')
-    copy_tree(avod_output_dir, avod_eval_dir + '/data')
 
     print("*********************************************************************\n" +
           "Results from tru_percept: \n" +
@@ -47,13 +45,15 @@ def run_kitti_native_script(score_threshold):
                      str(cfg.DATASET_DIR),
                      str(label_dir)])
 
-
-    print("\n\n\n*********************************************************************\n" +
-          "Results from AVOD: \n" +
-          "*********************************************************************\n")
-    subprocess.call([run_script, script_folder,
-                     str(score_threshold),
-                     str(avod_eval_dir),
-                     str(cfg.FINAL_DETS_SUBDIR),
-                     str(cfg.DATASET_DIR),
-                     str(label_dir)])
+    if evaluate_avod:
+        std_utils.make_dir(avod_eval_dir)
+        copy_tree(avod_output_dir, avod_eval_dir + '/data')
+        print("\n\n\n*********************************************************************\n" +
+              "Results from AVOD: \n" +
+              "*********************************************************************\n")
+        subprocess.call([run_script, script_folder,
+                         str(score_threshold),
+                         str(avod_eval_dir),
+                         str(cfg.FINAL_DETS_SUBDIR),
+                         str(cfg.DATASET_DIR),
+                         str(label_dir)])
