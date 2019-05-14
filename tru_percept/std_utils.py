@@ -24,5 +24,5 @@ def delete_all_subdirs(subdir):
 def delete_subdir(subdir, basedir=cfg.DATASET_DIR):
     dirpath = os.path.join(basedir, subdir)
     if os.path.exists(dirpath) and os.path.isdir(dirpath):
-        logging.debug("Deleting directory: ", dirpath)
+        logging.debug("Deleting directory: {}".format(dirpath))
         shutil.rmtree(dirpath)

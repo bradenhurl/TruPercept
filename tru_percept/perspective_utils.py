@@ -160,7 +160,7 @@ def get_detections(to_persp_dir, det_persp_dir, idx, det_persp_id, results=False
         return []
 
     detections = obj_utils.read_labels(label_dir, idx, results=results)
-    logging.debug("det_persp_id: ", det_persp_id, " det_persp_dir: ", det_persp_dir)
+    logging.debug("det_persp_id: %d det_persp_dir: %d", det_persp_id, det_persp_dir)
     if detections is not None:
         to_world(detections, det_persp_dir, idx)
         to_perspective(detections, to_persp_dir, idx)

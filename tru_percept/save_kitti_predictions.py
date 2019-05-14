@@ -46,12 +46,12 @@ def convertPredictionsToKitti(dataset, predictions_root_dir, additional_cls):
     final_predictions_root_dir = predictions_root_dir + \
         '/final_predictions_and_scores/' + dataset.data_split
 
-    logging.info('Converting detections from', final_predictions_root_dir)
+    logging.info('Converting detections from %s', final_predictions_root_dir)
 
     if not global_steps:
         global_steps = os.listdir(final_predictions_root_dir)
         global_steps.sort(key=int)
-        logging.debug('Checkpoints found ', global_steps)
+        logging.debug('Checkpoints found {}'.format(global_steps))
 
     for step_idx in range(len(global_steps)):
 
@@ -89,13 +89,13 @@ def convertPredictionsToKitti(dataset, predictions_root_dir, additional_cls):
         num_samples = dataset.num_samples
         num_valid_samples = 0
 
-        logging.info('\nGlobal step:', global_step)
-        logging.info('Converting detections from:', final_predictions_dir)
+        logging.info('\nGlobal step: %d', global_step)
+        logging.info('Converting detections from: %s', final_predictions_dir)
 
         if save_2d:
-            logging.info('2D Detections saved to:', kitti_predictions_2d_dir)
+            logging.info('2D Detections saved to: %s', kitti_predictions_2d_dir)
         if save_3d:
-            logging.info('3D Detections saved to:', kitti_predictions_3d_dir)
+            logging.info('3D Detections saved to: %s', kitti_predictions_3d_dir)
 
         for sample_idx in range(num_samples):
 
@@ -255,15 +255,15 @@ def convertPredictionsToKitti(dataset, predictions_root_dir, additional_cls):
                     np.savetxt(f, kitti_text_3d,
                                newline='\r\n', fmt='%s')
 
-        logging.debug('\nNum valid:', num_valid_samples)
-        logging.debug('Num samples:', num_samples)
+        logging.debug('\nNum valid: %d', num_valid_samples)
+        logging.debug('Num samples: %d', num_samples)
 
     for the_file in os.listdir(predictions_root_dir):
         file_path = os.path.join(predictions_root_dir, the_file)
         try:
             if os.path.isdir(file_path):
                 shutil.rmtree(file_path)
-                logging.debug("Removing folder: ", file_path)
+                logging.debug("Removing folder: %s", file_path)
         except Exception as e:
             print(e)
             logging.exception(e)

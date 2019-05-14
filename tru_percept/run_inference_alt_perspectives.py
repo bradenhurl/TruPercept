@@ -31,8 +31,8 @@ def inference(model_config, eval_config,
               ckpt_indices, additional_cls,
               start_perspective=0):
 
-    logging.info("Additional class: ", additional_cls)
-    logging.info("ckpt_indices: ", ckpt_indices)
+    logging.info("Additional class: {}".format(additional_cls))
+    logging.info("ckpt_indices: {}".format(ckpt_indices))
     # Overwrite the defaults
     dataset_config = config_builder.proto_to_obj(dataset_config)
 
@@ -96,7 +96,7 @@ def inferPerspective(model_config, eval_config, dataset_config, additional_cls):
 
     entity_perspect_dir = dataset_config.dataset_dir + dataset_config.data_split_dir + '/'
 
-    logging.debug("Inferring perspective: ", dataset_config.data_split, entity_perspect_dir, dataset_config.dataset_dir)
+    logging.debug("Inferring perspective: %s\n %s\n %s", dataset_config.data_split, entity_perspect_dir, dataset_config.dataset_dir)
 
     files_in_range = create_split.create_split(dataset_config.dataset_dir, entity_perspect_dir, dataset_config.data_split)
     
@@ -115,7 +115,7 @@ def inferPerspective(model_config, eval_config, dataset_config, additional_cls):
 
     #Switch inference output directory
     model_config.paths_config.pred_dir = entity_perspect_dir + '/predictions/'
-    logging.debug("Prediction directory: ", model_config.paths_config.pred_dir)
+    logging.debug("Prediction directory: %s", model_config.paths_config.pred_dir)
 
     with tf.Graph().as_default():
         if model_name == 'avod_model':

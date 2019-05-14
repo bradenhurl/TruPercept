@@ -40,7 +40,7 @@ def compute_message_evals():
 
 def compute_perspect_eval(perspect_dir, persp_id, ego_id):
     logging.info("**********************************************************************")
-    logging.info("Computing evaluations for perspective: ", persp_id)
+    logging.info("Computing evaluations for perspective: %d", persp_id)
     velo_dir = perspect_dir + '/velodyne'
     matching_dir = perspect_dir + '/matching_test'
 
@@ -55,9 +55,7 @@ def compute_perspect_eval(perspect_dir, persp_id, ego_id):
 
         if idx < cfg.MIN_IDX or idx > cfg.MAX_IDX:
             continue
-        logging.debug("**********************************Index: ", idx)
-
-        logging.critical("Need to get ego detections from whichever entity_id we're on")
+        logging.debug("**********************************Index: %d", idx)
 
         # Load predictions from own and nearby vehicles
         # First object in list will correspond to the ego_entity_id
@@ -111,10 +109,10 @@ def save_msg_evals(msg_trusts, ego_id, idx):
             msg_trust_output[0,4] = trust_obj.evaluator_certainty
             msg_trust_output[0,5] = trust_obj.evaluator_score
 
-            logging.debug("********************Saving trust val to id: ", trust_obj.detector_id, " at idx: ", idx)
+            logging.debug("********************Saving trust val to id: %d at idx: %d", trust_obj.detector_id, idx)
             # Save to text file
             file_path = p_utils.get_folder(ego_id, trust_obj.detector_id) + '/{}/{:06d}.txt'.format(cfg.MSG_EVALS_SUBDIR,idx)
-            logging.debug("Writing msg evals to file: ", file_path)
+            logging.debug("Writing msg evals to file: %s", file_path)
             std_utils.make_dir(file_path)
             with open(file_path, 'a+') as f:
                 np.savetxt(f, msg_trust_output,

@@ -133,8 +133,6 @@ def checkDirection(uVec, point, minP, maxP):
     dotMax = np.dot(maxP, uVec)
     dotMin = np.dot(minP, uVec)
 
-    # logging.debug("dotmin, point, max: ", dotMin, dotPoint, dotMax)
-
     if ((dotMax <= dotPoint and dotPoint <= dotMin) or
                 (dotMax >= dotPoint and dotPoint >= dotMin)):
         return True
@@ -143,13 +141,6 @@ def checkDirection(uVec, point, minP, maxP):
 
 def in3DBox(point, boxObj, gta_position):
     world_point = point_to_world(point, gta_position)
-
-    # logging.debug("Forward: ", forward)
-    # logging.debug("Obj world: ", objWorld)
-    # logging.debug("world point: ", world_point)
-    # logging.debug("Obj: ", objWorld)
-    # logging.debug("RearBotLeft: ", rearBotLeft)
-    # logging.debug("u,v,w: ", u, v, w)
 
     if not checkDirection(boxObj.u, world_point, boxObj.rearBotLeft, boxObj.frontBotLeft):
         return False
@@ -206,11 +197,6 @@ def numPointsIn3DBox(obj, point_cloud, perspect_dir, img_idx):
     for idx in range(0, point_cloud.shape[0]):
         if in3DBox(point_cloud[idx, :], boxObj, gta_position):
             point_count = point_count + 1
-
-    # For testing individual points
-    # point = np.array([obj.t[0], obj.t[1]+ (obj.l - 1)/2, obj.t[2]])
-    # result = in3DBox(point, obj, gta_position)
-    # logging.debug("Result is: ", result)
 
     return point_count
 

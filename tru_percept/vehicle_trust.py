@@ -31,8 +31,8 @@ def calculate_vehicle_trusts():
         filepath = velo_dir + '/{:06d}.bin'.format(idx)
 
         if not os.path.isfile(filepath):
-            logging.debug("Could not find file: ", filepath)
-            logging.debug("Stopping at idx: ", idx)
+            logging.debug("Could not find file: %s", filepath)
+            logging.debug("Stopping at idx: %d", idx)
             break
 
         # First for the ego vehicle
@@ -65,9 +65,9 @@ def compute_vehicle_trust(persp_dir, persp_id, ego_id, idx, trust_dict):
     for det_idx, eval_list in eval_lists.items():
         num = 0
         den = 0
-        logging.debug("det_idx: ", det_idx)
-        logging.debug("Eval list: ", eval_list)
-        logging.debug("Eval list len: ", len(eval_list))
+        logging.debug("det_idx: %d", det_idx)
+        logging.debug("Eval list: {}".format(eval_list))
+        logging.debug("Eval list len: %d", len(eval_list))
         for eval_item in eval_list:
             num += eval_item.evaluator_certainty * eval_item.evaluator_score
             den += eval_item.evaluator_certainty
@@ -85,7 +85,7 @@ def compute_vehicle_trust(persp_dir, persp_id, ego_id, idx, trust_dict):
     else:
         v_trust = trust_utils.VehicleTrust()
         logging.debug("New trust object")
-        logging.debug("v_trust value: ", v_trust.val)
+        logging.debug("v_trust value: %f", v_trust.val)
         trust_dict[persp_id] = v_trust
         print_test = True
 
@@ -98,8 +98,8 @@ def compute_vehicle_trust(persp_dir, persp_id, ego_id, idx, trust_dict):
         v_trust.val = cfg.DEFAULT_VEHICLE_TRUST_VAL
 
     if print_test:
-        logging.debug("test value: ", v_trust.val)
-        logging.debug("map value: ", trust_dict[persp_id].val)
+        logging.debug("test value: %f", v_trust.val)
+        logging.debug("map value: %f", trust_dict[persp_id].val)
 
 
 ############################################################################################
