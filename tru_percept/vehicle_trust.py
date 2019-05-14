@@ -17,9 +17,9 @@ def calculate_vehicle_trusts():
     ego_id = ego_info[0].id
 
     # Before calculating, first delete all previous vehicle trust values
-    delete_vehicle_trust_values()
+    std_utils.delete_subdir(cfg.V_TRUST_SUBDIR)
 
-    logging.warning('Test: ', ego_id)
+    logging.warning('ego_id: %d', ego_id)
 
     # Initialize dictionary for vehicle trust values
     # Entity ID/VehicleTrust object pairs
@@ -152,11 +152,6 @@ def vehicle_trust_value(trust_values, v_id):
         return trust_values[v_id]
     else:
         return cfg.DEFAULT_VEHICLE_TRUST_VAL
-
-def delete_vehicle_trust_values():
-    dirpath = os.path.join(cfg.DATASET_DIR, cfg.V_TRUST_SUBDIR)
-    if os.path.exists(dirpath) and os.path.isdir(dirpath):
-        shutil.rmtree(dirpath)
 
 def write_trust_vals(trust_dict, idx):
     trust_vals_array = np.zeros([len(trust_dict), 4])

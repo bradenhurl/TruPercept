@@ -1,5 +1,4 @@
 import os
-import shutil
 import sys
 import numpy as np
 import cv2
@@ -23,7 +22,7 @@ def compute_final_detections():
     ego_info = obj_utils.read_labels(ego_folder, 0, synthetic=True)
     ego_id = ego_info[0].id
     
-    delete_final_detections()
+    std_utils.delete_subdir(cfg.FINAL_DETS_SUBDIR)
 
     # First for the ego vehicle
     velo_dir = cfg.DATASET_DIR + '/velodyne'
@@ -143,8 +142,3 @@ def output_final_dets(objects, idx):
     with open(filepath, 'w+') as f:
         np.savetxt(f, kitti_text, newline='\r\n',
             fmt='%s')
-
-def delete_final_detections():
-    dirpath = os.path.join(cfg.DATASET_DIR, cfg.FINAL_DETS_SUBDIR)
-    if os.path.exists(dirpath) and os.path.isdir(dirpath):
-        shutil.rmtree(dirpath)

@@ -1,5 +1,4 @@
 import os
-import shutil
 import sys
 import numpy as np
 import cv2
@@ -24,7 +23,7 @@ def compute_message_evals():
     ego_info = obj_utils.read_labels(ego_folder, 0, synthetic=True)
     ego_id = ego_info[0].id
     
-    delete_msg_evals()
+    std_utils.delete_all_subdirs(cfg.MSG_EVALS_SUBDIR)
 
     # First for the ego vehicle
     compute_perspect_eval(cfg.DATASET_DIR, ego_id, ego_id)
@@ -120,19 +119,6 @@ def save_msg_evals(msg_trusts, ego_id, idx):
             with open(file_path, 'a+') as f:
                 np.savetxt(f, msg_trust_output,
                            newline='\r\n', fmt='%i %f %f %i %f %f')
-
-def delete_msg_evals():
-    dirpath = os.path.join(cfg.DATASET_DIR, cfg.MSG_EVALS_SUBDIR)
-    if os.path.exists(dirpath) and os.path.isdir(dirpath):
-        shutil.rmtree(dirpath)
-
-    altPerspect_dir = cfg.DATASET_DIR + '/alt_perspective/'
-    for entity_str in os.listdir(altPerspect_dir):
-        perspect_dir = os.path.join(altPerspect_dir, entity_str)
-        dirpath = os.path.join(perspect_dir, cfg.MSG_EVALS_SUBDIR)
-        if os.path.exists(dirpath) and os.path.isdir(dirpath):
-            logging.debug("Deleting directory: ", dirpath)
-            shutil.rmtree(dirpath)
 
 # Function for outputting objects for visualization tests
 def save_filtered_objs(gt_objs, idx, out_dir):

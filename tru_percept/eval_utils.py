@@ -32,6 +32,7 @@ def run_kitti_native_script(score_threshold, evaluate_avod=True):
     preds_eval_dir = cfg.DATASET_DIR + '/' + cfg.KITTI_EVAL_SUBDIR + '/' + cfg.FINAL_DETS_SUBDIR
     avod_eval_dir = cfg.DATASET_DIR + '/' + cfg.KITTI_EVAL_SUBDIR + '/' + cfg.AVOD_OUTPUT_DIR
 
+    #TODO delete everything in directories we're copying to
     std_utils.make_dir(preds_eval_dir)
     copy_tree(predictions_dir, preds_eval_dir + '/data')
 
