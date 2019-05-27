@@ -160,7 +160,7 @@ def get_detections(to_persp_dir, det_persp_dir, idx, det_persp_id, results=False
         return []
 
     detections = obj_utils.read_labels(label_dir, idx, results=results)
-    logging.debug("det_persp_id: %d det_persp_dir: %d", det_persp_id, det_persp_dir)
+    logging.debug("det_persp_id: {} det_persp_dir: {}".format(det_persp_id, det_persp_dir))
     if detections is not None:
         to_world(detections, det_persp_dir, idx)
         to_perspective(detections, to_persp_dir, idx)
@@ -186,8 +186,8 @@ def get_all_detections(ego_id, idx, persp_id, results, filter_area=False):
     # Load predictions from persp_id vehicle
     #TODO Test if certainty values are corresponding correctly
     persp_dir = get_folder(ego_id, persp_id)
-    predictions_dir = persp_dir + 'predictions'
-    preds_file = predictions_dir + '{:06d}.txt'.format(idx)
+    predictions_dir = persp_dir + '/predictions'
+    preds_file = predictions_dir + '/{:06d}.txt'.format(idx)
     if os.path.isfile(preds_file):
         persp_preds = obj_utils.read_labels(predictions_dir, idx, results=True)
     else:
@@ -244,8 +244,9 @@ def filter_labels(objects):
 
 # Leave 3m around frustrum. Vehicles truncated up to 3m past their
 # Centre won't be filtered
-SAFETY_FACTOR = 3
-MAX_LIDAR_DIST = 80
+SAFETY_FACTOR = 2
+MAX_LIDAR_DIST = 70
+#TODO move these to constants or config
 def _check_distance(obj):
     """This filters an object by distance and frustrum.
     Args:
