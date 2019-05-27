@@ -13,10 +13,10 @@ gamma_lower = 10
 # Min/max indices which will be run (for running tests primarily)
 # If set to 0 and sys.maxsize, respectively, all indices will be run
 # when present, up to the maximum index in the DATASET_DIR/velodyne folder
-MIN_IDX = 0
+MIN_IDX = 267
 MAX_IDX = sys.maxsize
 # MIN_IDX = 7
-MAX_IDX = 10
+MAX_IDX = 267
 
 SCORE_THRESHOLD = 0.1
 
@@ -26,6 +26,7 @@ DEFAULT_VEHICLE_TRUST_VAL = 0.5
 CUDA_DEVICE = '0'
 
 # Subdirectories for storing intermediate steps
+POINTS_IN_3D_BOXES_DIR = 'points_in_3d_boxes'
 MSG_EVALS_SUBDIR = 'msg_evals'
 V_TRUST_SUBDIR = 'vehicle_trust_scores'
 FINAL_DETS_SUBDIR = 'final_detections'
@@ -34,6 +35,6 @@ AVOD_OUTPUT_DIR = 'predictions'
 KITTI_EVAL_SUBDIR = 'kitti_native_eval'
 
 # Set and initialize logging
-LOG_LVL = logging.WARNING
+LOG_LVL = logging.DEBUG
 LOG_FILE = DATASET_DIR + '/log.txt'
 logging.basicConfig(filename=LOG_FILE, level=LOG_LVL, format='%(levelname)s: %(filename)s(%(lineno)d): %(message)s')
