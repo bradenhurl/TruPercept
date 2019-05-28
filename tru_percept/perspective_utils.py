@@ -149,7 +149,7 @@ def to_perspective(objects, perspect_dir, idx):
 # to_persp_dir is the directory of the coordinate frame perspective we want the detections in
 # det_persp_dir is the perspective we are obtaining the detections from
 # det_persp_id is the ID of the perspective detections are received from
-def get_detections(to_persp_dir, det_persp_dir, idx, det_persp_id, results=False, filter_area=False, return_avod_objs=False):
+def get_detections(to_persp_dir, det_persp_dir, idx, det_persp_id, results=False, filter_area=False):
     if results:
         label_dir = det_persp_dir + '/predictions/'
     else:
@@ -159,6 +159,8 @@ def get_detections(to_persp_dir, det_persp_dir, idx, det_persp_id, results=False
     if not os.path.isfile(label_path):
         return []
 
+    # Note: ego_object will be added in createTrustObjects
+    # To ensure its trust/certainty value is set to 1
     detections = obj_utils.read_labels(label_dir, idx, results=results)
     logging.debug("det_persp_id: {} det_persp_dir: {}".format(det_persp_id, det_persp_dir))
     if detections is not None:
@@ -170,10 +172,7 @@ def get_detections(to_persp_dir, det_persp_dir, idx, det_persp_id, results=False
             detections = filter_labels(detections)
 
         # Easier for visualizations if returning simple objects
-        if return_avod_objs:
-            return detections
-        else:
-            return trust_utils.createTrustObjects(det_persp_dir, idx, det_persp_id, detections, results)
+        return trust_utils.createTrustObjects(det_persp_dir, idx, det_persp_id, detections, results)
 
     return []
 
