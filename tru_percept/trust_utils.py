@@ -29,6 +29,7 @@ class TrustDetection:
         self.detector_certainty = persp_certainty
         self.evaluator_id = -1
         self.evaluator_certainty = -1
+        self.evaluator_3d_box_points = -1#TODO set this instead of certainty
         self.evaluator_score = -1
         self.matched = False
         self.trust = 0.
@@ -105,6 +106,14 @@ def strip_objs(trust_objs):
         for trust_obj in trust_objs:
             stripped_objs.append(trust_obj.obj)
 
+    return stripped_objs
+
+def strip_objs_lists(trust_objs_lists):
+    stripped_objs = []
+    for obj_list in trust_objs_lists:
+        stripped_list = strip_objs(obj_list)
+        for stripped_obj in stripped_list:
+            stripped_objs.append(stripped_obj)
     return stripped_objs
 
 # todo should we only update trust with messages we are certain of?

@@ -27,7 +27,7 @@ use_results = False
 
 # Sets the perspective ID if altPerspective is true
 altPerspective = False
-perspID = 59906
+perspID = 449837
 
 # Only uses points within image fulcrum
 fulcrum_of_points = True
@@ -37,6 +37,13 @@ use_intensity = False
 # Set to true to view detections from other vehicles
 view_received_detections = True
 filter_area = False # Filter received detections with perspective area?
+receive_from_perspective = 61954 # Set to -1 to receive from all perspectives
+# Set to only show specific detection
+receive_det_id = -1 # Set to -1 to show all detections
+only_receive_dets = False # Set to true to only show received dets
+
+# Changes colour of received detections
+change_rec_colour = True
 
 def main():
     # Setting Paths
@@ -141,18 +148,35 @@ def main():
     gt_detections = obj_utils.read_labels(label_dir, img_idx, results=use_results)
     print(len(gt_detections))
 
-    perspect_detections = perspective_utils.get_all_detections(ego_id, img_idx, perspID, use_results, filter_area)
-    stripped_detections = trust_utils.strip_objs_lists(perspect_detections)
-    gt_detections = gt_detections + stripped_detections
-    # for entity_str in os.listdir(altPerspect_dir):
-    #     if os.path.isdir(os.path.join(altPerspect_dir, entity_str)):
-    #         perspect_detections = perspective_utils.get_detections(dataset_dir, altPerspect_dir, img_idx, entity_str, results=use_results)
-    #         if perspect_detections != None:
-    #             if use_results:
-    #                 stripped_detections = trust_utils.strip_objs(perspect_detections)
-    #                 gt_detections = gt_detections + stripped_detections
-    #             else:
-    #                 gt_detections = gt_detections + perspect_detections
+    if view_received_detections:
+        stripped_detections = []
+        if receive_from_perspective == -1:
+            perspect_detections = perspective_utils.get_all_detections(ego_id, img_idx, perspID, use_results, filter_area)
+            stripped_detections = trust_utils.strip_objs_lists(perspect_detections)
+        else:
+            receive_entity_str = '{:07d}'.format(receive_from_perspective)
+            receive_dir = os.path.join(altPerspect_dir, receive_entity_str)
+            if os.path.isdir(receive_dir):
+                print("Using detections from: ", receive_dir)
+                perspect_detections = perspective_utils.get_detections(dataset_dir, receive_dir, img_idx, receive_entity_str, results=use_results)
+                if perspect_detections != None:
+                    stripped_detections = trust_utils.strip_objs(perspect_detections)
+            else:
+                print("Could not find directory: ", receive_dir)
+
+        if receive_det_id != -1 and len(stripped_detections) > 0:
+            single_det = []
+            single_det.append(stripped_detections[receive_det_id])
+            stripped_detections = single_det
+
+        if change_rec_colour:
+            for obj in stripped_detections:
+                obj.type = "Received"
+
+        if only_receive_dets:
+            gt_detections = stripped_detections
+        else:
+            gt_detections = gt_detections + stripped_detections
 
     # Create VtkPointCloud for visualization
     vtk_point_cloud = VtkPointCloud()
@@ -179,6 +203,7 @@ def main():
         "Tram": (150, 150, 150),  # Grey
         "Misc": (100, 100, 100),  # Dark Grey
         "DontCare": (255, 255, 255),  # White
+        "Received": (255, 150, 150),  # Peach
     }
 
     # Create VtkBoxes for boxes
