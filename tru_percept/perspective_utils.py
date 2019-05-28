@@ -186,13 +186,14 @@ def get_all_detections(ego_id, idx, persp_id, results, filter_area=False):
     # Load predictions from persp_id vehicle
     #TODO Test if certainty values are corresponding correctly
     persp_dir = get_folder(ego_id, persp_id)
-    predictions_dir = persp_dir + '/predictions'
+    predictions_dir = persp_dir + '/predictions/'
     preds_file = predictions_dir + '/{:06d}.txt'.format(idx)
     if os.path.isfile(preds_file):
         persp_preds = obj_utils.read_labels(predictions_dir, idx, results=True)
     else:
         persp_preds = []
     persp_trust_objs = trust_utils.createTrustObjects(persp_dir, idx, persp_id, persp_preds, results)
+    all_perspect_detections.append(persp_trust_objs)
 
     # Load detections from cfg.DATASET_DIR if ego_vehicle is not the persp_id
     if persp_id != ego_id:
@@ -210,7 +211,6 @@ def get_all_detections(ego_id, idx, persp_id, results, filter_area=False):
                 perspect_detections = get_detections(persp_dir, other_persp_dir, idx, int(entity_str), results, filter_area)
                 if perspect_detections is not None and len(perspect_detections) > 0:
                     all_perspect_detections.append(perspect_detections)
-
 
     # todo Should test visualizations to ensure all detections
     # are being loaded properly
