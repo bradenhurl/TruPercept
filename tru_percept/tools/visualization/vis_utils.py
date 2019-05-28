@@ -144,9 +144,13 @@ def main():
     end_time = time.time()
     print("Voxelized in {} s".format(end_time - start_time))
 
+    gt_detections = []
     # Get bounding boxes
-    gt_detections = obj_utils.read_labels(label_dir, img_idx, results=use_results)
-    print(len(gt_detections))
+    if (not view_received_detections or receive_from_perspective != -1) and not only_receive_dets:
+        gt_detections = perspective_utils.get_detections(dataset_dir, dataset_dir, img_idx,
+                                ego_id, results=use_results, filter_area=filter_area)
+        gt_detections = trust_utils.strip_objs(gt_detections)
+        gt_detections[0].type = "OwnObject"
 
     if view_received_detections:
         stripped_detections = []
@@ -173,8 +177,11 @@ def main():
             for obj in stripped_detections:
                 obj.type = "Received"
 
+        stripped_detections[0].type = "OwnObject"
+
         if only_receive_dets:
             gt_detections = stripped_detections
+            print("Not using main perspective detections")
         else:
             gt_detections = gt_detections + stripped_detections
 
@@ -203,7 +210,9 @@ def main():
         "Tram": (150, 150, 150),  # Grey
         "Misc": (100, 100, 100),  # Dark Grey
         "DontCare": (255, 255, 255),  # White
+
         "Received": (255, 150, 150),  # Peach
+        "OwnObject": (51, 255, 255),  # Cyan
     }
 
     # Create VtkBoxes for boxes
