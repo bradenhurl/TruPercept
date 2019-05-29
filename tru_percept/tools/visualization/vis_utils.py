@@ -23,7 +23,7 @@ import vtk
 img_idx = 7
 
 # Set to true to see predictions (results) from all perspectives
-use_results = False
+use_results = True
 
 # Sets the perspective ID if altPerspective is true
 altPerspective = False
@@ -38,7 +38,7 @@ use_intensity = False
 # Set to true to view detections from other vehicles
 view_received_detections = True
 filter_area = False # Filter received detections with perspective area?
-receive_from_perspective = 61954 # Set to -1 to receive from all perspectives
+receive_from_perspective = -1#61954 # Set to -1 to receive from all perspectives
 # Set to only show specific detection
 receive_det_id = -1 # Set to -1 to show all detections
 only_receive_dets = False # Set to true to only show received dets
@@ -46,7 +46,7 @@ only_receive_dets = False # Set to true to only show received dets
 # Changes colour of received detections
 change_rec_colour = True
 
-comparePCs = True
+comparePCs = False
 if comparePCs:
     fulcrum_of_points = False
 
@@ -155,6 +155,24 @@ def main():
     end_time = time.time()
     print("Voxelized in {} s".format(end_time - start_time))
 
+    COLOUR_SCHEME = {
+        "Car": (0, 0, 255),  # Blue
+        "Pedestrian": (255, 0, 0),  # Red
+        "Bus": (0, 0, 255), #Blue
+        "Cyclist": (150, 50, 100),  # Purple
+
+        "Van": (255, 150, 150),  # Peach
+        "Person_sitting": (150, 200, 255),  # Sky Blue
+
+        "Truck": (0, 0, 255),  # Light Grey
+        "Tram": (150, 150, 150),  # Grey
+        "Misc": (100, 100, 100),  # Dark Grey
+        "DontCare": (255, 255, 255),  # White
+
+        "Received": (255, 150, 150),  # Peach
+        "OwnObject": (51, 255, 255),  # Cyan
+    }
+
     gt_detections = []
     # Get bounding boxes
     if (not view_received_detections or receive_from_perspective != -1) and not only_receive_dets:
@@ -166,7 +184,23 @@ def main():
     if view_received_detections:
         stripped_detections = []
         if receive_from_perspective == -1:
-            perspect_detections = perspective_utils.get_all_detections(img_idx, perspID, use_results, filter_area)
+            perspect_detections = perspective_utils.get_all_detections(img_idx, ego_id, use_results, filter_area)
+            if change_rec_colour:
+                for obj_list in perspect_detections:
+                    obj_list[0].obj.type = "OwnObject"
+                    if obj_list[0].detector_id == ego_id:
+                        continue
+                    color_str = "Received{:07d}".format(obj_list[0].detector_id)
+                    prime_val = obj_list[0].detector_id * 47
+                    entity_colour = (prime_val + 13 % 255, (prime_val / 255) % 255, prime_val % 255)
+                    COLOUR_SCHEME[color_str] = entity_colour
+                    first_obj = True
+                    for obj in obj_list:
+                        if first_obj:
+                            first_obj = False
+                            continue
+                        obj.obj.type = color_str
+
             stripped_detections = trust_utils.strip_objs_lists(perspect_detections)
         else:
             receive_entity_str = '{:07d}'.format(receive_from_perspective)
@@ -184,7 +218,7 @@ def main():
             single_det.append(stripped_detections[receive_det_id])
             stripped_detections = single_det
 
-        if change_rec_colour:
+        if change_rec_colour and receive_from_perspective != -1:
             for obj in stripped_detections:
                 obj.type = "Received"
 
@@ -208,27 +242,9 @@ def main():
     vtk_voxel_grid = VtkVoxelGrid()
     vtk_voxel_grid.set_voxels(voxel_grid)
 
-    COLOUR_SCHEME_PAPER = {
-        "Car": (0, 0, 255),  # Blue
-        "Pedestrian": (255, 0, 0),  # Red
-        "Bus": (0, 0, 255), #Blue
-        "Cyclist": (150, 50, 100),  # Purple
-
-        "Van": (255, 150, 150),  # Peach
-        "Person_sitting": (150, 200, 255),  # Sky Blue
-
-        "Truck": (0, 0, 255),  # Light Grey
-        "Tram": (150, 150, 150),  # Grey
-        "Misc": (100, 100, 100),  # Dark Grey
-        "DontCare": (255, 255, 255),  # White
-
-        "Received": (255, 150, 150),  # Peach
-        "OwnObject": (51, 255, 255),  # Cyan
-    }
-
     # Create VtkBoxes for boxes
     vtk_boxes = VtkBoxes()
-    vtk_boxes.set_objects(gt_detections, COLOUR_SCHEME_PAPER)#vtk_boxes.COLOUR_SCHEME_KITTI)
+    vtk_boxes.set_objects(gt_detections, COLOUR_SCHEME)#vtk_boxes.COLOUR_SCHEME_KITTI)
 
     # Create Axes
     axes = vtk.vtkAxesActor()

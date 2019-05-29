@@ -254,9 +254,6 @@ def get_all_detections(idx, persp_id, results, filter_area=False):
                 if perspect_detections is not None and len(perspect_detections) > 0:
                     all_perspect_detections.append(perspect_detections)
 
-    # todo Should test visualizations to ensure all detections
-    # are being loaded properly
-    # todo - Also change tru_percept to correspond correctly
     return all_perspect_detections
 
 def get_folder(persp_id):
