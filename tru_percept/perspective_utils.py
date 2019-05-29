@@ -99,6 +99,48 @@ def load_position(pos_dir, idx):
     pos.matrix = np.vstack((pos.right, pos.forward, pos.up))
     return pos
 
+def pc_to_world(pc, perspect_dir, idx):
+    pos_dir = perspect_dir + '/position_world/'
+    gta_position = load_position(pos_dir, idx)
+
+    x = np.dot(X, gta_position.matrix)
+    y = np.dot(Y, gta_position.matrix)
+    z = np.dot(Z, gta_position.matrix)
+
+    matrix = np.vstack((x,y,z))
+
+    pc_gta = pc[:,[0, 2, 1]]
+    pc_gta[:,2] *= -1
+    pc_w = np.dot(pc_gta, matrix)
+
+    pos_arr = np.array(gta_position.camPos)
+    pos = np.tile(np.array(gta_position.camPos), (pc_w.shape[0], 1))
+    pc_w += pos
+    return pc_w
+
+def pc_to_perspective(pc, perspect_dir, idx):
+    pos_dir = perspect_dir + '/position_world/'
+    gta_position = load_position(pos_dir, idx)
+
+    matrix = gta_position.matrix
+
+    # Extend position to a matrix then subtract it from each point
+    pos = np.tile(np.array(gta_position.camPos), (pc.shape[0],1))
+    pc -= pos
+
+    # Perform coordinate transformation
+    pc_orig = np.dot(pc, matrix)
+    pc_gta = np.dot(matrix, pc.T).T
+
+    pc_p = pc_gta[:,[0, 2, 1]]
+    pc_p[:,1] *= -1
+
+    return pc_p
+
+def pc_persp_transform(pc, from_persp_dir, to_persp_dir, idx):
+    pc_w = pc_to_world(pc, from_persp_dir, idx)
+    pc_p = pc_to_perspective(pc_w, to_persp_dir, idx)
+    return pc_p
 
 #Changes objects
 def to_world(objects, perspect_dir, idx):
@@ -197,7 +239,7 @@ def get_all_detections(idx, persp_id, results, filter_area=False):
 
     # Load detections from cfg.DATASET_DIR if ego_vehicle is not the persp_id
     if persp_id != const.ego_id():
-        perspect_detections = get_detections(persp_dir, cfg.DATASET_DIR, idx, ego_id, results, filter_area)
+        perspect_detections = get_detections(persp_dir, cfg.DATASET_DIR, idx, const.ego_id(), results, filter_area)
         if perspect_detections is not None and len(perspect_detections) > 0:
             all_perspect_detections.append(perspect_detections)
 
