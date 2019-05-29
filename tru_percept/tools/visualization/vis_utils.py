@@ -15,18 +15,22 @@ from wavedata.tools.visualization import vis_utils
 import perspective_utils
 import trust_utils
 import tru_percept.tru_percept.config as cfg
+import constants as const
 
 import vtk
 
-# OPTIONS
+# See tru_percept/visualization for scripts with preset options
+
+# OPTIONS (set in calling scripts)
 ################################################################
+'''
 img_idx = 7
 
 # Set to true to see predictions (results) from all perspectives
 use_results = True
 
-# Sets the perspective ID if altPerspective is true
-altPerspective = False
+# Sets the perspective ID if alt_persp is true
+alt_persp = False
 perspID = 61954
 
 # Only uses points within image fulcrum
@@ -46,21 +50,26 @@ only_receive_dets = False # Set to true to only show received dets
 # Changes colour of received detections
 change_rec_colour = True
 
-comparePCs = False
-if comparePCs:
-    fulcrum_of_points = False
+# Compare point clouds from two vehicles (for alignment issues)
+compare_pcs = False
+'''
 
-def main():
+def visualize(img_idx, use_results, alt_persp, perspID, fulcrum_of_points,
+              use_intensity, view_received_detections, filter_area,
+              receive_from_perspective, receive_det_id, only_receive_dets,
+              change_rec_colour, compare_pcs, alt_colour_peach=False):
     # Setting Paths
     cam = 2
     dataset_dir = cfg.DATASET_DIR
     print("dataset_dir: ", cfg.DATASET_DIR)
 
-    ego_id = 40194
+    if compare_pcs:
+        fulcrum_of_points = False
+        fulcrum_of_points = False
 
     perspStr = '%07d' % perspID
     altPerspect_dir = os.path.join(dataset_dir,'alt_perspective')
-    if altPerspective:
+    if alt_persp:
         dataset_dir = dataset_dir + '/alt_perspective/' + perspStr
 
     image_dir = os.path.join(dataset_dir, 'image_2')
@@ -94,9 +103,13 @@ def main():
         point_cloud = obj_utils.get_lidar_point_cloud(img_idx, calib_dir, velo_dir,
                                                     im_size=image_shape)
 
-    if comparePCs:
+    if compare_pcs:
         receive_persp_dir = os.path.join(altPerspect_dir, '{:07d}'.format(receive_from_perspective))
         velo_dir2 = os.path.join(receive_persp_dir, 'velodyne')
+        print(velo_dir2)
+        if not os.path.isdir(velo_dir2):
+            print("Error: cannot find velo_dir2: ", velo_dir2)
+            exit()
         point_cloud2 = obj_utils.get_lidar_point_cloud(img_idx, calib_dir, velo_dir2,
                                                     im_size=image_shape)
         #Set to true to display point clouds in world coordinates (for debugging)
@@ -177,18 +190,18 @@ def main():
     # Get bounding boxes
     if (not view_received_detections or receive_from_perspective != -1) and not only_receive_dets:
         gt_detections = perspective_utils.get_detections(dataset_dir, dataset_dir, img_idx,
-                                ego_id, results=use_results, filter_area=filter_area)
+                                const.ego_id(), results=use_results, filter_area=filter_area)
         gt_detections = trust_utils.strip_objs(gt_detections)
         gt_detections[0].type = "OwnObject"
 
     if view_received_detections:
         stripped_detections = []
         if receive_from_perspective == -1:
-            perspect_detections = perspective_utils.get_all_detections(img_idx, ego_id, use_results, filter_area)
+            perspect_detections = perspective_utils.get_all_detections(img_idx, const.ego_id(), use_results, filter_area)
             if change_rec_colour:
                 for obj_list in perspect_detections:
                     obj_list[0].obj.type = "OwnObject"
-                    if obj_list[0].detector_id == ego_id:
+                    if obj_list[0].detector_id == const.ego_id():
                         continue
                     color_str = "Received{:07d}".format(obj_list[0].detector_id)
                     prime_val = obj_list[0].detector_id * 47
@@ -209,6 +222,16 @@ def main():
                 print("Using detections from: ", receive_dir)
                 perspect_detections = perspective_utils.get_detections(dataset_dir, receive_dir, img_idx, receive_entity_str, results=use_results)
                 if perspect_detections != None:
+                    color_str = "Received{:07d}".format(receive_from_perspective)
+                    prime_val = receive_from_perspective * 47
+                    entity_colour = (prime_val + 13 % 255, (prime_val / 255) % 255, prime_val % 255)
+                    COLOUR_SCHEME[color_str] = entity_colour
+                    first_obj = True
+                    for obj in perspect_detections:
+                        if first_obj:
+                            first_obj = False
+                            continue
+                        obj.obj.type = color_str
                     stripped_detections = trust_utils.strip_objs(perspect_detections)
             else:
                 print("Could not find directory: ", receive_dir)
@@ -218,7 +241,7 @@ def main():
             single_det.append(stripped_detections[receive_det_id])
             stripped_detections = single_det
 
-        if change_rec_colour and receive_from_perspective != -1:
+        if change_rec_colour and alt_colour_peach:
             for obj in stripped_detections:
                 obj.type = "Received"
 
@@ -301,5 +324,3 @@ def main():
     vtk_render_window.Render()
     vtk_render_window_interactor.Start()  # Blocking
     # renderWindowInteractor.Initialize()   # Non-Blocking
-
-main()
