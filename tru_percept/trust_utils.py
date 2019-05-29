@@ -1,11 +1,11 @@
 import os
+import math
 
 from wavedata.tools.obj_detection import obj_utils
 
 import certainty_utils
 import config as cfg
-
-self_id = 0
+import constants as const
 
 # Dictionary for vehicle trust values
 trust_map = {}
@@ -69,7 +69,13 @@ def getPerspectiveOwnVehicleTrustObject(persp_dir, idx, persp_id):
     ego_dir = persp_dir + '/ego_object/'
     ego_detection = obj_utils.read_labels(ego_dir, idx)
     ego_detection[0].score = 1.0
-    # TODO Filter object?
+
+    if const.ego_id() == persp_id:
+        # These weren't set in this version of synthetic data (TODO)
+        ego_detection[0].t = (0, ego_detection[0].h, 0)
+        ego_detection[0].ry = math.pi / 2
+
+    # TODO Filter object area?
     ego_tDet = TrustDetection(persp_id, ego_detection[0], 1.0, 0)
     return ego_tDet
 
