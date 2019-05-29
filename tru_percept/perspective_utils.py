@@ -8,9 +8,10 @@ from wavedata.tools.obj_detection import obj_utils
 import certainty_utils
 import trust_utils
 import config as cfg
+import constants as const
 
 # Notes on terminology:
-# ego_id = The entity_id of the vehicle which is driving
+# ego_id = The entity_id of the main vehicle which is driving from GTA Collection
 # view_id = The id of the vehicle whose viewpoint is being evaluated
 # view and perspective are used interchangeably
 # view is used for most variable names as it is shorter
@@ -179,12 +180,12 @@ def get_detections(to_persp_dir, det_persp_dir, idx, det_persp_id, results=False
 # Returns list of predictions for nearby vehicles
 # Includes detections from ego vehicle and from the perspective vehicle of persp_id
 # The first list of predictions will be for the persp_id detections
-def get_all_detections(ego_id, idx, persp_id, results, filter_area=False):
+def get_all_detections(idx, persp_id, results, filter_area=False):
     all_perspect_detections = []
 
     # Load predictions from persp_id vehicle
     #TODO Test if certainty values are corresponding correctly
-    persp_dir = get_folder(ego_id, persp_id)
+    persp_dir = get_folder(persp_id)
     predictions_dir = persp_dir + '/predictions/'
     preds_file = predictions_dir + '/{:06d}.txt'.format(idx)
     if os.path.isfile(preds_file):
@@ -195,7 +196,7 @@ def get_all_detections(ego_id, idx, persp_id, results, filter_area=False):
     all_perspect_detections.append(persp_trust_objs)
 
     # Load detections from cfg.DATASET_DIR if ego_vehicle is not the persp_id
-    if persp_id != ego_id:
+    if persp_id != const.ego_id():
         perspect_detections = get_detections(persp_dir, cfg.DATASET_DIR, idx, ego_id, results, filter_area)
         if perspect_detections is not None and len(perspect_detections) > 0:
             all_perspect_detections.append(perspect_detections)
@@ -216,8 +217,8 @@ def get_all_detections(ego_id, idx, persp_id, results, filter_area=False):
     # todo - Also change tru_percept to correspond correctly
     return all_perspect_detections
 
-def get_folder(ego_id, persp_id):
-    if persp_id == ego_id:
+def get_folder(persp_id):
+    if persp_id == const.ego_id():
         return cfg.DATASET_DIR
     else:
         persp_dir = cfg.DATASET_DIR + '/alt_perspective' + '/{:07d}/'.format(persp_id)

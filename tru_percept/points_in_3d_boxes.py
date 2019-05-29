@@ -12,6 +12,7 @@ import trust_utils
 import config as cfg
 import std_utils
 import certainty_utils
+import constants as const
 
 # Compute and save # of points for own and received detections for each vehicle
 # Labels filtered for area before computing
@@ -24,15 +25,11 @@ def compute_points_in_3d_boxes():
 
     print("Beginning calculation of points_in_3d_boxes")
     
-    # Obtain the ego ID
-    ego_folder = cfg.DATASET_DIR + '/ego_object'
-    ego_info = obj_utils.read_labels(ego_folder, 0, synthetic=True)
-    ego_id = ego_info[0].id
     
     std_utils.delete_all_subdirs(cfg.POINTS_IN_3D_BOXES_DIR)
 
     # First for the ego vehicle
-    compute_perspect_points_in_3d_boxes(cfg.DATASET_DIR, ego_id, ego_id)
+    compute_perspect_points_in_3d_boxes(cfg.DATASET_DIR, const.ego_id())
 
     # Then for all the alternate perspectives
     alt_pers_dir = cfg.DATASET_DIR + '/alt_perspective/'
@@ -43,7 +40,7 @@ def compute_points_in_3d_boxes():
         perspect_dir = os.path.join(alt_pers_dir, entity_str)
         if not os.path.isdir(perspect_dir):
             continue
-        compute_perspect_points_in_3d_boxes(perspect_dir, int(entity_str), ego_id)
+        compute_perspect_points_in_3d_boxes(perspect_dir, int(entity_str))
 
         sys.stdout.flush()
         sys.stdout.write('\rFinished point count for perspective {}: {} / {}'.format(
@@ -51,7 +48,7 @@ def compute_points_in_3d_boxes():
         persp_idx += 1
 
 
-def compute_perspect_points_in_3d_boxes(perspect_dir, persp_id, ego_id):
+def compute_perspect_points_in_3d_boxes(perspect_dir, persp_id):
     logging.info("**********************************************************************")
     logging.info("Computing points_in_3d_boxes for perspective: %d", persp_id)
     velo_dir = perspect_dir + '/velodyne'
@@ -73,9 +70,9 @@ def compute_perspect_points_in_3d_boxes(perspect_dir, persp_id, ego_id):
 
         # Load predictions from own and nearby vehicles
         # First object in list will correspond to the ego_entity_id
-        trust_objs = p_utils.get_all_detections(ego_id, idx, persp_id, results=False, filter_area=False)
+        trust_objs = p_utils.get_all_detections(idx, persp_id, results=False, filter_area=False)
 
-        save_points_in_3d_boxes(trust_objs, ego_id, idx, perspect_dir, persp_id)
+        save_points_in_3d_boxes(trust_objs, idx, perspect_dir, persp_id)
 
         sys.stdout.flush()
         sys.stdout.write('\rFinished point count for file index: {} / {}'.format(
@@ -85,7 +82,7 @@ def compute_perspect_points_in_3d_boxes(perspect_dir, persp_id, ego_id):
     if file_idx > 0:
         print("\nFinished non-null perspective: ", int(persp_id))
 
-def save_points_in_3d_boxes(trust_objs, ego_id, idx, perspect_dir, persp_id):
+def save_points_in_3d_boxes(trust_objs, idx, perspect_dir, persp_id):
     if trust_objs is None:
         logging.debug("trust_objs is none")
         return
@@ -96,7 +93,7 @@ def save_points_in_3d_boxes(trust_objs, ego_id, idx, perspect_dir, persp_id):
 
     logging.debug("********************Saving points_in_3d_boxes val to id: {} at idx: {}".format(persp_id, idx))
     # Save to text file
-    file_path = p_utils.get_folder(ego_id, persp_id) + '/{}/{:06d}.txt'.format(cfg.POINTS_IN_3D_BOXES_DIR,idx)
+    file_path = p_utils.get_folder(persp_id) + '/{}/{:06d}.txt'.format(cfg.POINTS_IN_3D_BOXES_DIR,idx)
     std_utils.make_dir(file_path)
     logging.debug("Writing points_in_3d_boxes to file: %s", file_path)
 

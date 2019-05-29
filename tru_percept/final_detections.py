@@ -12,16 +12,12 @@ import trust_utils
 import config as cfg
 import vehicle_trust as v_trust
 import std_utils
+import constants as const
 
 # Compute and save final detections
 # Only for the ego vehicle as all other vehicles are not
 # guaranteed to have all nearby vehicles
 def compute_final_detections():
-    # Obtain the ego ID
-    ego_folder = cfg.DATASET_DIR + '/ego_object'
-    ego_info = obj_utils.read_labels(ego_folder, 0, synthetic=True)
-    ego_id = ego_info[0].id
-    
     std_utils.delete_subdir(cfg.FINAL_DETS_SUBDIR)
 
     # First for the ego vehicle
@@ -41,7 +37,7 @@ def compute_final_detections():
 
         trust_dict = v_trust.load_vehicle_trust_objs(idx)
 
-        perspect_trust_objs = p_utils.get_all_detections(ego_id, idx, ego_id, results=False, filter_area=False)
+        perspect_trust_objs = p_utils.get_all_detections(idx, const.ego_id(), results=False, filter_area=False)
 
         # TODO: Add fake detections
 
@@ -52,14 +48,14 @@ def compute_final_detections():
         logging.debug("Matching objects!!!!!!!!!!!!!!!!!!!!!!!!!")
         logging.debug(matching_objs)
         # Aggregate messages into final detections
-        final_dets = aggregate_msgs(matching_objs, trust_dict, ego_id)
+        final_dets = aggregate_msgs(matching_objs, trust_dict)
         logging.debug("Final detections!!!!!!!!!!!!!!!!!!!!!")
         logging.debug(final_dets)
 
         output_final_dets(final_dets, idx)
 
 # Aggregates messages based on vehicle trust values, confidence, and certainty scores
-def aggregate_msgs(matching_objs, trust_dict, ego_id):
+def aggregate_msgs(matching_objs, trust_dict):
     final_dets = []
 
     for match_list in matching_objs:

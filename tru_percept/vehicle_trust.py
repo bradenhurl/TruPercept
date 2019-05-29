@@ -8,18 +8,12 @@ from wavedata.tools.obj_detection import obj_utils
 import config as cfg
 import trust_utils
 import std_utils
+import constants as const
 
 def calculate_vehicle_trusts():
 
-    # Obtain the ego ID
-    ego_folder = cfg.DATASET_DIR + '/ego_object'
-    ego_info = obj_utils.read_labels(ego_folder, 0, synthetic=True)
-    ego_id = ego_info[0].id
-
     # Before calculating, first delete all previous vehicle trust values
     std_utils.delete_subdir(cfg.V_TRUST_SUBDIR)
-
-    logging.warning('ego_id: %d', ego_id)
 
     # Initialize dictionary for vehicle trust values
     # Entity ID/VehicleTrust object pairs
@@ -36,7 +30,7 @@ def calculate_vehicle_trusts():
             break
 
         # First for the ego vehicle
-        compute_vehicle_trust(cfg.DATASET_DIR, ego_id, ego_id, idx, trust_dict)
+        compute_vehicle_trust(cfg.DATASET_DIR, const.ego_id(), idx, trust_dict)
 
         # Then for all the alternate perspectives
         alt_pers_dir = cfg.DATASET_DIR + '/alt_perspective/'
@@ -45,11 +39,11 @@ def calculate_vehicle_trusts():
             perspect_dir = os.path.join(alt_pers_dir, entity_str)
             if not os.path.isdir(perspect_dir):
                 continue
-            compute_vehicle_trust(perspect_dir, int(entity_str), ego_id, idx, trust_dict)
+            compute_vehicle_trust(perspect_dir, int(entity_str), idx, trust_dict)
 
         write_trust_vals(trust_dict, idx)
 
-def compute_vehicle_trust(persp_dir, persp_id, ego_id, idx, trust_dict):
+def compute_vehicle_trust(persp_dir, persp_id, idx, trust_dict):
     msg_evals = load_msg_evals(persp_dir, idx)
 
     eval_lists = {}

@@ -11,22 +11,17 @@ import matching_utils
 import trust_utils
 import config as cfg
 import std_utils
+import constants as const
 
 # Compute and save message evals for each vehicle
 # Files get saved to the base directory under message_evaluations
 # The format is:
 # Message ID, Confidence, Certainty, Evaluator ID
 def compute_message_evals():
-
-    # Obtain the ego ID
-    ego_folder = cfg.DATASET_DIR + '/ego_object'
-    ego_info = obj_utils.read_labels(ego_folder, 0, synthetic=True)
-    ego_id = ego_info[0].id
-    
     std_utils.delete_all_subdirs(cfg.MSG_EVALS_SUBDIR)
 
     # First for the ego vehicle
-    compute_perspect_eval(cfg.DATASET_DIR, ego_id, ego_id)
+    compute_perspect_eval(cfg.DATASET_DIR, const.ego_id())
 
     # Then for all the alternate perspectives
     alt_pers_dir = cfg.DATASET_DIR + '/alt_perspective/'
@@ -35,10 +30,10 @@ def compute_message_evals():
         perspect_dir = os.path.join(alt_pers_dir, entity_str)
         if not os.path.isdir(perspect_dir):
             continue
-        compute_perspect_eval(perspect_dir, int(entity_str), ego_id)
+        compute_perspect_eval(perspect_dir, int(entity_str))
 
 
-def compute_perspect_eval(perspect_dir, persp_id, ego_id):
+def compute_perspect_eval(perspect_dir, persp_id):
     logging.info("**********************************************************************")
     logging.info("Computing evaluations for perspective: %d", persp_id)
     velo_dir = perspect_dir + '/velodyne'
@@ -59,7 +54,7 @@ def compute_perspect_eval(perspect_dir, persp_id, ego_id):
 
         # Load predictions from own and nearby vehicles
         # First object in list will correspond to the ego_entity_id
-        perspect_trust_objs = p_utils.get_all_detections(ego_id, idx, persp_id, results=False, filter_area=True)
+        perspect_trust_objs = p_utils.get_all_detections(idx, persp_id, results=False, filter_area=True)
 
         # Add fake detections to perspect_preds
 
@@ -82,9 +77,9 @@ def compute_perspect_eval(perspect_dir, persp_id, ego_id):
 
         # Calculate trust from received detections
         trust_utils.get_message_trust_values(matching_objs, perspect_dir, persp_id, idx)
-        save_msg_evals(matching_objs, ego_id, idx)
+        save_msg_evals(matching_objs, idx)
 
-def save_msg_evals(msg_trusts, ego_id, idx):
+def save_msg_evals(msg_trusts, idx):
     logging.debug("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Save msg evals in trust")
     if msg_trusts is None:
         logging.debug("Msg trusts is none")
@@ -111,7 +106,7 @@ def save_msg_evals(msg_trusts, ego_id, idx):
 
             logging.debug("********************Saving trust val to id: %d at idx: %d", trust_obj.detector_id, idx)
             # Save to text file
-            file_path = p_utils.get_folder(ego_id, trust_obj.detector_id) + '/{}/{:06d}.txt'.format(cfg.MSG_EVALS_SUBDIR,idx)
+            file_path = p_utils.get_folder(trust_obj.detector_id) + '/{}/{:06d}.txt'.format(cfg.MSG_EVALS_SUBDIR,idx)
             logging.debug("Writing msg evals to file: %s", file_path)
             std_utils.make_dir(file_path)
             with open(file_path, 'a+') as f:
