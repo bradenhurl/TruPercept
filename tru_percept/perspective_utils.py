@@ -5,7 +5,6 @@ import logging
 
 from wavedata.tools.obj_detection import obj_utils
 
-import certainty_utils
 import trust_utils
 import config as cfg
 import constants as const
