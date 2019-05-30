@@ -111,4 +111,39 @@ def save_points_in_3d_boxes(trust_objs, idx, perspect_dir, persp_id):
 
                 np.savetxt(f, output, newline='\r\n', fmt='%i %i %i')
 
-compute_points_in_3d_boxes()
+# Returns a dictionary with the point counts in 3d boxes
+# for each received detection from a perspective and given index
+# Dictionary can be accessed with detector_id and det_idx tuple
+def load_points_in_3d_boxes(idx, persp_id):
+    # Define the dictionary
+    out_dict = {}
+
+    if idx < 0:
+        return {}
+
+    filepath = p_utils.get_folder(persp_id) + '/{}/{:06d}.txt'.format(cfg.POINTS_IN_3D_BOXES_DIR,idx)
+    if not os.path.isfile(filepath):
+        print("Invalid file: ", filepath)
+        return {}
+
+    # Extract the list
+    if os.stat(filepath).st_size == 0:
+        return {}
+
+    p = np.loadtxt(filepath, delimiter=' ',
+                   dtype=str,
+                   usecols=np.arange(start=0, step=1, stop=3))
+
+    # Check if the output is single dimensional or multi dimensional
+    if len(p.shape) > 1:
+        label_num = p.shape[0]
+    else:
+        label_num = 1
+
+    for idx in np.arange(label_num):
+        if label_num > 1:
+            out_dict[int(p[idx,0]),int(p[idx,1])] = int(p[idx,2])
+        else:
+            out_dict[int(p[0]),int(p[1])] = int(p[2])
+
+    return out_dict
