@@ -9,6 +9,7 @@ from wavedata.tools.core.voxel_grid import VoxelGrid
 from wavedata.tools.visualization.vtk_point_cloud import VtkPointCloud
 from wavedata.tools.visualization.vtk_voxel_grid import VtkVoxelGrid
 from wavedata.tools.visualization.vtk_boxes import VtkBoxes
+from wavedata.tools.visualization.vtk_text_labels import VtkTextLabels
 
 from wavedata.tools.visualization import vis_utils
 
@@ -16,6 +17,7 @@ import perspective_utils
 import trust_utils
 import tru_percept.tru_percept.config as cfg
 import constants as const
+import points_in_3d_boxes
 
 import vtk
 
@@ -53,11 +55,14 @@ change_rec_colour = True
 # Compare point clouds from two vehicles (for alignment issues)
 compare_pcs = False
 '''
+text_labels = []
+text_positions = []
 
 def visualize(img_idx, use_results, alt_persp, perspID, fulcrum_of_points,
               use_intensity, view_received_detections, filter_area,
               receive_from_perspective, receive_det_id, only_receive_dets,
-              change_rec_colour, compare_pcs, alt_colour_peach=False):
+              change_rec_colour, compare_pcs, alt_colour_peach=False,
+              show_3d_point_count=False, show_orientation=False):
     # Setting Paths
     cam = 2
     dataset_dir = cfg.DATASET_DIR
@@ -66,6 +71,11 @@ def visualize(img_idx, use_results, alt_persp, perspID, fulcrum_of_points,
     if compare_pcs:
         fulcrum_of_points = False
         fulcrum_of_points = False
+
+    global text_labels
+    global text_positions
+    text_labels = []
+    text_positions = []
 
     perspStr = '%07d' % perspID
     altPerspect_dir = os.path.join(dataset_dir,'alt_perspective')
@@ -186,11 +196,18 @@ def visualize(img_idx, use_results, alt_persp, perspID, fulcrum_of_points,
         "OwnObject": (51, 255, 255),  # Cyan
     }
 
+    # Load points_in_3d_boxes for each object
+    points_dict = points_in_3d_boxes.load_points_in_3d_boxes(img_idx, const.ego_id())
+    text_positions = []
+    text_labels = []
+
     gt_detections = []
     # Get bounding boxes
     if (not view_received_detections or receive_from_perspective != -1) and not only_receive_dets:
         gt_detections = perspective_utils.get_detections(dataset_dir, dataset_dir, img_idx,
                                 const.ego_id(), results=use_results, filter_area=filter_area)
+
+        setPointsList(gt_detections, points_dict)
         gt_detections = trust_utils.strip_objs(gt_detections)
         gt_detections[0].type = "OwnObject"
 
@@ -214,6 +231,9 @@ def visualize(img_idx, use_results, alt_persp, perspID, fulcrum_of_points,
                             continue
                         obj.obj.type = color_str
 
+            for obj_list in perspect_detections:
+                setPointsList(obj_list, points_dict)
+
             stripped_detections = trust_utils.strip_objs_lists(perspect_detections)
         else:
             receive_entity_str = '{:07d}'.format(receive_from_perspective)
@@ -232,6 +252,7 @@ def visualize(img_idx, use_results, alt_persp, perspID, fulcrum_of_points,
                             first_obj = False
                             continue
                         obj.obj.type = color_str
+                    setPointsList(perspect_detections, points_dict)
                     stripped_detections = trust_utils.strip_objs(perspect_detections)
             else:
                 print("Could not find directory: ", receive_dir)
@@ -267,7 +288,7 @@ def visualize(img_idx, use_results, alt_persp, perspID, fulcrum_of_points,
 
     # Create VtkBoxes for boxes
     vtk_boxes = VtkBoxes()
-    vtk_boxes.set_objects(gt_detections, COLOUR_SCHEME)#vtk_boxes.COLOUR_SCHEME_KITTI)
+    vtk_boxes.set_objects(gt_detections, COLOUR_SCHEME, show_orientation)#vtk_boxes.COLOUR_SCHEME_KITTI)
 
     # Create Axes
     axes = vtk.vtkAxesActor()
@@ -279,6 +300,10 @@ def visualize(img_idx, use_results, alt_persp, perspID, fulcrum_of_points,
     vtk_renderer.AddActor(vtk_voxel_grid.vtk_actor)
     vtk_renderer.AddActor(vtk_boxes.vtk_actor)
     #vtk_renderer.AddActor(axes)
+    if show_3d_point_count:
+        vtk_text_labels = VtkTextLabels()
+        vtk_text_labels.set_text_labels(text_positions, text_labels)
+        vtk_renderer.AddActor(vtk_text_labels.vtk_actor)
     vtk_renderer.SetBackground(0.2, 0.3, 0.4)
 
     # Setup Camera
@@ -324,3 +349,15 @@ def visualize(img_idx, use_results, alt_persp, perspID, fulcrum_of_points,
     vtk_render_window.Render()
     vtk_render_window_interactor.Start()  # Blocking
     # renderWindowInteractor.Initialize()   # Non-Blocking
+
+def setPointsList(trust_obj_list,  points_dict):
+    global text_labels
+    global text_positions
+    for trust_obj in trust_obj_list:
+        text_positions.append(trust_obj.obj.t)
+        key = trust_obj.detector_id, trust_obj.det_idx
+        if key in points_dict:
+            points = points_dict[key]
+        else:
+            points = -1
+        text_labels.append('{}'.format(points))
