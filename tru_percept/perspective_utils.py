@@ -206,8 +206,9 @@ def get_detections(to_persp_dir, det_persp_dir, idx, det_persp_id, results=False
     detections = obj_utils.read_labels(label_dir, idx, results=results)
     logging.debug("det_persp_id: {} det_persp_dir: {}".format(det_persp_id, det_persp_dir))
     if detections is not None:
-        to_world(detections, det_persp_dir, idx)
-        to_perspective(detections, to_persp_dir, idx)
+        if det_persp_dir != to_persp_dir:
+            to_world(detections, det_persp_dir, idx)
+            to_perspective(detections, to_persp_dir, idx)
 
         #TODO Verify filter is working
         if filter_area:
@@ -225,16 +226,11 @@ def get_all_detections(idx, persp_id, results, filter_area=False):
     all_perspect_detections = []
 
     # Load predictions from persp_id vehicle
-    #TODO Test if certainty values are corresponding correctly
+    #TODO Attach certainty/point count values correctly
     persp_dir = get_folder(persp_id)
-    predictions_dir = persp_dir + '/predictions/'
-    preds_file = predictions_dir + '/{:06d}.txt'.format(idx)
-    if os.path.isfile(preds_file):
-        persp_preds = obj_utils.read_labels(predictions_dir, idx, results=True)
-    else:
-        persp_preds = []
-    persp_trust_objs = trust_utils.createTrustObjects(persp_dir, idx, persp_id, persp_preds, results)
-    all_perspect_detections.append(persp_trust_objs)
+    perspect_detections = get_detections(persp_dir, persp_dir, idx, const.ego_id(), results, filter_area)
+    if perspect_detections is not None and len(perspect_detections) > 0:
+        all_perspect_detections.append(perspect_detections)
 
     # Load detections from cfg.DATASET_DIR if ego_vehicle is not the persp_id
     if persp_id != const.ego_id():
@@ -310,3 +306,8 @@ def _check_distance(obj):
 
     return True
 #####################################################################
+
+# Test function to print out pointcloud mins and maxes
+def print_pc_bounds(pc):
+    print("Mins: ", np.amin(pc, axis=0))
+    print("maxes: ", np.amax(pc, axis=0))
