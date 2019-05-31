@@ -29,7 +29,7 @@ USE_RESULTS = True
 
 # Subdirectories for storing intermediate steps
 POINTS_IN_3D_BOXES_DIR = 'points_in_3d_boxes'
-if USE_RESULTS:
+if not USE_RESULTS:
     POINTS_IN_3D_BOXES_DIR += '_gt'
 MSG_EVALS_SUBDIR = 'msg_evals'
 V_TRUST_SUBDIR = 'vehicle_trust_scores'
