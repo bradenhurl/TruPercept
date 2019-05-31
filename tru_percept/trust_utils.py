@@ -134,8 +134,10 @@ def get_message_trust_values(matching_objs, perspect_dir, perspect_id, idx):
         if len(match_list) > 1:
             for trust_obj in match_list:
                 trust_obj.evaluator_id = perspect_id
-                pointcloud = certainty_utils.get_nan_point_cloud(perspect_dir, idx)
-                trust_obj.evaluator_certainty = certainty_utils.numPointsIn3DBox(trust_obj.obj, pointcloud, perspect_dir, idx)
+                # TODO Need to load point count values instead of using them here
+                todo
+                pointcloud = points_in_3d_boxes.get_nan_point_cloud(perspect_dir, idx)
+                trust_obj.evaluator_certainty = points_in_3d_boxes.numPointsIn3DBox(trust_obj.obj, pointcloud, perspect_dir, idx)
                 # TODO Also try incorporating a matching score? Based on IoU
                 # Set the score (confidence) to be the same as the matched detection
                 trust_obj.evaluator_score = match_list[0].obj.score

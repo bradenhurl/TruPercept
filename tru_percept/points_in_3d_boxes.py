@@ -11,8 +11,17 @@ import perspective_utils as p_utils
 import trust_utils
 import config as cfg
 import std_utils
-import certainty_utils
 import constants as const
+
+class BoxObj():
+    def __init__(self, u, v, w, rearBotLeft, frontBotLeft, rearTopLeft, rearBotRight):
+        self.u = u
+        self.v = v
+        self.w = w
+        self.rearBotLeft = rearBotLeft
+        self.frontBotLeft = frontBotLeft
+        self.rearTopLeft = rearTopLeft
+        self.rearBotRight = rearBotRight
 
 # Compute and save # of points for own and received detections for each vehicle
 # Labels filtered for area before computing
@@ -100,8 +109,8 @@ def save_points_in_3d_boxes(trust_objs, idx, perspect_dir, persp_id):
     with open(file_path, 'a+') as f:
         for obj_list in trust_objs:
             for trust_obj in obj_list:
-                pc = certainty_utils.get_nan_point_cloud(perspect_dir, idx)
-                num_points = certainty_utils.numPointsIn3DBox(trust_obj.obj, pc, perspect_dir, idx)
+                pc = get_nan_point_cloud(perspect_dir, idx)
+                num_points = numPointsIn3DBox(trust_obj.obj, pc, perspect_dir, idx)
 
                 # Fill the array to write
                 output = np.zeros([1, 3])
@@ -147,3 +156,100 @@ def load_points_in_3d_boxes(idx, persp_id):
             out_dict[int(p[0]),int(p[1])] = int(p[2])
 
     return out_dict
+
+def get_nan_point_cloud(perspect_dir, idx):
+    calib_dir = perspect_dir + '/calib'
+    velo_dir = perspect_dir + '/velodyne'
+    all_points = obj_utils.get_lidar_point_cloud(idx, calib_dir, velo_dir)
+
+    # Remove nan points
+    nan_mask = ~np.any(np.isnan(all_points), axis=1)
+    point_cloud = all_points[nan_mask].T
+    return point_cloud
+
+# Takes a point or vector in cam coordinates. Returns it in world coordinates (wc)
+def point_to_world(point, gta_position):
+    x = np.dot(const.X, gta_position.matrix)
+    y = np.dot(const.Y, gta_position.matrix)
+    z = np.dot(const.Z, gta_position.matrix)
+
+    matrix = np.vstack((x,y,z))
+
+    rel_pos_GTACam = np.array((point[0], point[2], -point[1])).reshape((1,3))
+    rel_pos_WC = np.dot(rel_pos_GTACam, matrix)
+    position = gta_position.camPos + rel_pos_WC
+
+    return position.reshape((3,))
+
+
+# Checks if a point is between two planes created by a perpendicular unit vector and two points
+def checkDirection(uVec, point, minP, maxP):
+    dotPoint = np.dot(point, uVec)
+    dotMax = np.dot(maxP, uVec)
+    dotMin = np.dot(minP, uVec)
+
+    if ((dotMax <= dotPoint and dotPoint <= dotMin) or
+                (dotMax >= dotPoint and dotPoint >= dotMin)):
+        return True
+
+    return False
+
+def in3DBox(point, boxObj, gta_position):
+    world_point = point_to_world(point, gta_position)
+
+    if not checkDirection(boxObj.u, world_point, boxObj.rearBotLeft, boxObj.frontBotLeft):
+        return False
+    if not checkDirection(boxObj.v, world_point, boxObj.rearBotLeft, boxObj.rearTopLeft):
+        return False
+    if not checkDirection(boxObj.w, world_point, boxObj.rearBotLeft, boxObj.rearBotRight):
+        return False
+
+    return True
+
+def numPointsIn3DBox(obj, point_cloud, perspect_dir, img_idx):
+    pos_dir = perspect_dir + '/position_world/'
+    gta_position = p_utils.load_position(pos_dir, img_idx)
+
+    forward = np.array([obj.l, 0, 0])
+    right = np.array([0, obj.w, 0])
+    up = np.array([0, 0, obj.h])
+
+    camPos = np.array([gta_position.camPos[0], gta_position.camPos[1], gta_position.camPos[2]])
+    forward = point_to_world(forward, gta_position) - gta_position.camPos
+    right = point_to_world(right, gta_position) - gta_position.camPos
+    up = point_to_world(up, gta_position) - gta_position.camPos
+
+
+    objPosition = np.array([obj.t[0], obj.t[1], obj.t[2]])
+    objWorld = point_to_world(objPosition, gta_position)
+
+    rearBotLeft = np.array([objWorld[0] - forward[0] - right[0] - up[0],
+                            objWorld[1] - forward[1] - right[1] - up[1],
+                            objWorld[2] - forward[2] - right[2] - up[2]])
+
+    frontBotLeft = np.array([objWorld[0] + forward[0] - right[0] - up[0],
+                             objWorld[1] + forward[1] - right[1] - up[1],
+                             objWorld[2] + forward[2] - right[2] - up[2]])
+
+    rearTopLeft = np.array([objWorld[0] - forward[0] - right[0] + up[0],
+                            objWorld[1] - forward[1] - right[1] + up[1],
+                            objWorld[2] - forward[2] - right[2] + up[2]])
+
+    rearBotRight = np.array([objWorld[0] - forward[0] + right[0] - up[0],
+                             objWorld[1] - forward[1] + right[1] - up[1],
+                             objWorld[2] - forward[2] + right[2] - up[2]])
+
+
+    u = (frontBotLeft - rearBotLeft) / np.linalg.norm(frontBotLeft - rearBotLeft)
+    v = (rearTopLeft - rearBotLeft) / np.linalg.norm(rearTopLeft - rearBotLeft)
+    w = (rearBotRight - rearBotLeft) / np.linalg.norm(rearBotRight - rearBotLeft)
+
+    boxObj = BoxObj(u,v,w, rearBotLeft, frontBotLeft, rearTopLeft, rearBotRight)
+
+    point_count = 0
+
+    for idx in range(0, point_cloud.shape[0]):
+        if in3DBox(point_cloud[idx, :], boxObj, gta_position):
+            point_count = point_count + 1
+
+    return point_count
