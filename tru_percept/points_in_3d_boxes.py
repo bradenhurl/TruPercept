@@ -70,7 +70,7 @@ def compute_perspect_points_in_3d_boxes(perspect_dir, persp_id):
 
         # Load predictions from own and nearby vehicles
         # First object in list will correspond to the ego_entity_id
-        trust_objs = p_utils.get_all_detections(idx, persp_id, results=False, filter_area=False)
+        trust_objs = p_utils.get_all_detections(idx, persp_id, results=cfg.USE_RESULTS, filter_area=False)
 
         save_points_in_3d_boxes(trust_objs, idx, perspect_dir, persp_id)
 

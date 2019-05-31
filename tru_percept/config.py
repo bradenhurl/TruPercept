@@ -13,10 +13,10 @@ gamma_lower = 10
 # Min/max indices which will be run (for running tests primarily)
 # If set to 0 and sys.maxsize, respectively, all indices will be run
 # when present, up to the maximum index in the DATASET_DIR/velodyne folder
-MIN_IDX = 267
+MIN_IDX = 6
 MAX_IDX = sys.maxsize
 # MIN_IDX = 7
-MAX_IDX = 267
+MAX_IDX = 6
 
 SCORE_THRESHOLD = 0.1
 
@@ -25,8 +25,12 @@ DEFAULT_VEHICLE_TRUST_VAL = 0.5
 
 CUDA_DEVICE = '0'
 
+USE_RESULTS = True
+
 # Subdirectories for storing intermediate steps
 POINTS_IN_3D_BOXES_DIR = 'points_in_3d_boxes'
+if USE_RESULTS:
+    POINTS_IN_3D_BOXES_DIR += '_gt'
 MSG_EVALS_SUBDIR = 'msg_evals'
 V_TRUST_SUBDIR = 'vehicle_trust_scores'
 FINAL_DETS_SUBDIR = 'final_detections'
