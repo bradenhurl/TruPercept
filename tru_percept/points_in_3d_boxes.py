@@ -6,6 +6,7 @@ import cv2
 import logging
 
 from wavedata.tools.obj_detection import obj_utils
+from avod.core import box_8c_encoder
 
 import perspective_utils as p_utils
 import trust_utils
@@ -107,9 +108,9 @@ def save_points_in_3d_boxes(trust_objs, idx, perspect_dir, persp_id):
     logging.debug("Writing points_in_3d_boxes to file: %s", file_path)
 
     with open(file_path, 'a+') as f:
+        pc = get_nan_point_cloud(perspect_dir, idx)
         for obj_list in trust_objs:
             for trust_obj in obj_list:
-                pc = get_nan_point_cloud(perspect_dir, idx)
                 num_points = numPointsIn3DBox(trust_obj.obj, pc, perspect_dir, idx)
 
                 # Fill the array to write
@@ -183,10 +184,15 @@ def point_to_world(point, gta_position):
 
 
 # Checks if a point is between two planes created by a perpendicular unit vector and two points
-def checkDirection(uVec, point, minP, maxP):
+def checkDirection(uVec, point, minP, maxP, printResults=False):
     dotPoint = np.dot(point, uVec)
     dotMax = np.dot(maxP, uVec)
     dotMin = np.dot(minP, uVec)
+
+    if printResults:
+        print("\nPoint in box: ")
+        print(dotPoint, dotMax, dotMin)
+        print(point, maxP, minP)
 
     if ((dotMax <= dotPoint and dotPoint <= dotMin) or
                 (dotMax >= dotPoint and dotPoint >= dotMin)):
@@ -194,62 +200,50 @@ def checkDirection(uVec, point, minP, maxP):
 
     return False
 
-def in3DBox(point, boxObj, gta_position):
-    world_point = point_to_world(point, gta_position)
+def in3DBox(point, boxObj):
+    if not checkDirection(boxObj.u, point, boxObj.rearBotLeft, boxObj.frontBotLeft):
+        return False
+    if not checkDirection(boxObj.w, point, boxObj.rearBotLeft, boxObj.rearBotRight):
+        return False
+    if not checkDirection(boxObj.v, point, boxObj.rearBotLeft, boxObj.rearTopLeft):
+        return False
 
-    if not checkDirection(boxObj.u, world_point, boxObj.rearBotLeft, boxObj.frontBotLeft):
-        return False
-    if not checkDirection(boxObj.v, world_point, boxObj.rearBotLeft, boxObj.rearTopLeft):
-        return False
-    if not checkDirection(boxObj.w, world_point, boxObj.rearBotLeft, boxObj.rearBotRight):
-        return False
+    # Used for testing to print out points if they evaluate to true
+    # print("\npoint: ", point)
+    # if not checkDirection(boxObj.u, point, boxObj.rearBotLeft, boxObj.frontBotLeft, True):
+    #     return False
+    # if not checkDirection(boxObj.w, point, boxObj.rearBotLeft, boxObj.rearBotRight, True):
+    #     return False
+    # if not checkDirection(boxObj.v, point, boxObj.rearBotLeft, boxObj.rearTopLeft, True):
+    #     return False
 
     return True
 
 def numPointsIn3DBox(obj, point_cloud, perspect_dir, img_idx):
-    pos_dir = perspect_dir + '/position_world/'
-    gta_position = p_utils.load_position(pos_dir, img_idx)
+    # box_3d format is [x, y, z, l, w, h, ry]
+    box_3d = np.asarray(
+            [obj.t[0], obj.t[1], obj.t[2], obj.l, obj.w, obj.h, obj.ry],
+            dtype=np.float32)
 
-    forward = np.array([obj.l, 0, 0])
-    right = np.array([0, obj.w, 0])
-    up = np.array([0, 0, obj.h])
+    # corners_3d: An ndarray or a tensor of shape (3 x 8) representing
+    #         the box as corners in the following format ->
+    #         [[x1,...,x8], [y1...,y8], [z1,...,z8]].
+    corners_3d = box_8c_encoder.np_box_3d_to_box_8co(box_3d)
 
-    camPos = np.array([gta_position.camPos[0], gta_position.camPos[1], gta_position.camPos[2]])
-    forward = point_to_world(forward, gta_position) - gta_position.camPos
-    right = point_to_world(right, gta_position) - gta_position.camPos
-    up = point_to_world(up, gta_position) - gta_position.camPos
-
-
-    objPosition = np.array([obj.t[0], obj.t[1], obj.t[2]])
-    objWorld = point_to_world(objPosition, gta_position)
-
-    rearBotLeft = np.array([objWorld[0] - forward[0] - right[0] - up[0],
-                            objWorld[1] - forward[1] - right[1] - up[1],
-                            objWorld[2] - forward[2] - right[2] - up[2]])
-
-    frontBotLeft = np.array([objWorld[0] + forward[0] - right[0] - up[0],
-                             objWorld[1] + forward[1] - right[1] - up[1],
-                             objWorld[2] + forward[2] - right[2] - up[2]])
-
-    rearTopLeft = np.array([objWorld[0] - forward[0] - right[0] + up[0],
-                            objWorld[1] - forward[1] - right[1] + up[1],
-                            objWorld[2] - forward[2] - right[2] + up[2]])
-
-    rearBotRight = np.array([objWorld[0] - forward[0] + right[0] - up[0],
-                             objWorld[1] - forward[1] + right[1] - up[1],
-                             objWorld[2] - forward[2] + right[2] - up[2]])
-
+    rearBotLeft = np.array([corners_3d[0,2], corners_3d[1,2], corners_3d[2,2]])
+    frontBotLeft = np.array([corners_3d[0,1], corners_3d[1,1], corners_3d[2,1]])
+    rearTopLeft = np.array([corners_3d[0,6], corners_3d[1,6], corners_3d[2,6]])
+    rearBotRight = np.array([corners_3d[0,3], corners_3d[1,3], corners_3d[2,3]])
 
     u = (frontBotLeft - rearBotLeft) / np.linalg.norm(frontBotLeft - rearBotLeft)
     v = (rearTopLeft - rearBotLeft) / np.linalg.norm(rearTopLeft - rearBotLeft)
     w = (rearBotRight - rearBotLeft) / np.linalg.norm(rearBotRight - rearBotLeft)
-
     boxObj = BoxObj(u,v,w, rearBotLeft, frontBotLeft, rearTopLeft, rearBotRight)
 
     point_count = 0
 
     for idx in range(0, point_cloud.shape[0]):
-        if in3DBox(point_cloud[idx, :], boxObj, gta_position):
+        if in3DBoxCam(point_cloud[idx, :], boxObj):
             point_count = point_count + 1
 
     return point_count
