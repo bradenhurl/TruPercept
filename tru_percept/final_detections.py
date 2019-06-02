@@ -37,7 +37,7 @@ def compute_final_detections():
 
         trust_dict = v_trust.load_vehicle_trust_objs(idx)
 
-        perspect_trust_objs = p_utils.get_all_detections(idx, const.ego_id(), results=False, filter_area=False)
+        perspect_trust_objs = p_utils.get_all_detections(idx, const.ego_id(), results=cfg.USE_RESULTS, filter_area=False)
 
         # TODO: Add fake detections
 

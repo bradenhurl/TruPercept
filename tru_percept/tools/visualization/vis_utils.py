@@ -29,7 +29,7 @@ import vtk
 img_idx = 7
 
 # Set to true to see predictions (results) from all perspectives
-use_results = True
+show_results = True
 
 # Sets the perspective ID if alt_persp is true
 alt_persp = False
@@ -58,7 +58,7 @@ compare_pcs = False
 text_labels = []
 text_positions = []
 
-def visualize(img_idx, use_results, alt_persp, perspID, fulcrum_of_points,
+def visualize(img_idx, show_results, alt_persp, perspID, fulcrum_of_points,
               use_intensity, view_received_detections, filter_area,
               receive_from_perspective, receive_det_id, only_receive_dets,
               change_rec_colour, compare_pcs, alt_colour_peach=False,
@@ -86,7 +86,7 @@ def visualize(img_idx, use_results, alt_persp, perspID, fulcrum_of_points,
     velo_dir = os.path.join(dataset_dir, 'velodyne')
     calib_dir = os.path.join(dataset_dir, 'calib')
 
-    if use_results:
+    if show_results:
         label_dir = os.path.join(dataset_dir, 'predictions')
     else:
         label_dir = os.path.join(dataset_dir, 'label_2')
@@ -205,7 +205,7 @@ def visualize(img_idx, use_results, alt_persp, perspID, fulcrum_of_points,
     # Get bounding boxes
     if (not view_received_detections or receive_from_perspective != -1) and not only_receive_dets:
         gt_detections = perspective_utils.get_detections(dataset_dir, dataset_dir, img_idx,
-                                const.ego_id(), results=use_results, filter_area=filter_area)
+                                const.ego_id(), results=show_results, filter_area=filter_area)
 
         setPointsList(gt_detections, points_dict)
         gt_detections = trust_utils.strip_objs(gt_detections)
@@ -214,7 +214,7 @@ def visualize(img_idx, use_results, alt_persp, perspID, fulcrum_of_points,
     if view_received_detections:
         stripped_detections = []
         if receive_from_perspective == -1:
-            perspect_detections = perspective_utils.get_all_detections(img_idx, const.ego_id(), use_results, filter_area)
+            perspect_detections = perspective_utils.get_all_detections(img_idx, const.ego_id(), show_results, filter_area)
             if change_rec_colour:
                 for obj_list in perspect_detections:
                     obj_list[0].obj.type = "OwnObject"
@@ -240,7 +240,7 @@ def visualize(img_idx, use_results, alt_persp, perspID, fulcrum_of_points,
             receive_dir = os.path.join(altPerspect_dir, receive_entity_str)
             if os.path.isdir(receive_dir):
                 print("Using detections from: ", receive_dir)
-                perspect_detections = perspective_utils.get_detections(dataset_dir, receive_dir, img_idx, receive_entity_str, results=use_results)
+                perspect_detections = perspective_utils.get_detections(dataset_dir, receive_dir, img_idx, receive_entity_str, results=show_results)
                 if perspect_detections != None:
                     color_str = "Received{:07d}".format(receive_from_perspective)
                     prime_val = receive_from_perspective * 47

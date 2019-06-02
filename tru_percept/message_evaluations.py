@@ -54,7 +54,7 @@ def compute_perspect_eval(perspect_dir, persp_id):
 
         # Load predictions from own and nearby vehicles
         # First object in list will correspond to the ego_entity_id
-        perspect_trust_objs = p_utils.get_all_detections(idx, persp_id, results=False, filter_area=True)
+        perspect_trust_objs = p_utils.get_all_detections(idx, persp_id, results=cfg.USE_RESULTS, filter_area=True)
 
         # Add fake detections to perspect_preds
 

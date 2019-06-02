@@ -4,10 +4,10 @@ import tru_percept.tru_percept.tools.visualization.vis_utils as vis_utils
 
 # OPTIONS
 ################################################################
-img_idx = 7
+img_idx = 6
 
 # Set to true to see predictions (results) from all perspectives
-use_results = True
+show_results = True
 
 # Sets the perspective ID if altPerspective is true
 alt_persp = False
@@ -35,7 +35,7 @@ compare_pcs = False
 receive_det_id = -1 # Set to -1 to show all detections
 only_receive_dets = False # Set to true to only show received dets
 
-vis_utils.visualize(img_idx,use_results, alt_persp, perspID, fulcrum_of_points,
+vis_utils.visualize(img_idx, show_results, alt_persp, perspID, fulcrum_of_points,
                     use_intensity, view_received_detections, filter_area,
                     receive_from_perspective, receive_det_id, only_receive_dets,
                     change_rec_colour, compare_pcs)
