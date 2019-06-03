@@ -243,7 +243,7 @@ def numPointsIn3DBox(obj, point_cloud, perspect_dir, img_idx):
     point_count = 0
 
     for idx in range(0, point_cloud.shape[0]):
-        if in3DBoxCam(point_cloud[idx, :], boxObj):
+        if in3DBox(point_cloud[idx, :], boxObj):
             point_count = point_count + 1
 
     return point_count
