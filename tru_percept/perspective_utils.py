@@ -228,7 +228,7 @@ def get_all_detections(idx, persp_id, results, filter_area=False):
     # Load predictions from persp_id vehicle
     #TODO Attach certainty/point count values correctly
     persp_dir = get_folder(persp_id)
-    perspect_detections = get_detections(persp_dir, persp_dir, idx, const.ego_id(), results, filter_area)
+    perspect_detections = get_detections(persp_dir, persp_dir, idx, persp_id, results, filter_area)
     if perspect_detections is not None and len(perspect_detections) > 0:
         all_perspect_detections.append(perspect_detections)
 
