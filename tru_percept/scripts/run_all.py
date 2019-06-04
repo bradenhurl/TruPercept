@@ -1,4 +1,5 @@
 import run_inference_alt_perspectives as infer
+import tru_percept.tru_percept.points_in_3d_boxes as points_3d
 import message_evaluations as msg_evals
 import vehicle_trust as v_trust
 import final_detections as f_dets
@@ -17,6 +18,7 @@ infer.infer_main('pyramid_cars_gta', [41], False)
 infer.infer_main('pyramid_people_gta', [24], True)
 
 # Perform remaining tru_percept operations
+points_3d.compute_points_in_3d_boxes()
 msg_evals.compute_message_evals()
 v_trust.calculate_vehicle_trusts()
 f_dets.compute_final_detections()
