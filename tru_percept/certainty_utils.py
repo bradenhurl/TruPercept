@@ -25,5 +25,5 @@ def load_certainties(persp_dir, idx):
     return []
 
 # See certainty eqn in paper
-def certainty_from_num_3d_points(num_points):
+def certainty_from_3d_points(num_points):
     return min(1.0, (max(0, num_points - cfg.gamma_lower) / float(cfg.gamma_upper - cfg.gamma_lower)))

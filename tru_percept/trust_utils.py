@@ -6,6 +6,7 @@ from wavedata.tools.obj_detection import obj_utils
 import certainty_utils
 import config as cfg
 import constants as const
+import points_in_3d_boxes as points_3d
 
 # Dictionary for vehicle trust values
 trust_map = {}
@@ -29,7 +30,7 @@ class TrustDetection:
         self.detector_certainty = persp_certainty
         self.evaluator_id = -1
         self.evaluator_certainty = -1
-        self.evaluator_3d_box_points = -1#TODO set this instead of certainty
+        self.evaluator_3d_points = -1
         self.evaluator_score = -1
         self.matched = False
         self.trust = 0.
@@ -87,9 +88,13 @@ def createTrustObjects(persp_dir, idx, persp_id, detections, results):
     ego_tDet = getPerspectiveOwnVehicleTrustObject(persp_dir, idx, persp_id)
     trust_detections.append(ego_tDet)
 
+    #points_dict = points_3d.load_points_in_3d_boxes(idx, persp_id)
+    # TODO - set pointsInBox for evaluator and detector
+
     # Convert detections to trust objects
     if detections is not None and len(detections) > 0:
-        certainties = certainty_utils.load_certainties(persp_dir, idx)
+        # TODO - load_certainties once cerainty calculation is more complex
+        #certainties = certainty_utils.load_certainties(persp_dir, idx)
 
         c_idx = 0
         # Detection idx starts as 1 since own vehicle is detection with index 0
@@ -97,8 +102,8 @@ def createTrustObjects(persp_dir, idx, persp_id, detections, results):
         for det in detections:
             certainty = 1
             if results:
-                pointsInBox = certainties[c_idx]
-                certainty = certainty_utils.certainty_from_num_3d_points(pointsInBox)
+                pointsInBox = -1#points_dict[persp_id, det_idx]
+                certainty = -1#certainty_utils.certainty_from_3d_points(pointsInBox)
             tDet = TrustDetection(persp_id, det, certainty, det_idx)
             trust_detections.append(tDet)
             c_idx += 1
@@ -123,7 +128,8 @@ def strip_objs_lists(trust_objs_lists):
     return stripped_objs
 
 # todo should we only update trust with messages we are certain of?
-def get_message_trust_values(matching_objs, perspect_dir, perspect_id, idx):
+def get_message_trust_values(matching_objs, persp_dir, persp_id, idx):
+    points_dict = points_3d.load_points_in_3d_boxes(idx, persp_id)
 
     #TODO Should put a case if it is own vehicle but not any points in it
     for match_list in matching_objs:
@@ -133,12 +139,13 @@ def get_message_trust_values(matching_objs, perspect_dir, perspect_id, idx):
         # Distance and pointsIn3DBox based
         if len(match_list) > 1:
             for trust_obj in match_list:
-                trust_obj.evaluator_id = perspect_id
-                # TODO Need to load point count values instead of using them here
-                todo
-                pointcloud = points_in_3d_boxes.get_nan_point_cloud(perspect_dir, idx)
-                trust_obj.evaluator_certainty = points_in_3d_boxes.numPointsIn3DBox(trust_obj.obj, pointcloud, perspect_dir, idx)
+                trust_obj.evaluator_id = persp_id
+                trust_obj.evaluator_3d_points = points_dict[trust_obj.detector_id, trust_obj.det_idx]
+                trust_obj.evaluator_certainty = certainty_utils.certainty_from_3d_points(trust_obj.evaluator_3d_points)
                 # TODO Also try incorporating a matching score? Based on IoU
                 # Set the score (confidence) to be the same as the matched detection
-                trust_obj.evaluator_score = match_list[0].obj.score
+                if match_list[0].detector_id == persp_id:
+                    trust_obj.evaluator_score = match_list[0].obj.score
+                else:
+                    trust_obj.evaluator_score = 0
                 
