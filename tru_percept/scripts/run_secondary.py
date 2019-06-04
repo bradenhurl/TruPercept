@@ -6,4 +6,4 @@ import config as cfg
 # Perform remaining tru_percept operations
 v_trust.calculate_vehicle_trusts()
 f_dets.compute_final_detections()
-eval_utils.run_kitti_native_script(cfg.SCORE_THRESHOLD, evaluate_avod=False)
+eval_utils.run_kitti_native_script(cfg.SCORE_THRESHOLD)
