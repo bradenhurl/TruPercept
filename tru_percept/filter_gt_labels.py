@@ -11,7 +11,7 @@ from avod.builders.dataset_builder import DatasetBuilder
 from avod.core import box_3d_encoder
 
 #Example usage:
-#python filter_gt_labels.py --checkpoint_name='pyramid_cars_gta_40k' --base_dir='/home/<username>/GTAData/'
+#python filter_gt_labels.py --checkpoint_name='pyramid_cars_gta' --base_dir='/home/<username>/GTAData/'
 
 def filter_gt_labels(dataset_config, base_dir):
     """Plots detection errors for xyz, lwh, ry, and shows 3D IoU with
