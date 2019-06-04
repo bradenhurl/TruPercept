@@ -21,15 +21,15 @@ def run_kitti_native_script(score_threshold, evaluate_avod=True):
         subprocess.call([make_script, script_folder])
 
     # Sets up the eval to output in the dataset directory
-    predictions_dir = cfg.DATASET_DIR + '/' + cfg.FINAL_DETS_SUBDIR
+    predictions_dir = cfg.DATASET_DIR + '/' + cfg.FINAL_DETS_SUBDIR_AF
     label_dir = cfg.DATASET_DIR + '/' + cfg.LABEL_DIR
     avod_output_dir = cfg.DATASET_DIR + '/' + cfg.AVOD_OUTPUT_DIR
 
-    # Round this because protobuf encodes default values as full decimal
+    # Round this because protobuf encodes default values as full decimal     
     score_threshold = round(score_threshold, 3)
 
     # copy predictions into proper kitti format
-    preds_eval_dir = cfg.DATASET_DIR + '/' + cfg.KITTI_EVAL_SUBDIR + '/' + cfg.FINAL_DETS_SUBDIR
+    preds_eval_dir = cfg.DATASET_DIR + '/' + cfg.KITTI_EVAL_SUBDIR + '/' + cfg.FINAL_DETS_SUBDIR_AF
     avod_eval_dir = cfg.DATASET_DIR + '/' + cfg.KITTI_EVAL_SUBDIR + '/' + cfg.AVOD_OUTPUT_DIR
 
     #TODO delete everything in directories we're copying to
@@ -42,7 +42,7 @@ def run_kitti_native_script(score_threshold, evaluate_avod=True):
     subprocess.call([run_script, script_folder,
                      str(score_threshold),
                      str(preds_eval_dir),
-                     str(cfg.FINAL_DETS_SUBDIR),
+                     str(cfg.FINAL_DETS_SUBDIR_AF),
                      str(cfg.DATASET_DIR),
                      str(label_dir)])
 
@@ -55,6 +55,6 @@ def run_kitti_native_script(score_threshold, evaluate_avod=True):
         subprocess.call([run_script, script_folder,
                          str(score_threshold),
                          str(avod_eval_dir),
-                         str(cfg.FINAL_DETS_SUBDIR),
+                         str(cfg.FINAL_DETS_SUBDIR_AF),
                          str(cfg.DATASET_DIR),
                          str(label_dir)])

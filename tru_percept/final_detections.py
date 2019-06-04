@@ -19,6 +19,7 @@ import constants as const
 # guaranteed to have all nearby vehicles
 def compute_final_detections():
     std_utils.delete_subdir(cfg.FINAL_DETS_SUBDIR)
+    std_utils.delete_subdir(cfg.FINAL_DETS_SUBDIR_AF)
 
     # First for the ego vehicle
     velo_dir = cfg.DATASET_DIR + '/velodyne'
@@ -69,7 +70,10 @@ def aggregate_msgs(matching_objs, trust_dict):
                 den += weight
                 count += 1
 
-            final_score = num / (count * den)
+            if den == 0:
+                final_score = 0
+            else:
+                final_score = num / (count * den)
             # TODO Also average position and angles of object?
             match_list[0].obj.score = final_score
             final_dets.append(match_list[0].obj)
@@ -79,7 +83,23 @@ def aggregate_msgs(matching_objs, trust_dict):
     return final_dets
 
 def output_final_dets(objects, idx):
-    filepath = os.path.join(cfg.DATASET_DIR, cfg.FINAL_DETS_SUBDIR) + '/{:06d}.txt'.format(idx)
+    filtered_objects = []
+    area_filtered_objects = []
+
+    if objects is not None and len(objects) != 0:
+        # Filter detections below a low score threshold
+        for obj in objects:
+            if obj.score >= cfg.SCORE_THRESHOLD:
+                filtered_objects.append(obj)
+
+        # Filter for area
+        area_filtered_objects = p_utils.filter_labels(filtered_objects)
+
+    print_final_dets(filtered_objects, idx, cfg.FINAL_DETS_SUBDIR)
+    print_final_dets(area_filtered_objects, idx, cfg.FINAL_DETS_SUBDIR_AF)
+
+def print_final_dets(objects, idx, subdir):
+    filepath = os.path.join(cfg.DATASET_DIR, subdir) + '/{:06d}.txt'.format(idx)
     std_utils.make_dir(filepath)
 
     # If no predictions, skip to next file
@@ -87,20 +107,14 @@ def output_final_dets(objects, idx):
         np.savetxt(filepath, [])
         return
 
-    # Filter detections below a low score threshold
-    filtered_objects = []
-    for obj in objects:
-        if obj.score >= cfg.SCORE_THRESHOLD:
-            filtered_objects.append(obj)
-
     # Save final dets in kitti format
     # To keep each value in its appropriate position, an array of zeros
     # (N, 16) is allocated but only values [4:16] are used
-    kitti_predictions = np.zeros([len(filtered_objects), 16])
+    kitti_predictions = np.zeros([len(objects), 16])
 
     i = 0
     obj_types = []
-    for obj in filtered_objects:
+    for obj in objects:
         # Occlusion, truncation, and alpha not used
         kitti_predictions[i, 1] = -1
         kitti_predictions[i, 2] = -1
