@@ -62,7 +62,8 @@ def visualize(img_idx, show_results, alt_persp, perspID, fulcrum_of_points,
               use_intensity, view_received_detections, filter_area,
               receive_from_perspective, receive_det_id, only_receive_dets,
               change_rec_colour, compare_pcs, alt_colour_peach=False,
-              show_3d_point_count=False, show_orientation=False):
+              show_3d_point_count=False, show_orientation=False,
+              final_results=False, show_score=False):
     # Setting Paths
     cam = 2
     dataset_dir = cfg.DATASET_DIR
@@ -203,76 +204,84 @@ def visualize(img_idx, show_results, alt_persp, perspID, fulcrum_of_points,
 
     gt_detections = []
     # Get bounding boxes
-    if (not view_received_detections or receive_from_perspective != -1) and not only_receive_dets:
-        gt_detections = perspective_utils.get_detections(dataset_dir, dataset_dir, img_idx,
-                                const.ego_id(), results=show_results, filter_area=filter_area)
+    if final_results:
+        if filter_area:
+            label_dir = os.path.join(dataset_dir, cfg.FINAL_DETS_SUBDIR_AF)
+        else:
+            label_dir = os.path.join(dataset_dir, cfg.FINAL_DETS_SUBDIR)
+        gt_detections = obj_utils.read_labels(label_dir, img_idx, results=show_results)
+        addScoreText(gt_detections, show_3d_point_count, show_score)
+    else:
+        if (not view_received_detections or receive_from_perspective != -1) and not only_receive_dets:
+            gt_detections = perspective_utils.get_detections(dataset_dir, dataset_dir, img_idx,
+                                    const.ego_id(), results=show_results, filter_area=filter_area)
 
-        setPointsList(gt_detections, points_dict)
-        gt_detections = trust_utils.strip_objs(gt_detections)
-        gt_detections[0].type = "OwnObject"
+            setPointsText(gt_detections, points_dict, show_3d_point_count)
+            gt_detections = trust_utils.strip_objs(gt_detections)
+            gt_detections[0].type = "OwnObject"
 
-    if view_received_detections:
-        stripped_detections = []
-        if receive_from_perspective == -1:
-            perspect_detections = perspective_utils.get_all_detections(img_idx, const.ego_id(), show_results, filter_area)
-            if change_rec_colour:
+        if view_received_detections:
+            stripped_detections = []
+            if receive_from_perspective == -1:
+                perspect_detections = perspective_utils.get_all_detections(img_idx, const.ego_id(), show_results, filter_area)
+                if change_rec_colour:
+                    for obj_list in perspect_detections:
+                        obj_list[0].obj.type = "OwnObject"
+                        if obj_list[0].detector_id == const.ego_id():
+                            continue
+                        color_str = "Received{:07d}".format(obj_list[0].detector_id)
+                        prime_val = obj_list[0].detector_id * 47
+                        entity_colour = (prime_val + 13 % 255, (prime_val / 255) % 255, prime_val % 255)
+                        COLOUR_SCHEME[color_str] = entity_colour
+                        first_obj = True
+                        for obj in obj_list:
+                            if first_obj:
+                                first_obj = False
+                                continue
+                            obj.obj.type = color_str
+
                 for obj_list in perspect_detections:
-                    obj_list[0].obj.type = "OwnObject"
-                    if obj_list[0].detector_id == const.ego_id():
-                        continue
-                    color_str = "Received{:07d}".format(obj_list[0].detector_id)
-                    prime_val = obj_list[0].detector_id * 47
-                    entity_colour = (prime_val + 13 % 255, (prime_val / 255) % 255, prime_val % 255)
-                    COLOUR_SCHEME[color_str] = entity_colour
-                    first_obj = True
-                    for obj in obj_list:
-                        if first_obj:
-                            first_obj = False
-                            continue
-                        obj.obj.type = color_str
+                    setPointsText(obj_list, points_dict, show_3d_point_count)
 
-            for obj_list in perspect_detections:
-                setPointsList(obj_list, points_dict)
-
-            stripped_detections = trust_utils.strip_objs_lists(perspect_detections)
-        else:
-            receive_entity_str = '{:07d}'.format(receive_from_perspective)
-            receive_dir = os.path.join(altPerspect_dir, receive_entity_str)
-            if os.path.isdir(receive_dir):
-                print("Using detections from: ", receive_dir)
-                perspect_detections = perspective_utils.get_detections(dataset_dir, receive_dir, img_idx, receive_entity_str, results=show_results)
-                if perspect_detections != None:
-                    color_str = "Received{:07d}".format(receive_from_perspective)
-                    prime_val = receive_from_perspective * 47
-                    entity_colour = (prime_val + 13 % 255, (prime_val / 255) % 255, prime_val % 255)
-                    COLOUR_SCHEME[color_str] = entity_colour
-                    first_obj = True
-                    for obj in perspect_detections:
-                        if first_obj:
-                            first_obj = False
-                            continue
-                        obj.obj.type = color_str
-                    setPointsList(perspect_detections, points_dict)
-                    stripped_detections = trust_utils.strip_objs(perspect_detections)
+                stripped_detections = trust_utils.strip_objs_lists(perspect_detections)
             else:
-                print("Could not find directory: ", receive_dir)
+                receive_entity_str = '{:07d}'.format(receive_from_perspective)
+                receive_dir = os.path.join(altPerspect_dir, receive_entity_str)
+                if os.path.isdir(receive_dir):
+                    print("Using detections from: ", receive_dir)
+                    perspect_detections = perspective_utils.get_detections(dataset_dir, receive_dir, img_idx, receive_entity_str, results=show_results)
+                    if perspect_detections != None:
+                        color_str = "Received{:07d}".format(receive_from_perspective)
+                        prime_val = receive_from_perspective * 47
+                        entity_colour = (prime_val + 13 % 255, (prime_val / 255) % 255, prime_val % 255)
+                        COLOUR_SCHEME[color_str] = entity_colour
+                        first_obj = True
+                        for obj in perspect_detections:
+                            if first_obj:
+                                first_obj = False
+                                continue
+                            obj.obj.type = color_str
+                        setPointsText(perspect_detections, points_dict, show_3d_point_count)
+                        stripped_detections = trust_utils.strip_objs(perspect_detections)
+                else:
+                    print("Could not find directory: ", receive_dir)
 
-        if receive_det_id != -1 and len(stripped_detections) > 0:
-            single_det = []
-            single_det.append(stripped_detections[receive_det_id])
-            stripped_detections = single_det
+            if receive_det_id != -1 and len(stripped_detections) > 0:
+                single_det = []
+                single_det.append(stripped_detections[receive_det_id])
+                stripped_detections = single_det
 
-        if change_rec_colour and alt_colour_peach:
-            for obj in stripped_detections:
-                obj.type = "Received"
+            if change_rec_colour and alt_colour_peach:
+                for obj in stripped_detections:
+                    obj.type = "Received"
 
-        stripped_detections[0].type = "OwnObject"
+            stripped_detections[0].type = "OwnObject"
 
-        if only_receive_dets:
-            gt_detections = stripped_detections
-            print("Not using main perspective detections")
-        else:
-            gt_detections = gt_detections + stripped_detections
+            if only_receive_dets:
+                gt_detections = stripped_detections
+                print("Not using main perspective detections")
+            else:
+                gt_detections = gt_detections + stripped_detections
 
     # Create VtkPointCloud for visualization
     vtk_point_cloud = VtkPointCloud()
@@ -300,7 +309,7 @@ def visualize(img_idx, show_results, alt_persp, perspID, fulcrum_of_points,
     vtk_renderer.AddActor(vtk_voxel_grid.vtk_actor)
     vtk_renderer.AddActor(vtk_boxes.vtk_actor)
     #vtk_renderer.AddActor(axes)
-    if show_3d_point_count:
+    if show_3d_point_count or show_score:
         vtk_text_labels = VtkTextLabels()
         vtk_text_labels.set_text_labels(text_positions, text_labels)
         vtk_renderer.AddActor(vtk_text_labels.vtk_actor)
@@ -350,14 +359,36 @@ def visualize(img_idx, show_results, alt_persp, perspID, fulcrum_of_points,
     vtk_render_window_interactor.Start()  # Blocking
     # renderWindowInteractor.Initialize()   # Non-Blocking
 
-def setPointsList(trust_obj_list,  points_dict):
+def setPointsText(trust_obj_list,  points_dict, show_3d_point_count):
+    if not show_3d_point_count:
+        return
+
     global text_labels
     global text_positions
     for trust_obj in trust_obj_list:
         text_positions.append(trust_obj.obj.t)
+
         key = trust_obj.detector_id, trust_obj.det_idx
         if key in points_dict:
             points = points_dict[key]
         else:
             points = -1
-        text_labels.append('{}'.format(points))
+        
+        text_labels.append('p:{}'.format(points))
+
+def addScoreText(obj_list, show_3d_point_count, show_score):
+    if not show_score:
+        return
+    global text_labels
+    global text_positions
+
+    print("here")
+
+    idx = 0
+    for obj in obj_list:
+        text = ' s:{}'.format(obj.score)
+        if not show_3d_point_count:
+            text_positions.append(obj.t)
+            text_labels.append(text)
+        else:
+            text_labels[idx] += text
