@@ -36,7 +36,11 @@ V_TRUST_SUBDIR = 'vehicle_trust_scores'
 FINAL_DETS_SUBDIR = 'final_detections'
 # Area filtered subdir for kitti evaluation
 FINAL_DETS_SUBDIR_AF = 'final_detections_area_filtered'
-LABEL_DIR = 'label_2'
+
+# Use regular vs filtered (for distance, etc) ground truth labels
+LABEL_DIR = 'label_filtered_2'
+#LABEL_DIR = 'label_2'
+
 AVOD_OUTPUT_DIR = 'predictions'
 KITTI_EVAL_SUBDIR = 'kitti_native_eval'
 
