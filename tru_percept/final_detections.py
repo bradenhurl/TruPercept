@@ -60,6 +60,11 @@ def aggregate_msgs(matching_objs, trust_dict):
     final_dets = []
 
     for match_list in matching_objs:
+        # Do not add self to the list of detections
+        if match_list[0].detector_id == const.ego_id() and match_list[0].det_idx == 0:
+            logging.debug("Skipping self detection")
+            continue
+
         if len(match_list) > 1:
             count = 0
             num = 0
@@ -77,8 +82,10 @@ def aggregate_msgs(matching_objs, trust_dict):
             # TODO Also average position and angles of object?
             match_list[0].obj.score = final_score
             final_dets.append(match_list[0].obj)
+            logging.debug("Adding multi object: {}".format(match_list[0].obj.t))
         else:
             final_dets.append(match_list[0].obj)
+            logging.debug("Adding single object: {}".format(match_list[0].obj.t))
 
     return final_dets
 
