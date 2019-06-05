@@ -135,7 +135,6 @@ def inferPerspective(model_config, eval_config, dataset_config, additional_cls):
         model_evaluator.run_latest_checkpoints()
 
     save_kitti_predictions.convertPredictionsToKitti(dataset, model_config.paths_config.pred_dir, additional_cls)
-    certainty_utils.save_num_points_in_3d_boxes(entity_perspect_dir, additional_cls)
 
 
 def infer_main(checkpoint_name, ckpt_indices, additional_cls, start_perspective=0):
