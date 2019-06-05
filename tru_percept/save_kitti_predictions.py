@@ -89,7 +89,7 @@ def convertPredictionsToKitti(dataset, predictions_root_dir, additional_cls):
         num_samples = dataset.num_samples
         num_valid_samples = 0
 
-        logging.info('\nGlobal step: %d', global_step)
+        logging.info('\nGlobal step: %d', int(global_step))
         logging.info('Converting detections from: %s', final_predictions_dir)
 
         if save_2d:
