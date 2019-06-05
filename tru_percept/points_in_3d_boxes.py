@@ -35,7 +35,6 @@ def compute_points_in_3d_boxes():
 
     print("Beginning calculation of points_in_3d_boxes")
     
-    
     std_utils.delete_all_subdirs(cfg.POINTS_IN_3D_BOXES_DIR)
 
     # First for the ego vehicle
@@ -182,43 +181,6 @@ def point_to_world(point, gta_position):
 
     return position.reshape((3,))
 
-
-# Checks if a point is between two planes created by a perpendicular unit vector and two points
-def checkDirection(uVec, point, minP, maxP, printResults=False):
-    dotPoint = np.dot(point, uVec)
-    dotMax = np.dot(maxP, uVec)
-    dotMin = np.dot(minP, uVec)
-
-    if printResults:
-        print("\nPoint in box: ")
-        print(dotPoint, dotMax, dotMin)
-        print(point, maxP, minP)
-
-    if ((dotMax <= dotPoint and dotPoint <= dotMin) or
-                (dotMax >= dotPoint and dotPoint >= dotMin)):
-        return True
-
-    return False
-
-def in3DBox(point, boxObj):
-    if not checkDirection(boxObj.u, point, boxObj.rearBotLeft, boxObj.frontBotLeft):
-        return False
-    if not checkDirection(boxObj.w, point, boxObj.rearBotLeft, boxObj.rearBotRight):
-        return False
-    if not checkDirection(boxObj.v, point, boxObj.rearBotLeft, boxObj.rearTopLeft):
-        return False
-
-    # Used for testing to print out points if they evaluate to true
-    # print("\npoint: ", point)
-    # if not checkDirection(boxObj.u, point, boxObj.rearBotLeft, boxObj.frontBotLeft, True):
-    #     return False
-    # if not checkDirection(boxObj.w, point, boxObj.rearBotLeft, boxObj.rearBotRight, True):
-    #     return False
-    # if not checkDirection(boxObj.v, point, boxObj.rearBotLeft, boxObj.rearTopLeft, True):
-    #     return False
-
-    return True
-
 def numPointsIn3DBox(obj, point_cloud, perspect_dir, img_idx):
     # box_3d format is [x, y, z, l, w, h, ry]
     box_3d = np.asarray(
@@ -240,10 +202,23 @@ def numPointsIn3DBox(obj, point_cloud, perspect_dir, img_idx):
     w = (rearBotRight - rearBotLeft) / np.linalg.norm(rearBotRight - rearBotLeft)
     boxObj = BoxObj(u,v,w, rearBotLeft, frontBotLeft, rearTopLeft, rearBotRight)
 
-    point_count = 0
+    u_point = np.dot(point_cloud, u)
+    u_min = np.dot(rearBotLeft, u)
+    u_max = np.dot(frontBotLeft, u)
+    u_inc = np.logical_and(u_min < u_point, u_point < u_max)
 
-    for idx in range(0, point_cloud.shape[0]):
-        if in3DBox(point_cloud[idx, :], boxObj):
-            point_count = point_count + 1
+    v_point = np.dot(point_cloud, v)
+    v_min = np.dot(rearBotLeft, v)
+    v_max = np.dot(rearTopLeft, v)
+    v_inc = np.logical_and(v_min < v_point, v_point < v_max)
+
+    w_point = np.dot(point_cloud, w)
+    w_min = np.dot(rearBotLeft, w)
+    w_max = np.dot(rearBotRight, w)
+    w_inc = np.logical_and(w_min < w_point, w_point < w_max)
+
+    final = np.logical_and(u_inc, v_inc)
+    final = np.logical_and(final, w_inc)
+    point_count = final.sum()
 
     return point_count
