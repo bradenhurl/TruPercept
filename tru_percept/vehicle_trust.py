@@ -9,6 +9,7 @@ import config as cfg
 import trust_utils
 import std_utils
 import constants as const
+import message_evaluations as msg_evals
 
 def calculate_vehicle_trusts():
 
@@ -44,7 +45,7 @@ def calculate_vehicle_trusts():
         write_trust_vals(trust_dict, idx)
 
 def compute_vehicle_trust(persp_dir, persp_id, idx, trust_dict):
-    msg_evals = load_msg_evals(persp_dir, idx)
+    msg_evals = msg_evals.load_msg_evals(persp_dir, idx)
 
     eval_lists = {}
     for msg_eval in msg_evals:
@@ -162,50 +163,3 @@ def write_trust_vals(trust_dict, idx):
     with open(filepath, 'w+') as f:
         np.savetxt(f, trust_vals_array,
                newline='\r\n', fmt='%i %f %f %i')
-
-def load_msg_evals(persp_dir, idx):
-    # Define the list
-    msg_evals = []
-
-    if idx < 0:
-        return []
-
-    filepath = persp_dir + '/' + cfg.MSG_EVALS_SUBDIR + '/{:06d}.txt'.format(idx)
-    if not os.path.isfile(filepath):
-        return []
-
-    # Extract the list
-    if os.stat(filepath).st_size == 0:
-        return []
-
-    p = np.loadtxt(filepath, delimiter=' ',
-                   dtype=str,
-                   usecols=np.arange(start=0, step=1, stop=6))
-
-    # Check if the output is single dimensional or multi dimensional
-    if len(p.shape) > 1:
-        label_num = p.shape[0]
-    else:
-        label_num = 1
-
-    for idx in np.arange(label_num):
-        trust_obj = trust_utils.MessageEvaluation()
-
-        if label_num > 1:
-            trust_obj.det_idx = int(p[idx,0])
-            trust_obj.det_score = float(p[idx,1])
-            trust_obj.det_certainty = float(p[idx,2])
-            trust_obj.evaluator_id = int(p[idx,3])
-            trust_obj.evaluator_certainty = float(p[idx,4])
-            trust_obj.evaluator_score = float(p[idx,5])
-        else:
-            trust_obj.det_idx = int(p[0])
-            trust_obj.det_score = float(p[1])
-            trust_obj.det_certainty = float(p[2])
-            trust_obj.evaluator_id = int(p[3])
-            trust_obj.evaluator_certainty = float(p[4])
-            trust_obj.evaluator_score = float(p[5])
-
-        msg_evals.append(trust_obj)
-
-    return msg_evals

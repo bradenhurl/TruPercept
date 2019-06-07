@@ -113,6 +113,53 @@ def save_msg_evals(msg_trusts, idx):
                 np.savetxt(f, msg_trust_output,
                            newline='\r\n', fmt='%i %f %f %i %f %f')
 
+def load_msg_evals(persp_dir, idx):
+    # Define the list
+    msg_evals = []
+
+    if idx < 0:
+        return []
+
+    filepath = persp_dir + '/' + cfg.MSG_EVALS_SUBDIR + '/{:06d}.txt'.format(idx)
+    if not os.path.isfile(filepath):
+        return []
+
+    # Extract the list
+    if os.stat(filepath).st_size == 0:
+        return []
+
+    p = np.loadtxt(filepath, delimiter=' ',
+                   dtype=str,
+                   usecols=np.arange(start=0, step=1, stop=6))
+
+    # Check if the output is single dimensional or multi dimensional
+    if len(p.shape) > 1:
+        label_num = p.shape[0]
+    else:
+        label_num = 1
+
+    for idx in np.arange(label_num):
+        trust_obj = trust_utils.MessageEvaluation()
+
+        if label_num > 1:
+            trust_obj.det_idx = int(p[idx,0])
+            trust_obj.det_score = float(p[idx,1])
+            trust_obj.det_certainty = float(p[idx,2])
+            trust_obj.evaluator_id = int(p[idx,3])
+            trust_obj.evaluator_certainty = float(p[idx,4])
+            trust_obj.evaluator_score = float(p[idx,5])
+        else:
+            trust_obj.det_idx = int(p[0])
+            trust_obj.det_score = float(p[1])
+            trust_obj.det_certainty = float(p[2])
+            trust_obj.evaluator_id = int(p[3])
+            trust_obj.evaluator_certainty = float(p[4])
+            trust_obj.evaluator_score = float(p[5])
+
+        msg_evals.append(trust_obj)
+
+    return msg_evals
+
 # Function for outputting objects for visualization tests
 def save_filtered_objs(gt_objs, idx, out_dir):
     out_file = out_dir + '/{:06d}.txt'.format(idx)
