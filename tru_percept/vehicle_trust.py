@@ -9,7 +9,7 @@ import config as cfg
 import trust_utils
 import std_utils
 import constants as const
-import message_evaluations as msg_evals
+import message_evaluations
 
 def calculate_vehicle_trusts():
 
@@ -45,7 +45,7 @@ def calculate_vehicle_trusts():
         write_trust_vals(trust_dict, idx)
 
 def compute_vehicle_trust(persp_dir, persp_id, idx, trust_dict):
-    msg_evals = msg_evals.load_msg_evals(persp_dir, idx)
+    msg_evals = message_evaluations.load_msg_evals(persp_dir, idx)
 
     eval_lists = {}
     for msg_eval in msg_evals:
