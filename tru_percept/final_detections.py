@@ -66,21 +66,9 @@ def aggregate_msgs(matching_objs, trust_dict):
             continue
 
         if len(match_list) > 1:
-            count = 0
-            num = 0
-            den = 0
-            for trust_obj in match_list:
-                weight = trust_obj.detector_certainty * v_trust.vehicle_trust_value(trust_dict, trust_obj.detector_id)
-                num += trust_obj.obj.score * weight
-                den += weight
-                count += 1
-
-            if den == 0:
-                final_score = 0
-            else:
-                final_score = num / (count * den)
+            match_list[0].obj.score = aggregate_score(match_list, trust_dict)
             # TODO Also average position and angles of object?
-            match_list[0].obj.score = final_score
+            # I don't think this is feasible when captures are off in time
             final_dets.append(match_list[0].obj)
             logging.debug("Adding multi object: {}".format(match_list[0].obj.t))
         else:
@@ -88,6 +76,29 @@ def aggregate_msgs(matching_objs, trust_dict):
             logging.debug("Adding single object: {}".format(match_list[0].obj.t))
 
     return final_dets
+
+def aggregate_score(match_list, trust_dict):
+    if cfg.AGGREGATE_METHOD == 0:
+        # Aggregate based on weighted average of scores
+        count = 0
+        num = 0
+        den = 0
+        for trust_obj in match_list:
+            weight = trust_obj.detector_certainty * v_trust.vehicle_trust_value(trust_dict, trust_obj.detector_id)
+            num += trust_obj.obj.score * weight
+            den += weight
+            count += 1
+
+        if den == 0:
+            final_score = 0
+        else:
+            final_score = num / (count * den)
+        return final_score
+    elif cfg.AGGREGATE_METHOD == 1:
+        print("Test")
+        # TODO Aggregate additively on weighted scores
+    else:
+        print("Error: Aggregation method is not properly set!!!")
 
 def output_final_dets(objects, idx):
     filtered_objects = []

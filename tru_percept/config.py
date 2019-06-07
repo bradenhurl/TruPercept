@@ -27,6 +27,11 @@ CUDA_DEVICE = '0'
 
 USE_RESULTS = True
 
+# Aggregation method
+# 0 is averaging
+# 1 is additive
+AGGREGATE_METHOD = 0
+
 # Subdirectories for storing intermediate steps
 POINTS_IN_3D_BOXES_DIR = 'points_in_3d_boxes'
 if not USE_RESULTS:
