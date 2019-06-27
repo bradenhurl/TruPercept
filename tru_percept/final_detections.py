@@ -95,8 +95,15 @@ def aggregate_score(match_list, trust_dict):
             final_score = num / (count * den)
         return final_score
     elif cfg.AGGREGATE_METHOD == 1:
-        print("Test")
         # TODO Aggregate additively on weighted scores
+        final_score = 0.0
+        for trust_obj in match_list:
+            weight = trust_obj.detector_certainty * v_trust.vehicle_trust_value(trust_dict, trust_obj.detector_id)
+            final_score += trust_obj.obj.score * weight
+
+        if final_score > 1.0:
+            final_score = 1.0
+        return final_score
     else:
         print("Error: Aggregation method is not properly set!!!")
 
