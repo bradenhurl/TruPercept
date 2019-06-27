@@ -15,6 +15,8 @@ def create_split(base_dir, alt_perspective_dir, split):
             idx = int(os.path.splitext(file)[0])
             if idx < cfg.MIN_IDX or idx > cfg.MAX_IDX:
                 continue
+            if idx in cfg.INDICES_TO_SKIP:
+                continue
             printIdx(idx, f)
             count += 1
 

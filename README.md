@@ -25,3 +25,7 @@ eval_utils.py
 
 Debugging:
 The error "Number of samples is less than number of clusters" is due to not having run the AVOD preprocessing scripts before inference. Please follow the steps in the AVOD README for preprocessing mini-batches. This is only required for inference in this project.
+Note this same error message could also be due to not having any samples from a particular class. Ensure there is at least one sample from each class that is going to be inferred. This is most likely caused by there not being a 'Cyclist'. Simply add a 'Cyclist' object far away.
+
+There is a bug in avod which does not allow no samples to be in a file. If it crashes during inference in \_filter_labels_by_class then add the index it crashed on to config.INDICES_TO_SKIP
+
