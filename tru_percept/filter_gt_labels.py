@@ -39,6 +39,8 @@ def filter_gt_labels(dataset_config, base_dir):
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
 
+    print("Saving filtered labels to: ", out_dir)
+    
     # TODO read in augmented labels to filter by 3D point count
     # Also changes synthetic to true in read_labels
     # dataset.label_dir = base_dir + '/' + dataset_config.data_split_dir + '/label_aug_2/'
