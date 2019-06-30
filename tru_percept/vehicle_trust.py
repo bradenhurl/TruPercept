@@ -44,6 +44,8 @@ def calculate_vehicle_trusts():
 
         write_trust_vals(trust_dict, idx)
 
+    print("Finished calculating vehicle trusts")
+
 def compute_vehicle_trust(persp_dir, persp_id, idx, trust_dict):
     msg_evals = message_evaluations.load_msg_evals(persp_dir, idx)
 
@@ -71,6 +73,7 @@ def compute_vehicle_trust(persp_dir, persp_id, idx, trust_dict):
             msg_trust = 0
         else:
             msg_trust = num / den
+
         trust_sum += msg_trust
 
     # Obtain VehicleTrust object, create new object if new vehicle
