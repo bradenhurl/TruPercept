@@ -256,13 +256,11 @@ def load_agg_msg_evals(idx):
 
     msg_evals_dict = {}
     msg_evals_dict[const.ego_id()] = load_agg_msg_evals_from_persp(cfg.DATASET_DIR, idx)
-    logging.debug("Inserting primary key: ", const.ego_id())
     for entity_str in os.listdir(alt_pers_dir):
         perspect_dir = os.path.join(alt_pers_dir, entity_str)
         if not os.path.isdir(perspect_dir):
             continue
         msg_evals_dict[int(entity_str)] = load_agg_msg_evals_from_persp(perspect_dir, idx)
-        logging.debug("Inserting primary key: ", int(entity_str))
 
     return msg_evals_dict
 
@@ -274,17 +272,14 @@ def load_agg_msg_evals_from_persp(persp_dir, idx):
         return []
 
     filepath = persp_dir + '/' + cfg.AGG_MSG_EVALS_SUBDIR + '/{:06d}.txt'.format(idx)
-    logging.debug(filepath)
     if not os.path.isfile(filepath):
-        logging.debug("Could not find file")
         return []
 
     # Extract the list
     if os.stat(filepath).st_size == 0:
-        logging.debug("File is empty")
         return []
 
-    logging.debug("Loading agg from: ", filepath)
+    logging.debug("Loading agg from: %s", filepath)
     p = np.loadtxt(filepath, delimiter=' ',
                    dtype=str,
                    usecols=np.arange(start=0, step=1, stop=3))
@@ -308,7 +303,7 @@ def load_agg_msg_evals_from_persp(persp_dir, idx):
             msg_eval.det_idx = int(p[1])
             msg_eval.msg_trust = float(p[2])
             msg_evals_dict[p[1]] = msg_eval
-        logging.debug("Inserting key: ", msg_eval.det_idx)
+        logging.debug("Inserting key: %d", msg_eval.det_idx)
 
     return msg_evals_dict
 

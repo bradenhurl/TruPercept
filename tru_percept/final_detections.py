@@ -86,6 +86,8 @@ def aggregate_msgs(matching_objs, trust_dict, idx):
 
 def aggregate_score(match_list, trust_dict, idx, msg_evals_dict):
 
+    final_score = 0.0
+
     # Aggregate based on weighted average of scores
     if cfg.AGGREGATE_METHOD == 0:
         count = 0
@@ -101,21 +103,17 @@ def aggregate_score(match_list, trust_dict, idx, msg_evals_dict):
             final_score = 0
         else:
             final_score = num / (count * den)
-        return final_score
 
     # Aggregate additively on weighted scores
     elif cfg.AGGREGATE_METHOD == 1:
-        final_score = 0.0
         for trust_obj in match_list:
             weight = trust_obj.detector_certainty * v_trust.vehicle_trust_value(trust_dict, trust_obj.detector_id)
             final_score += trust_obj.obj.score * weight
 
         final_score = min(final_score, 1.0)
-        return final_score
 
     # Aggregate based on overall message evaluations
     elif cfg.AGGREGATE_METHOD == 2:
-        final_score = 0.0
         den = 0
         num = 0.0
         for trust_obj in match_list:
@@ -137,10 +135,23 @@ def aggregate_score(match_list, trust_dict, idx, msg_evals_dict):
 
         final_score = min(final_score, 1.0)
         final_score = max(final_score, 0.0)
-        return final_score
 
     else:
         print("Error: Aggregation method is not properly set!!!")
+    
+    logging.debug("Final detection aggregation. Idx: {}  pos: {}".format(idx,match_list[0].obj.t))
+    for trust_obj in match_list:
+        eval_dict_score = 0.0
+        if trust_obj.detector_id in msg_evals_dict:
+            if trust_obj.det_idx in msg_evals_dict[trust_obj.detector_id]:
+                eval_dict_score = msg_evals_dict[trust_obj.detector_id, trust_obj.det_idx]
+
+        logging.debug("Rec detection score: {}, certainty: {}, msg_eval_dict: {}".format(
+            trust_obj.obj.score, trust_obj.detector_certainty,
+            eval_dict_score))
+    
+    logging.debug("Final score: {}".format(final_score))
+    return final_score
 
 def output_final_dets(objects, idx):
     filtered_objects = []
