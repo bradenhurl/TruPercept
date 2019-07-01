@@ -53,6 +53,19 @@ class MessageEvaluation:
         self.evaluator_certainty = -1
         self.evaluator_score = -1
 
+class AggregatedMessageEvaluation:
+    """Everything from an aggrgated message evaluation
+    detector_id             entity_id of vehicle which perceived the detection
+    det_idx                 Index of the detection
+    msg_trust               Trust of msg evaluated from all vehicles
+    """
+
+    def __init__(self):
+        self.detector_id = -1
+        self.det_idx = -1
+        self.msg_trust = -1
+
+
 class VehicleTrust:
     """Trust for a vehicle
     val                 Trust value

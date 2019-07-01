@@ -13,6 +13,7 @@ import config as cfg
 import vehicle_trust as v_trust
 import std_utils
 import constants as const
+import message_evaluations as msg_evals
 
 # Compute and save final detections
 # Only for the ego vehicle as all other vehicles are not
@@ -49,15 +50,21 @@ def compute_final_detections():
         logging.debug("Matching objects!!!!!!!!!!!!!!!!!!!!!!!!!")
         logging.debug(matching_objs)
         # Aggregate messages into final detections
-        final_dets = aggregate_msgs(matching_objs, trust_dict)
+        final_dets = aggregate_msgs(matching_objs, trust_dict, idx)
         logging.debug("Final detections!!!!!!!!!!!!!!!!!!!!!")
         logging.debug(final_dets)
 
         output_final_dets(final_dets, idx)
 
+    print("Finished computing final detections")
+
 # Aggregates messages based on vehicle trust values, confidence, and certainty scores
-def aggregate_msgs(matching_objs, trust_dict):
+def aggregate_msgs(matching_objs, trust_dict, idx):
     final_dets = []
+
+    msg_eval_dict = None
+    if cfg.AGGREGATE_METHOD == 2:
+        msg_evals_dict = msg_evals.load_agg_msg_evals(idx)
 
     for match_list in matching_objs:
         # Do not add self to the list of detections
@@ -66,7 +73,7 @@ def aggregate_msgs(matching_objs, trust_dict):
             continue
 
         if len(match_list) > 1:
-            match_list[0].obj.score = aggregate_score(match_list, trust_dict)
+            match_list[0].obj.score = aggregate_score(match_list, trust_dict, idx, msg_evals_dict)
             # TODO Also average position and angles of object?
             # I don't think this is feasible when captures are off in time
             final_dets.append(match_list[0].obj)
@@ -77,9 +84,10 @@ def aggregate_msgs(matching_objs, trust_dict):
 
     return final_dets
 
-def aggregate_score(match_list, trust_dict):
+def aggregate_score(match_list, trust_dict, idx, msg_evals_dict):
+
+    # Aggregate based on weighted average of scores
     if cfg.AGGREGATE_METHOD == 0:
-        # Aggregate based on weighted average of scores
         count = 0
         num = 0
         den = 0
@@ -94,16 +102,43 @@ def aggregate_score(match_list, trust_dict):
         else:
             final_score = num / (count * den)
         return final_score
+
+    # Aggregate additively on weighted scores
     elif cfg.AGGREGATE_METHOD == 1:
-        # TODO Aggregate additively on weighted scores
         final_score = 0.0
         for trust_obj in match_list:
             weight = trust_obj.detector_certainty * v_trust.vehicle_trust_value(trust_dict, trust_obj.detector_id)
             final_score += trust_obj.obj.score * weight
 
-        if final_score > 1.0:
-            final_score = 1.0
+        final_score = min(final_score, 1.0)
         return final_score
+
+    # Aggregate based on overall message evaluations
+    elif cfg.AGGREGATE_METHOD == 2:
+        final_score = 0.0
+        den = 0
+        num = 0.0
+        for trust_obj in match_list:
+            found = False
+            if trust_obj.detector_id in msg_evals_dict:
+                if trust_obj.det_idx in msg_evals_dict[trust_obj.detector_id]:
+                    num += msg_evals_dict[trust_obj.detector_id, trust_obj.det_idx]
+                    found = True
+
+            if not found and trust_obj.detector_id == const.ego_id():
+                num += trust_obj.obj.score
+
+            den += 1
+
+        if den == 0:
+            final_score = 0
+        else:
+            final_score = num / den
+
+        final_score = min(final_score, 1.0)
+        final_score = max(final_score, 0.0)
+        return final_score
+
     else:
         print("Error: Aggregation method is not properly set!!!")
 

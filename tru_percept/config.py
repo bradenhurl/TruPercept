@@ -34,11 +34,12 @@ USE_RESULTS = True
 # Aggregation method
 # 0 is averaging
 # 1 is additive
-AGGREGATE_METHOD = 0
+AGGREGATE_METHOD = 2
 
 # Subdirectories for storing intermediate steps
 POINTS_IN_3D_BOXES_DIR = 'points_in_3d_boxes'
 MSG_EVALS_SUBDIR = 'msg_evals'
+AGG_MSG_EVALS_SUBDIR = 'agg_msg_evals' # Aggregated msg evals
 V_TRUST_SUBDIR = 'vehicle_trust_scores'
 FINAL_DETS_SUBDIR = 'final_detections'
 
@@ -47,6 +48,7 @@ if not USE_RESULTS:
     MSG_EVALS_SUBDIR += '_gt'
     V_TRUST_SUBDIR += '_gt'
     FINAL_DETS_SUBDIR += '_gt'
+    AGG_MSG_EVALS_SUBDIR += '_gt'
 
 # Area filtered subdir for kitti evaluation
 FINAL_DETS_SUBDIR_AF = 'final_detections_area_filtered'
@@ -59,7 +61,7 @@ AVOD_OUTPUT_DIR = 'predictions'
 KITTI_EVAL_SUBDIR = 'kitti_native_eval'
 
 # Set and initialize logging
-LOG_LVL = logging.DEBUG
+LOG_LVL = logging.INFO
 LOG_FILE = DATASET_DIR + '/log.txt'
 # Initialize logging
 logging.basicConfig(filename=LOG_FILE, level=LOG_LVL, format='%(levelname)s: %(filename)s(%(lineno)d): %(message)s')

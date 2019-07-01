@@ -20,6 +20,7 @@ infer.infer_main('pyramid_people_gta', [91], True)
 # Perform remaining tru_percept operations
 points_3d.compute_points_in_3d_boxes()
 msg_evals.compute_message_evals()
+msg_evals.aggregate_message_evals()
 v_trust.calculate_vehicle_trusts()
 f_dets.compute_final_detections()
 eval_utils.run_kitti_native_script(cfg.SCORE_THRESHOLD)
