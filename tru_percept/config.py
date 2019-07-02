@@ -13,10 +13,11 @@ gamma_lower = 10
 # Min/max indices which will be run (for running tests primarily)
 # If set to 0 and sys.maxsize, respectively, all indices will be run
 # when present, up to the maximum index in the DATASET_DIR/velodyne folder
-MIN_IDX = 0
+MIN_IDX = 1
 MAX_IDX = sys.maxsize
 # MIN_IDX = 7
-#MAX_IDX = 6
+MAX_IDX = 2
+TEST_IDX = 1
 
 # Only skips indices for inference!!!
 # Indices to skip in case of bugs, problems
@@ -61,7 +62,7 @@ AVOD_OUTPUT_DIR = 'predictions'
 KITTI_EVAL_SUBDIR = 'kitti_native_eval'
 
 # Set and initialize logging
-LOG_LVL = logging.INFO
+LOG_LVL = logging.DEBUG
 LOG_FILE = DATASET_DIR + '/log.txt'
 # Initialize logging
 logging.basicConfig(filename=LOG_FILE, level=LOG_LVL, format='%(levelname)s: %(filename)s(%(lineno)d): %(message)s')

@@ -1,10 +1,11 @@
 import tru_percept.tru_percept.tools.visualization.vis_utils as vis_utils
+import tru_percept.tru_percept.config as cfg
 
 # For visualizing all ground truth objects from all vehicles in separate colours
 
 # OPTIONS
 ################################################################
-img_idx = 7
+img_idx = cfg.TEST_IDX
 
 # Set to true to see predictions (results) from all perspectives
 show_results = False

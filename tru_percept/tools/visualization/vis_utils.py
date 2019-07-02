@@ -217,6 +217,7 @@ def visualize(img_idx, show_results, alt_persp, perspID, fulcrum_of_points,
                                     const.ego_id(), results=show_results, filter_area=filter_area)
 
             setPointsText(gt_detections, points_dict, show_3d_point_count)
+            addScoreTextTrustObjs(gt_detections, show_3d_point_count, show_score)
             gt_detections = trust_utils.strip_objs(gt_detections)
             gt_detections[0].type = "OwnObject"
 
@@ -376,13 +377,15 @@ def setPointsText(trust_obj_list,  points_dict, show_3d_point_count):
         
         text_labels.append('p:{}'.format(points))
 
+def addScoreTextTrustObjs(trust_obj_list, show_3d_point_count, show_score):
+    obj_list = trust_utils.strip_objs(trust_obj_list)
+    addScoreText(obj_list, show_3d_point_count, show_score)
+
 def addScoreText(obj_list, show_3d_point_count, show_score):
     if not show_score:
         return
     global text_labels
     global text_positions
-
-    print("here")
 
     idx = 0
     for obj in obj_list:
