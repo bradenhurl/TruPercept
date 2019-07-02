@@ -228,16 +228,13 @@ def aggregate_persp_msg_evals(persp_dir, persp_id):
             save_agg_msg_eval(persp_id, idx, det_idx, msg_trust)
 
 def save_agg_msg_eval(persp_id, idx, det_idx, msg_trust):
-    logging.debug("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Save msg evals in trust")
-
     # Fill the array to write
     msg_trust_output = np.zeros([1, 3])
     msg_trust_output[0,0] = persp_id
     msg_trust_output[0,1] = det_idx
     msg_trust_output[0,2] = msg_trust
-    logging.debug("Saving msg agg val: ", persp_id, idx, det_idx, msg_trust)
 
-    logging.debug("********************Saving msg trust val to id: %d at det_idx: %d for idx: %d", persp_id, det_idx, idx)
+    logging.debug("Saving msg trust agg val to id: %d at det_idx: %d for idx: %d with trust: %d", persp_id, det_idx, idx, msg_trust)
     # Save to text file
     file_path = os.path.join(os.path.join(p_utils.get_folder(persp_id), cfg.AGG_MSG_EVALS_SUBDIR), '{:06d}.txt'.format(idx))
     logging.debug("Writing msg evals to file: %s", file_path)
