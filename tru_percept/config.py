@@ -13,11 +13,16 @@ gamma_lower = 10
 # Min/max indices which will be run (for running tests primarily)
 # If set to 0 and sys.maxsize, respectively, all indices will be run
 # when present, up to the maximum index in the DATASET_DIR/velodyne folder
-MIN_IDX = 1
+MIN_IDX = 0
 MAX_IDX = sys.maxsize
 # MIN_IDX = 7
-MAX_IDX = 2
-TEST_IDX = 1
+#MAX_IDX = 14
+
+# Test index can override min and max for testing single frame
+TEST_IDX = 15
+if TEST_IDX != -1:
+    MIN_IDX = TEST_IDX
+    MAX_IDX = TEST_IDX + 1
 
 # Only skips indices for inference!!!
 # Indices to skip in case of bugs, problems

@@ -69,6 +69,11 @@ def visualize(img_idx, show_results, alt_persp, perspID, fulcrum_of_points,
     dataset_dir = cfg.DATASET_DIR
     print("dataset_dir: ", cfg.DATASET_DIR)
 
+    if img_idx == -1:
+        print("Please set the TEST_IDX in the config.py file to see a specific index.")
+        img_idx = random.randint(0,101)
+        print("Using random index: ", img_idx)
+
     if compare_pcs:
         fulcrum_of_points = False
         fulcrum_of_points = False
@@ -94,7 +99,7 @@ def visualize(img_idx, show_results, alt_persp, perspID, fulcrum_of_points,
 
     closeView = False
     pitch = 170
-    pointSize = 3
+    pointSize = 4
     zoom = 1
     if closeView:
         pitch = 180.5
