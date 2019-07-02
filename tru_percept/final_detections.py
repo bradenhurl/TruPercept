@@ -88,6 +88,13 @@ def aggregate_score(match_list, trust_dict, idx, msg_evals_dict):
 
     final_score = 0.0
 
+    # TODO potentially add local threshold to simply believe local
+    # detections with a high score
+    # if cfg.LOCAL_THRESHOLD <= 1 and //
+    #     match_list[0].detector_id == const.ego_id() and //
+    #     match_list[0].obj.score >= cfg.LOCAL_THRESHOLD:
+    #     final_score += match_list[0].obj.score
+
     # Aggregate based on weighted average of scores
     if cfg.AGGREGATE_METHOD == 0:
         count = 0
@@ -110,8 +117,6 @@ def aggregate_score(match_list, trust_dict, idx, msg_evals_dict):
             weight = trust_obj.detector_certainty * v_trust.vehicle_trust_value(trust_dict, trust_obj.detector_id)
             final_score += trust_obj.obj.score * weight
 
-        final_score = min(final_score, 1.0)
-
     # Aggregate based on overall message evaluations
     elif cfg.AGGREGATE_METHOD == 2:
         den = 0
@@ -133,23 +138,29 @@ def aggregate_score(match_list, trust_dict, idx, msg_evals_dict):
         else:
             final_score = num / den
 
-        final_score = min(final_score, 1.0)
-        final_score = max(final_score, 0.0)
+        # Bias the detection towards the local detection score
+        if match_list[0].detector_id == const.ego_id():
+            final_score += match_list[0].obj.score
 
     else:
         print("Error: Aggregation method is not properly set!!!")
+
+    # Ensure final_score is within proper range
+    final_score = min(final_score, 1.0)
+    final_score = max(final_score, 0.0)
     
     logging.debug("Final detection aggregation. Idx: {}  pos: {}".format(idx,match_list[0].obj.t))
     for trust_obj in match_list:
         eval_dict_score = 0.0
         if trust_obj.detector_id in msg_evals_dict:
             if trust_obj.det_idx in msg_evals_dict[trust_obj.detector_id]:
-                eval_dict_score = msg_evals_dict[trust_obj.detector_id, trust_obj.det_idx]
+                eval_dict_score = msg_evals_dict[trust_obj.detector_id][trust_obj.det_idx]
 
-        logging.debug("Rec detection score: {}, certainty: {}, msg_eval_dict: {}".format(
+        logging.debug("Rec detection det_id: {}, det_idx: {} score: {}, certainty: {}, msg_eval_dict: {}".format(
+            trust_obj.detector_id, trust_obj.det_idx,
             trust_obj.obj.score, trust_obj.detector_certainty,
             eval_dict_score))
-    
+
     logging.debug("Final score: {}".format(final_score))
     return final_score
 
