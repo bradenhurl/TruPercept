@@ -62,7 +62,7 @@ def compute_final_detections():
 def aggregate_msgs(matching_objs, trust_dict, idx):
     final_dets = []
 
-    msg_eval_dict = None
+    msg_evals_dict = {}
     if cfg.AGGREGATE_METHOD == 2:
         msg_evals_dict = msg_evals.load_agg_msg_evals(idx)
 
@@ -141,6 +141,9 @@ def aggregate_score(match_list, trust_dict, idx, msg_evals_dict):
         # Bias the detection towards the local detection score
         if match_list[0].detector_id == const.ego_id():
             final_score += match_list[0].obj.score
+
+    elif cfg.AGGREGATE_METHOD == 3:
+        final_score = 1.0
 
     else:
         print("Error: Aggregation method is not properly set!!!")

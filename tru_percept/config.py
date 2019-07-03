@@ -19,7 +19,7 @@ MAX_IDX = sys.maxsize
 #MAX_IDX = 14
 
 # Test index can override min and max for testing single frame
-TEST_IDX = 15
+TEST_IDX = -1
 if TEST_IDX != -1:
     MIN_IDX = TEST_IDX
     MAX_IDX = TEST_IDX + 1
@@ -40,6 +40,8 @@ USE_RESULTS = True
 # Aggregation method
 # 0 is averaging
 # 1 is additive
+# 2 is based on msg evaluations
+# 3 is believe all with score 1.0
 AGGREGATE_METHOD = 2
 
 # Subdirectories for storing intermediate steps
