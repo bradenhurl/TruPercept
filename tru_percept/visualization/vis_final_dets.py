@@ -40,5 +40,5 @@ vis_utils.visualize(img_idx, show_results, alt_persp, perspID, fulcrum_of_points
                     use_intensity, view_received_detections, filter_area,
                     receive_from_perspective, receive_det_id, only_receive_dets,
                     change_rec_colour, compare_pcs, final_results=True,
-                    show_score=True)
+                    show_score=True, compare_with_gt=True)
 

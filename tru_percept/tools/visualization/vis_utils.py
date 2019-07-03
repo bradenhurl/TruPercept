@@ -63,7 +63,8 @@ def visualize(img_idx, show_results, alt_persp, perspID, fulcrum_of_points,
               receive_from_perspective, receive_det_id, only_receive_dets,
               change_rec_colour, compare_pcs, alt_colour_peach=False,
               show_3d_point_count=False, show_orientation=False,
-              final_results=False, show_score=False):
+              final_results=False, show_score=False,
+              compare_with_gt=False):
     # Setting Paths
     cam = 2
     dataset_dir = cfg.DATASET_DIR
@@ -200,6 +201,7 @@ def visualize(img_idx, show_results, alt_persp, perspID, fulcrum_of_points,
 
         "Received": (255, 150, 150),  # Peach
         "OwnObject": (51, 255, 255),  # Cyan
+        "GroundTruth": (0, 255, 0), # Green
     }
 
     # Load points_in_3d_boxes for each object
@@ -288,6 +290,13 @@ def visualize(img_idx, show_results, alt_persp, perspID, fulcrum_of_points,
                 print("Not using main perspective detections")
             else:
                 gt_detections = gt_detections + stripped_detections
+
+    if compare_with_gt and show_results:
+        label_dir = os.path.join(dataset_dir, cfg.LABEL_DIR)
+        real_gt_data = obj_utils.read_labels(label_dir, img_idx, results=False)
+        for obj in real_gt_data:
+            obj.type = "GroundTruth"
+        gt_detections = gt_detections + real_gt_data
 
     # Create VtkPointCloud for visualization
     vtk_point_cloud = VtkPointCloud()
