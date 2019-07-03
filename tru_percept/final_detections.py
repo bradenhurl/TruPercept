@@ -72,18 +72,14 @@ def aggregate_msgs(matching_objs, trust_dict, idx):
             logging.debug("Skipping self detection")
             continue
 
-        if len(match_list) > 1:
-            match_list[0].obj.score = aggregate_score(match_list, trust_dict, idx, msg_evals_dict)
-            # TODO Also average position and angles of object?
-            # I don't think this is feasible when captures are off in time
-            final_dets.append(match_list[0].obj)
-            logging.debug("Adding multi object: {}".format(match_list[0].obj.t))
-        else:
-            final_dets.append(match_list[0].obj)
-            logging.debug("Adding single object: {}".format(match_list[0].obj.t))
+        match_list[0].obj.score = aggregate_score(match_list, trust_dict, idx, msg_evals_dict)
+        final_dets.append(match_list[0].obj)
+        logging.debug("Adding multi object: {}".format(match_list[0].obj.t))
 
     return final_dets
 
+# Would be good to experiment with average position and angles of object?
+# I don't think this is feasible when captures are off in time
 def aggregate_score(match_list, trust_dict, idx, msg_evals_dict):
 
     final_score = 0.0
@@ -144,6 +140,18 @@ def aggregate_score(match_list, trust_dict, idx, msg_evals_dict):
 
     elif cfg.AGGREGATE_METHOD == 3:
         final_score = 1.0
+
+    elif cfg.AGGREGATE_METHOD == 4:
+        if len(match_list) > 1:
+            final_score = 1.0
+        else:
+            final_score = match_list[0].obj.score
+
+    elif cfg.AGGREGATE_METHOD == 5:
+        if len(match_list) > 1:
+            final_score = 1.0
+        elif match_list[0].detector_id == const.ego_id():
+            final_score = match_list[0].obj.score
 
     else:
         print("Error: Aggregation method is not properly set!!!")
