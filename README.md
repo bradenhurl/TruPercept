@@ -1,5 +1,13 @@
 ## av_trust_and_perception
 
+# Setup
+Please install avod (https://github.com/kujason/avod) as well as the submodule wavedata from avod according to the instructions on the avod page. Create an environment using the avod requirements.txt
+
+Clone this repository then add the base tru_percept folder to the python path.
+
+Download our dataset from: TODO
+Download our pretrained models from: 
+
 # How to run
 cd to the tru_percept directory
 
