@@ -5,6 +5,7 @@ from wavedata.tools.obj_detection import obj_utils, evaluation
 from avod.core import box_3d_encoder
 
 import trust_utils
+import tru_percept.config as cfg
 
 # Returns indices of objects
 # This function is modified code from: https://github.com/kujason
@@ -34,7 +35,7 @@ def get_iou3d_matches(ego_objs, objs_perspectives):
             max_iou_3d = np.amax(ious_3d)
             max_ious_3d[det_idx] = max_iou_3d
 
-            if max_iou_3d > 0.0:
+            if max_iou_3d > cfg.IOU_MATCHING_THRESHOLD:
                 max_iou_pred_indices[det_idx] = np.argmax(ious_3d)
 
         return max_ious_3d, max_iou_pred_indices
