@@ -150,7 +150,7 @@ def get_message_trust_values(matching_objs, persp_dir, persp_id, idx):
         # Likely add a score of 0 for non-matching detections
         # Need to properly set certainty for these detections
         # Distance and pointsIn3DBox based
-        if len(match_list) > 1:
+        if len(match_list) >= 1:
             for trust_obj in match_list:
                 trust_obj.evaluator_id = persp_id
                 trust_obj.evaluator_3d_points = points_dict[trust_obj.detector_id, trust_obj.det_idx]
@@ -160,5 +160,5 @@ def get_message_trust_values(matching_objs, persp_dir, persp_id, idx):
                 if match_list[0].detector_id == persp_id:
                     trust_obj.evaluator_score = match_list[0].obj.score
                 else:
-                    trust_obj.evaluator_score = 0
+                    trust_obj.evaluator_score = cfg.NEG_EVAL_SCORE
                 
