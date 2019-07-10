@@ -138,6 +138,14 @@ def aggregate_score(match_list, trust_dict, idx, msg_evals_dict):
         if match_list[0].detector_id == const.ego_id():
             final_score += match_list[0].obj.score
 
+        if final_score < 1.0:
+            final_score = 0
+
+        if final_score <= 0.1 and match_list[0].detector_id == const.ego_id() \
+                and match_list[0].obj.score > 0.7:
+            final_score = match_list[0].obj.score
+        #todo if we just add unmatched detections with base score detection score goes up
+
     elif cfg.AGGREGATE_METHOD == 3:
         final_score = 1.0
 
@@ -151,6 +159,18 @@ def aggregate_score(match_list, trust_dict, idx, msg_evals_dict):
         if len(match_list) > 1:
             final_score = 1.0
         elif match_list[0].detector_id == const.ego_id():
+            final_score = match_list[0].obj.score
+
+    # This one seems to work the best
+    elif cfg.AGGREGATE_METHOD == 6:
+        if match_list[0].detector_id == const.ego_id():
+            if len(match_list) > 1:
+                final_score = 1.0
+            else:
+                final_score = match_list[0].obj.score
+
+    elif cfg.AGGREGATE_METHOD == 7:
+        if match_list[0].detector_id == const.ego_id():
             final_score = match_list[0].obj.score
 
     else:
