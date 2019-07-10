@@ -1,7 +1,7 @@
-import tru_percept.tools.visualization.vis_utils as vis_utils
-import tru_percept.config as cfg
+import tools.visualization.vis_utils as vis_utils
+import config as cfg
 
-# For visualizing all ground truth objects from all vehicles in separate colours
+# For viewing all the detections from all vehicles in distinct colours
 
 # OPTIONS
 ################################################################
@@ -36,8 +36,10 @@ compare_pcs = False
 receive_det_id = -1 # Set to -1 to show all detections
 only_receive_dets = False # Set to true to only show received dets
 
-vis_utils.visualize(img_idx,show_results, alt_persp, perspID, fulcrum_of_points,
-                    use_intensity, view_received_detections, filter_area,
-                    receive_from_perspective, receive_det_id, only_receive_dets,
-                    change_rec_colour, compare_pcs)
+for img_idx in range(cfg.MIN_IDX, cfg.MAX_IDX):
+    vis_utils.visualize(img_idx, show_results, alt_persp, perspID, fulcrum_of_points,
+                        use_intensity, view_received_detections, filter_area,
+                        receive_from_perspective, receive_det_id, only_receive_dets,
+                        change_rec_colour, compare_pcs, show_image=False,
+                        compare_with_gt=True)
 

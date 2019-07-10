@@ -3,7 +3,8 @@ import sys
 import logging
 
 # Base dataset directory
-DATASET_DIR = os.path.expanduser('~') + '/GTAData/TruPercept/object_tru_percept3/training'
+SCENE_NUM = 3
+DATASET_DIR = os.path.expanduser('~') + '/GTAData/TruPercept/object_tru_percept{}/training'.format(SCENE_NUM)
 
 # Certainty threshold scores
 # TODO Probabilistic approach to certainty
@@ -19,19 +20,27 @@ MAX_IDX = sys.maxsize
 #MAX_IDX = 14
 
 # Test index can override min and max for testing single frame
-TEST_IDX = -1
+TEST_IDX = -1#13#59
 if TEST_IDX != -1:
     MIN_IDX = TEST_IDX
-    MAX_IDX = TEST_IDX + 1
+    MAX_IDX = TEST_IDX
 
 # Only skips indices for inference!!!
 # Indices to skip in case of bugs, problems
-INDICES_TO_SKIP = {267,268,269,270}
+INDICES_TO_SKIP = {}
+if SCENE_NUM == 3:
+    INDICES_TO_SKIP = {267,268,269,270}#Bugged for pedestrian detection
+    #INDICES_TO_SKIP += {12,13,14}#Detections not properly synchronized
 
 SCORE_THRESHOLD = 0.1
 
+IOU_MATCHING_THRESHOLD = 1.0
+
 # Default trust value for first-time vehicles
 DEFAULT_VEHICLE_TRUST_VAL = 0.5
+
+# Message evaluation value for negative matches
+NEG_EVAL_SCORE = 0.0
 
 CUDA_DEVICE = '0'
 
@@ -42,7 +51,9 @@ USE_RESULTS = True
 # 1 is additive
 # 2 is based on msg evaluations
 # 3 is believe all with score 1.0
-AGGREGATE_METHOD = 2
+# 4 is believe all with score 1.0 unless non-matching, then confidence
+# 5 is believe all ego which are matches
+AGGREGATE_METHOD = 7
 
 # Subdirectories for storing intermediate steps
 POINTS_IN_3D_BOXES_DIR = 'points_in_3d_boxes'

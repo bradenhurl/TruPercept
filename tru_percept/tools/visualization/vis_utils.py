@@ -15,7 +15,7 @@ from wavedata.tools.visualization import vis_utils
 
 import perspective_utils
 import trust_utils
-import tru_percept.tru_percept.config as cfg
+import config as cfg
 import constants as const
 import points_in_3d_boxes
 
@@ -64,7 +64,7 @@ def visualize(img_idx, show_results, alt_persp, perspID, fulcrum_of_points,
               change_rec_colour, compare_pcs, alt_colour_peach=False,
               show_3d_point_count=False, show_orientation=False,
               final_results=False, show_score=False,
-              compare_with_gt=False):
+              compare_with_gt=False, show_image=True):
     # Setting Paths
     cam = 2
     dataset_dir = cfg.DATASET_DIR
@@ -217,6 +217,9 @@ def visualize(img_idx, show_results, alt_persp, perspID, fulcrum_of_points,
         else:
             label_dir = os.path.join(dataset_dir, cfg.FINAL_DETS_SUBDIR)
         gt_detections = obj_utils.read_labels(label_dir, img_idx, results=show_results)
+        if compare_with_gt and not show_results:
+            for obj in gt_detections:
+                obj.type = "GroundTruth"
         addScoreText(gt_detections, show_3d_point_count, show_score)
     else:
         if (not view_received_detections or receive_from_perspective != -1) and not only_receive_dets:
@@ -236,6 +239,9 @@ def visualize(img_idx, show_results, alt_persp, perspID, fulcrum_of_points,
                     for obj_list in perspect_detections:
                         obj_list[0].obj.type = "OwnObject"
                         if obj_list[0].detector_id == const.ego_id():
+                            if compare_with_gt:
+                                for obj in obj_list:
+                                    obj.obj.type = "GroundTruth"
                             continue
                         color_str = "Received{:07d}".format(obj_list[0].detector_id)
                         prime_val = obj_list[0].detector_id * 47
@@ -365,9 +371,10 @@ def visualize(img_idx, show_results, alt_persp, perspID, fulcrum_of_points,
         ]))
 
     # Show image
-    image = cv2.imread(image_dir + "/%06d.png" % img_idx)
-    cv2.imshow("Press any key to continue", image)
-    cv2.waitKey()
+    if show_image:
+        image = cv2.imread(image_dir + "/%06d.png" % img_idx)
+        cv2.imshow("Press any key to continue", image)
+        cv2.waitKey()
 
     # Render in VTK
     vtk_render_window.Render()
