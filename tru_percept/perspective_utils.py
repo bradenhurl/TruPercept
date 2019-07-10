@@ -274,6 +274,10 @@ def filter_labels(objects):
             filter_mask[obj_idx] = False
             continue
 
+        if not _check_height(obj):
+            filter_mask[obj_idx] = False
+            continue
+
     return objects[filter_mask]
 
 # Leave 3m around frustrum. Vehicles truncated up to 3m past their
@@ -302,6 +306,17 @@ def _check_distance(obj):
     # Checks total distance
     obj_dist = math.sqrt(obj.t[0]**2 + obj.t[1]**2 + obj.t[2]**2)
     if obj_dist > (MAX_LIDAR_DIST + SAFETY_FACTOR):
+        return False
+
+    return True
+
+def _check_height(obj):
+    # Check if object is more than 3 metres down 
+    if obj.t[1] > 3.0:
+        return False
+
+    # If object is more than 3 metres up return False
+    if obj.t[1] < -3.0:
         return False
 
     return True
