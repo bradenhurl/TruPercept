@@ -41,8 +41,6 @@ def compute_final_detections():
 
         perspect_trust_objs = p_utils.get_all_detections(idx, const.ego_id(), results=cfg.USE_RESULTS, filter_area=False)
 
-        # TODO: Add fake detections
-
         # Find matching pairs
         # Returns a list of lists of objects which have been matched
         matching_objs = matching_utils.match_iou3ds(perspect_trust_objs, only_ego_matches=False)
@@ -135,33 +133,33 @@ def aggregate_score(match_list, trust_dict, idx, msg_evals_dict):
             final_score = num / den
 
         # Bias the detection towards the local detection score
-        if match_list[0].detector_id == const.ego_id():
-            final_score += match_list[0].obj.score
+        # if match_list[0].detector_id == const.ego_id():
+        #     final_score += match_list[0].obj.score
 
-        if final_score < 1.0:
-            final_score = 0
-
-        if final_score <= 0.1 and match_list[0].detector_id == const.ego_id() \
-                and match_list[0].obj.score > 0.7:
-            final_score = match_list[0].obj.score
+        # if final_score <= 0.5 and match_list[0].detector_id == const.ego_id() \
+        #         and match_list[0].obj.score > 0.5:
+        #     final_score = match_list[0].obj.score
         #todo if we just add unmatched detections with base score detection score goes up
 
+    # BA 1
     elif cfg.AGGREGATE_METHOD == 3:
         final_score = 1.0
 
+    # BA 2
     elif cfg.AGGREGATE_METHOD == 4:
         if len(match_list) > 1:
             final_score = 1.0
         else:
             final_score = match_list[0].obj.score
 
+    # BA 3
     elif cfg.AGGREGATE_METHOD == 5:
         if len(match_list) > 1:
             final_score = 1.0
         elif match_list[0].detector_id == const.ego_id():
             final_score = match_list[0].obj.score
 
-    # This one seems to work the best
+    # BA 4 - This one seems to work the best
     elif cfg.AGGREGATE_METHOD == 6:
         if match_list[0].detector_id == const.ego_id():
             if len(match_list) > 1:
@@ -172,6 +170,26 @@ def aggregate_score(match_list, trust_dict, idx, msg_evals_dict):
     elif cfg.AGGREGATE_METHOD == 7:
         if match_list[0].detector_id == const.ego_id():
             final_score = match_list[0].obj.score
+
+        # Check to ensure ego-vehicle is not matching with its own detections
+        first = True
+        for obj in match_list:
+            if first:
+                first = False
+            elif obj.detector_id == const.ego_id():
+                print("Ego objects matched!!!!")
+
+    # Aggregate additively
+    # Ego vehicle gets weight of 1
+    # Other vehicles weighted at 0.5
+    elif cfg.AGGREGATE_METHOD == 8:
+        if match_list[0].detector_id == const.ego_id():
+            final_score = match_list[0].obj.score
+
+        for trust_obj in match_list:
+            final_score += trust_obj.obj.score
+
+        final_score = final_score / 2
 
     else:
         print("Error: Aggregation method is not properly set!!!")
