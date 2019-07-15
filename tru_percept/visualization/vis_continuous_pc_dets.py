@@ -8,7 +8,7 @@ import config as cfg
 img_idx = cfg.TEST_IDX
 
 # Set to true to see predictions (results) from all perspectives
-show_results = False
+show_results = True
 
 # Sets the perspective ID if altPerspective is true
 alt_persp = False
@@ -41,5 +41,5 @@ for img_idx in range(cfg.MIN_IDX, cfg.MAX_IDX):
                         use_intensity, view_received_detections, filter_area,
                         receive_from_perspective, receive_det_id, only_receive_dets,
                         change_rec_colour, compare_pcs, show_image=False,
-                        compare_with_gt=True)
+                        compare_with_gt=True, final_results=True)
 
