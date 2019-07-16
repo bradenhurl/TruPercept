@@ -113,10 +113,12 @@ def load_vehicle_trust_objs(idx):
 
     filepath = cfg.DATASET_DIR + '/' + cfg.V_TRUST_SUBDIR + '/{:06d}.txt'.format(idx)
     if not os.path.isfile(filepath):
+        print("Could not find vehicle trust filepath: ", filepath)
         return {}
 
     # Extract the list
     if os.stat(filepath).st_size == 0:
+        print("Filesize 0 for vehicle trust filepath: ", filepath)
         return {}
 
     p = np.loadtxt(filepath, delimiter=' ',
