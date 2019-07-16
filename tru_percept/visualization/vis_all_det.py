@@ -1,5 +1,5 @@
-import tru_percept.tru_percept.tools.visualization.vis_utils as vis_utils
-import tru_percept.tru_percept.config as cfg
+import tru_percept.tools.visualization.vis_utils as vis_utils
+import tru_percept.config as cfg
 
 # For viewing all the detections from all vehicles in distinct colours
 

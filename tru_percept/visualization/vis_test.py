@@ -1,4 +1,4 @@
-import tru_percept.tru_percept.tools.visualization.vis_utils as vis_utils
+import tru_percept.tools.visualization.vis_utils as vis_utils
 
 # This script is used for testing new combinations of options
 # The other scripts are preset for standard visualizations
