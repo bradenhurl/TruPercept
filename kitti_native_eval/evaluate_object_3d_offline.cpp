@@ -750,6 +750,8 @@ void printAp(string file_name, vector<double> vals[]){
       sum[v] += vals[v][i];
   printf("%s AP: %f %f %f\n", file_name.c_str(), sum[0] / 11 * 100, sum[1] / 11 * 100, sum[2] / 11 * 100);
 
+  if (file_name.c_str() == "car_detection_3D" || file_name.c_str() == "pedestrian_detection_3D")
+    printf("Testing");
 }
 void saveAndPlotPlots(string dir_name,string file_name,string obj_type,vector<double> vals[],bool is_aos){
 
@@ -768,7 +770,8 @@ void saveAndPlotPlots(string dir_name,string file_name,string obj_type,vector<do
       for (int i = 0; i < vals[v].size(); i = i + 4)
           sum[v] += vals[v][i];
   printf("%s AP: %f %f %f\n", file_name.c_str(), sum[0] / 11 * 100, sum[1] / 11 * 100, sum[2] / 11 * 100);
-
+  if (strcmp(file_name.c_str(),"car_detection_3D") == 0 || strcmp(file_name.c_str(),"pedestrian_detection_3D") == 0)
+    printf("%s AP (Latex table): %.1f \\% & %.1f \\% & %.1f\n", file_name.c_str(), sum[0] / 11 * 100, sum[1] / 11 * 100, sum[2] / 11 * 100);
 
   // create png + eps
   for (int32_t j=0; j<2; j++) {
