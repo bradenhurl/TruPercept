@@ -32,9 +32,9 @@ if SCENE_NUM == 3:
     INDICES_TO_SKIP = {267,268,269,270}#Bugged for pedestrian detection
     #INDICES_TO_SKIP += {12,13,14}#Detections not properly synchronized
 
-SCORE_THRESHOLD = 0.1
+SCORE_THRESHOLD = 0.01
 
-IOU_MATCHING_THRESHOLD = 1.0
+IOU_MATCHING_THRESHOLD = 0.5
 
 # Default trust value for first-time vehicles
 DEFAULT_VEHICLE_TRUST_VAL = 0.5
@@ -53,7 +53,10 @@ USE_RESULTS = True
 # 3 is believe all with score 1.0
 # 4 is believe all with score 1.0 unless non-matching, then confidence
 # 5 is believe all ego which are matches
-AGGREGATE_METHOD = 7
+# 6 is believe all ego which have matches at score = 1, believe other ego
+#           with a score they were detected with
+# 7 is sanity check (passes through ego vehicle objects with same score)
+AGGREGATE_METHOD = 6
 
 # Subdirectories for storing intermediate steps
 POINTS_IN_3D_BOXES_DIR = 'points_in_3d_boxes'
