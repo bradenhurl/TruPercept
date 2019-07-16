@@ -1,4 +1,4 @@
-import tru_percept.tru_percept.points_in_3d_boxes as points_3d
+import tru_percept.points_in_3d_boxes as points_3d
 import message_evaluations as msg_evals
 import vehicle_trust as v_trust
 import final_detections as f_dets

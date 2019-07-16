@@ -1,4 +1,4 @@
-import tru_percept.tru_percept.points_in_3d_boxes as points_3d
+import tru_percept.points_in_3d_boxes as points_3d
 import time
 
 start = time.time()
