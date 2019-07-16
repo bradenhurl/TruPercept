@@ -56,7 +56,8 @@ USE_RESULTS = True
 # 6 is believe all ego which have matches at score = 1, believe other ego
 #           with a score they were detected with
 # 7 is sanity check (passes through ego vehicle objects with same score)
-AGGREGATE_METHOD = 6
+# 9 Same as 2 but average msg eval with ego vehicle detection confidence
+AGGREGATE_METHOD = 9
 
 # Subdirectories for storing intermediate steps
 POINTS_IN_3D_BOXES_DIR = 'points_in_3d_boxes'

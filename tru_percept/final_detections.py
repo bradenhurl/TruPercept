@@ -131,16 +131,7 @@ def aggregate_score(match_list, trust_dict, idx, msg_evals_dict):
             final_score = 0
         else:
             final_score = num / den
-
-        # Bias the detection towards the local detection score
-        # if match_list[0].detector_id == const.ego_id():
-        #     final_score += match_list[0].obj.score
-
-        # if final_score <= 0.5 and match_list[0].detector_id == const.ego_id() \
-        #         and match_list[0].obj.score > 0.5:
-        #     final_score = match_list[0].obj.score
-        #todo if we just add unmatched detections with base score detection score goes up
-
+            
     # BA 1
     elif cfg.AGGREGATE_METHOD == 3:
         final_score = 1.0
@@ -190,6 +181,33 @@ def aggregate_score(match_list, trust_dict, idx, msg_evals_dict):
             final_score += trust_obj.obj.score
 
         final_score = final_score / 2
+
+    # Aggregate based on overall message evaluations
+    # Same as 2 but average msg evals with ego vehicle confidence
+    elif cfg.AGGREGATE_METHOD == 9:
+        den = 0
+        num = 0.0
+        for trust_obj in match_list:
+            found = False
+            if trust_obj.detector_id in msg_evals_dict:
+                if trust_obj.det_idx in msg_evals_dict[trust_obj.detector_id]:
+                    num += msg_evals_dict[trust_obj.detector_id, trust_obj.det_idx]
+                    found = True
+
+            if not found and trust_obj.detector_id == const.ego_id():
+                num += trust_obj.obj.score
+
+            den += 1
+
+        if den == 0:
+            final_score = 0
+        else:
+            final_score = num / den
+
+        # Bias the detection towards the local detection score
+        if match_list[0].detector_id == const.ego_id():
+            final_score += match_list[0].obj.score
+            final_score /= 2
 
     else:
         print("Error: Aggregation method is not properly set!!!")
