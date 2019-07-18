@@ -101,7 +101,7 @@ def visualize(img_idx, show_results, alt_persp, perspID, fulcrum_of_points,
     closeView = False
     pitch = 170
     pointSize = 4
-    zoom = 1
+    zoom = 3
     if closeView:
         pitch = 180.5
         pointSize = 3
