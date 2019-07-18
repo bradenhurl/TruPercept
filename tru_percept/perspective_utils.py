@@ -8,6 +8,7 @@ from wavedata.tools.obj_detection import obj_utils
 import trust_utils
 import config as cfg
 import constants as const
+import false_detections as false_dets
 
 # Notes on terminology:
 # ego_id = The entity_id of the main vehicle which is driving from GTA Collection
@@ -209,6 +210,13 @@ def get_detections(to_persp_dir, det_persp_dir, idx, det_persp_id, results=False
         if det_persp_dir != to_persp_dir:
             to_world(detections, det_persp_dir, idx)
             to_perspective(detections, to_persp_dir, idx)
+
+        if cfg.FALSE_DETECTIONS_TYPE != None:
+            false_det_list = false_dets.get_false_dets(cfg.FALSE_DETECTIONS, \
+                                 det_persp_id, idx, cfg.FALSE_DETECTIONS_TYPE, \
+                                 cfg.DATASET_DIR)
+            for det in false_det_list:
+                detections.append(det)
 
         #TODO Verify filter is working
         if filter_area:
