@@ -271,14 +271,18 @@ def get_folder(persp_id):
 #####################################################################
 # These are used to filter the detections without having to create a kitti_dataset object
 # Based off of filter_lables from avod code
-def filter_labels(objects):
+def filter_labels(objects, check_distance=True):
     objects = np.asanyarray(objects)
     filter_mask = np.ones(len(objects), dtype=np.bool)
 
     for obj_idx in range(len(objects)):
         obj = objects[obj_idx]
 
-        if not _check_distance(obj):
+        if not _check_frustum(obj):
+            filter_mask[obj_idx] = False
+            continue
+
+        if check_distance and not _check_distance(obj):
             filter_mask[obj_idx] = False
             continue
 
@@ -288,19 +292,34 @@ def filter_labels(objects):
 
     return objects[filter_mask]
 
-# Leave 3m around frustrum. Vehicles truncated up to 3m past their
+# Leave 3m around frustum. Vehicles truncated up to 3m past their
 # Centre won't be filtered
 SAFETY_FACTOR = 2
 MAX_LIDAR_DIST = 70
 #TODO move these to constants or config
 def _check_distance(obj):
-    """This filters an object by distance and frustrum.
+    """This filters an object by distance.
     Args:
         obj: An instance of ground-truth Object Label
     Returns: True or False depending on whether the object
         is less than MAX_LIDAR_DIST + 3 metres away.
         3 is used as a safety factor for objects which
         may be partially truncated
+    """
+
+    # Checks total distance
+    obj_dist = math.sqrt(obj.t[0]**2 + obj.t[1]**2 + obj.t[2]**2)
+    if obj_dist > (MAX_LIDAR_DIST + SAFETY_FACTOR):
+        return False
+
+    return True
+
+def _check_frustum(obj):
+    """This filters an object by frustum and height.
+    Args:
+        obj: An instance of ground-truth Object Label
+    Returns: True or False depending on whether the object
+        is within the front frustum and height requirements.
     """
     
     # Checks if in front of vehicle
@@ -309,11 +328,6 @@ def _check_distance(obj):
 
     # Checks if in frustrum
     if abs(obj.t[0]) > obj.t[2] + SAFETY_FACTOR:
-        return False
-
-    # Checks total distance
-    obj_dist = math.sqrt(obj.t[0]**2 + obj.t[1]**2 + obj.t[2]**2)
-    if obj_dist > (MAX_LIDAR_DIST + SAFETY_FACTOR):
         return False
 
     return True
