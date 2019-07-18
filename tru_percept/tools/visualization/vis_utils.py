@@ -347,6 +347,13 @@ def visualize(img_idx, show_results, alt_persp, perspID, fulcrum_of_points,
     # Zoom in slightly
     current_cam.Zoom(zoom)
 
+    # Zoom/navigate to the desired camera view then exit
+    # Three lines will be output. Paste these here
+    # Above forward view
+    current_cam.SetPosition(7.512679241328601, -312.20497623371926, -130.38469206536766)
+    current_cam.SetViewUp(-0.01952407393317445, -0.44874501090739727, 0.893446543293314)
+    current_cam.SetFocalPoint(11.624950999358777, 14.835920755080867, 33.965665867613836)
+
     # Reset the clipping range to show all points
     vtk_renderer.ResetCameraClippingRange()
 
@@ -378,8 +385,14 @@ def visualize(img_idx, show_results, alt_persp, perspID, fulcrum_of_points,
 
     # Render in VTK
     vtk_render_window.Render()
+
     vtk_render_window_interactor.Start()  # Blocking
-    # renderWindowInteractor.Initialize()   # Non-Blocking
+    # vtk_render_window_interactor.Initialize()   # Non-Blocking  
+
+    # Obtain camera positional information for repeatable views
+    print("current_cam.SetPosition{}".format(current_cam.GetPosition()))
+    print("current_cam.SetViewUp{}".format(current_cam.GetViewUp()))
+    print("current_cam.SetFocalPoint{}".format(current_cam.GetFocalPoint()))
 
 def setPointsText(trust_obj_list,  points_dict, show_3d_point_count):
     if not show_3d_point_count:
