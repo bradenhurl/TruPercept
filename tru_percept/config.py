@@ -2,14 +2,16 @@ import os
 import sys
 import logging
 
+import tru_percept.false_detections as false_dets
+
 # Base dataset directory
 SCENE_NUM = 3
 DATASET_DIR = os.path.expanduser('~') + '/GTAData/TruPercept/object_tru_percept{}/training'.format(SCENE_NUM)
 
 # Certainty threshold scores
 # TODO Probabilistic approach to certainty
-gamma_upper = 500
-gamma_lower = 10
+gamma_upper = 100
+gamma_lower = 0
 
 # Min/max indices which will be run (for running tests primarily)
 # If set to 0 and sys.maxsize, respectively, all indices will be run
@@ -34,7 +36,15 @@ if SCENE_NUM == 3:
 
 SCORE_THRESHOLD = 0.01
 
-IOU_MATCHING_THRESHOLD = 0.5
+IOU_MATCHING_THRESHOLD = 0.1
+
+# False detections to use
+# None for no detections
+# malicious_front for adding detections in front of vehicles
+FALSE_DETECTIONS_TYPE = 'malicious_front'
+FALSE_DETECTIONS_SUBDIR = 'false_detections'
+FALSE_DETECTIONS = false_dets.load_false_dets(DATASET_DIR, \
+                        FALSE_DETECTIONS_SUBDIR, FALSE_DETECTIONS_TYPE)
 
 # Default trust value for first-time vehicles
 DEFAULT_VEHICLE_TRUST_VAL = 0.5
@@ -57,7 +67,7 @@ USE_RESULTS = True
 #           with a score they were detected with
 # 7 is sanity check (passes through ego vehicle objects with same score)
 # 9 Same as 2 but average msg eval with ego vehicle detection confidence
-AGGREGATE_METHOD = 9
+AGGREGATE_METHOD = 0
 
 # Subdirectories for storing intermediate steps
 POINTS_IN_3D_BOXES_DIR = 'points_in_3d_boxes'
