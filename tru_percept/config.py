@@ -87,8 +87,11 @@ if not USE_RESULTS:
 FINAL_DETS_SUBDIR_AF = 'final_detections_area_filtered'
 
 # Use regular vs filtered (for distance, etc) ground truth labels
-LABEL_DIR = 'label_filtered_2'
-#LABEL_DIR = 'label_2'
+EVALUATE_UNFILTERED = False
+if EVALUATE_UNFILTERED:
+    LABEL_DIR = 'label_2'
+else:
+    LABEL_DIR = 'label_filtered_2'
 
 AVOD_OUTPUT_DIR = 'predictions'
 KITTI_EVAL_SUBDIR = 'kitti_native_eval'

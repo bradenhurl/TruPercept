@@ -6,7 +6,7 @@ import config as cfg
 import constants as const
 import std_utils
 
-def run_kitti_native_script(score_threshold, evaluate_avod=True):
+def run_kitti_native_script(score_threshold, only_evaluate_avod=False):
     """Runs the kitti native code script."""
 
     script_folder = const.top_dir() + \
@@ -20,8 +20,12 @@ def run_kitti_native_script(score_threshold, evaluate_avod=True):
         make_script = script_folder + 'run_make.sh'
         subprocess.call([make_script, script_folder])
 
+    final_dets_subdir = cfg.FINAL_DETS_SUBDIR_AF
+    if cfg.EVALUATE_UNFILTERED:
+        final_dets_subdir = cfg.FINAL_DETS_SUBDIR
+
     # Sets up the eval to output in the dataset directory
-    predictions_dir = cfg.DATASET_DIR + '/' + cfg.FINAL_DETS_SUBDIR_AF
+    predictions_dir = cfg.DATASET_DIR + '/' + final_dets_subdir
     label_dir = cfg.DATASET_DIR + '/' + cfg.LABEL_DIR
     avod_output_dir = cfg.DATASET_DIR + '/' + cfg.AVOD_OUTPUT_DIR
 
@@ -29,24 +33,24 @@ def run_kitti_native_script(score_threshold, evaluate_avod=True):
     score_threshold = round(score_threshold, 3)
 
     # copy predictions into proper kitti format
-    preds_eval_dir = cfg.DATASET_DIR + '/' + cfg.KITTI_EVAL_SUBDIR + '/' + cfg.FINAL_DETS_SUBDIR_AF
+    preds_eval_dir = cfg.DATASET_DIR + '/' + cfg.KITTI_EVAL_SUBDIR + '/' + final_dets_subdir
     avod_eval_dir = cfg.DATASET_DIR + '/' + cfg.KITTI_EVAL_SUBDIR + '/' + cfg.AVOD_OUTPUT_DIR
 
     #TODO delete everything in directories we're copying to
-    std_utils.make_dir(preds_eval_dir)
-    copy_tree(predictions_dir, preds_eval_dir + '/data')
+    if not only_evaluate_avod:
+        std_utils.make_dir(preds_eval_dir)
+        copy_tree(predictions_dir, preds_eval_dir + '/data')
 
-    print("*********************************************************************\n" +
-          "Results from tru_percept: \n" +
-          "*********************************************************************\n")
-    subprocess.call([run_script, script_folder,
-                     str(score_threshold),
-                     str(preds_eval_dir),
-                     str(cfg.FINAL_DETS_SUBDIR_AF),
-                     str(cfg.DATASET_DIR),
-                     str(label_dir)])
-
-    if evaluate_avod:
+        print("*********************************************************************\n" +
+              "Results from tru_percept: \n" +
+              "*********************************************************************\n")
+        subprocess.call([run_script, script_folder,
+                         str(score_threshold),
+                         str(preds_eval_dir),
+                         str(final_dets_subdir),
+                         str(cfg.DATASET_DIR),
+                         str(label_dir)])
+    else:
         std_utils.make_dir(avod_eval_dir)
         copy_tree(avod_output_dir, avod_eval_dir + '/data')
         print("\n\n\n*********************************************************************\n" +
@@ -55,6 +59,6 @@ def run_kitti_native_script(score_threshold, evaluate_avod=True):
         subprocess.call([run_script, script_folder,
                          str(score_threshold),
                          str(avod_eval_dir),
-                         str(cfg.FINAL_DETS_SUBDIR_AF),
+                         str(final_dets_subdir),
                          str(cfg.DATASET_DIR),
                          str(label_dir)])
