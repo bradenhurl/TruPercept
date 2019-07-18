@@ -19,6 +19,7 @@ import message_evaluations as msg_evals
 # Only for the ego vehicle as all other vehicles are not
 # guaranteed to have all nearby vehicles
 def compute_final_detections():
+    print("Aggregate method: ", cfg.AGGREGATE_METHOD)
     std_utils.delete_subdir(cfg.FINAL_DETS_SUBDIR)
     std_utils.delete_subdir(cfg.FINAL_DETS_SUBDIR_AF)
 
@@ -131,7 +132,7 @@ def aggregate_score(match_list, trust_dict, idx, msg_evals_dict):
             final_score = 0
         else:
             final_score = num / den
-            
+
     # BA 1
     elif cfg.AGGREGATE_METHOD == 3:
         final_score = 1.0
@@ -240,6 +241,8 @@ def output_final_dets(objects, idx):
         for obj in objects:
             if obj.score >= cfg.SCORE_THRESHOLD:
                 filtered_objects.append(obj)
+
+        #filtered_objects = p_utils.filter_labels(filtered_objects, False)
 
         # Filter for area
         area_filtered_objects = p_utils.filter_labels(filtered_objects)
