@@ -33,5 +33,7 @@ filepath = cfg.DATASET_DIR + '/scene_stats_entity_frames.txt'
 with open(filepath, 'w') as f:
     f.write("frame count, min idx, max idx, entity_id\n")
     for item in entity_ids:
-        f.write("{}, {}, {}, {}\n".format(item[1], item[2], item[3], item[0]))
+        f.write("{}, {}, {}, {}\n".format(item[1], \
+            int(item[2].split('.', 1)[0]), \
+            int(item[3].split('.', 1)[0]), item[0]))
 print("Entity IDs and valid frame indexes in file: ", filepath)
