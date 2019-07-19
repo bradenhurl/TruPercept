@@ -2,6 +2,8 @@ import os
 import numpy as np
 import math
 import logging
+import sys
+from shutil import copyfile
 
 from wavedata.tools.obj_detection import obj_utils
 
@@ -30,10 +32,17 @@ def correct_synchro():
 
     # Do this for every sample index
     velo_files = os.listdir(velo_dir)
+    num_files = len(velo_files)
+    file_idx = 0
 
     for file in velo_files:
         filepath = velo_dir + '/' + file
         idx = int(os.path.splitext(file)[0])
+
+        sys.stdout.flush()
+        sys.stdout.write('\rFinished synchronization for index: {} / {}'.format(
+            file_idx, num_files))
+        file_idx += 1
 
         if idx < cfg.MIN_IDX or idx > cfg.MAX_IDX:
             continue
@@ -46,6 +55,13 @@ def correct_synchro():
             dict_ego_gt[obj.id] = obj
 
         # Ego vehicle does not need synchronization
+        # Simply copy file
+        src_file = '{}/{}/{:06d}.txt'.format(cfg.DATASET_DIR, cfg.PREDICTIONS_SUBDIR, idx)
+        dst_dir = '{}/{}/'.format(cfg.DATASET_DIR, cfg.SYNCHRONIZED_PREDS_DIR)
+        dst_file = dst_dir + '{:06d}.txt'.format(idx)
+        std_utils.make_dir(dst_dir)
+        copyfile(src_file, dst_file)
+
         # Do for all the alternate perspectives
         for entity_str in persp_dirs:
             perspect_dir = os.path.join(alt_pers_dir, entity_str)
@@ -71,8 +87,16 @@ def correct_synchro():
             persp_det = obj_utils.read_labels(det_dir, idx, results=True, synthetic=False)
             persp_gt = obj_utils.read_labels(gt_dir, idx, results=False, synthetic=True)
 
+            # Make sure directory exists if we've made it this far
+            out_dir = perspect_dir + '/predictions_synchro/'
+            std_utils.make_dir(out_dir)
+
+            # If there are no detections then stop but make empty file
+            # since empty file exists for predictions
             if persp_det == None:
-                continue
+                # Write a file with nothing as there are no detections
+                with open('{}/{:06d}.txt'.format(out_dir, idx), 'w+') as f:
+                    continue
 
             # Should just match 1 to 1 with highest match
             cfg.IOU_MATCHING_THRESHOLD = 0.5
@@ -81,7 +105,7 @@ def correct_synchro():
             max_ious, iou_indices = matching_utils.get_iou3d_matches(persp_gt, persp_det)
             max_speed = -1
             max_speed_idx = -1
-            print(iou_indices)
+            min_ry_diff = sys.maxsize
             for obj_idx in range(0, len(iou_indices)):
                 if iou_indices[obj_idx] != -1:
                     matched_speed = persp_gt[int(iou_indices[obj_idx])].speed
@@ -91,7 +115,10 @@ def correct_synchro():
                         max_speed = matched_speed
                         max_speed_idx = obj_idx
 
-            print(entity_str)
+                        # Should also try to take vehicle which turns the least (as it will affect speed/distance)
+                        ry_diff = abs(persp_gt[int(iou_indices[obj_idx])].ry - persp_det[obj_idx].ry)
+                        if min_ry_diff > ry_diff:
+                            min_ry_diff = ry_diff
 
             # Adjust detection positions using velocity
             # if any detection was matched with speed > 0
@@ -111,21 +138,23 @@ def correct_synchro():
                     pos_diff = pos_diff.reshape((1,3))
                     time = math.sqrt(np.dot(pos_diff, pos_diff.T)) / obj2.speed
 
-                    # Adjust all the detections based on the offset time and their own speed
-                    for obj in persp_det:
-                        unit_vec = np.asarray([np.sin(obj.ry), np.cos(obj.ry)])
-                        print(unit_vec)
-                        dist = time * obj.speed
-                        offset = unit_vec * -dist
-                        obj.t = (obj.t[0] + offset[1], obj.t[1], obj.t[2] + offset[0])
-
                     # Convert back to perspective coordinates then save
                     p_utils.to_world(persp_det, cfg.DATASET_DIR, idx)
                     p_utils.to_perspective(persp_det, perspect_dir, idx)
 
-            out_dir = perspect_dir + '/predictions_synchro/'
-            print("Saving to dir: ", out_dir)
-            std_utils.make_dir(out_dir)
+                    # Adjust all the detections based on the offset time and their own speed
+                    for obj in persp_det:
+                        # First need to convert ry back to proper angle
+                        theta = np.arctan2(np.cos(obj.ry), -np.sin(obj.ry))
+                        # Next need to extract x/y components
+                        unit_vec = np.asarray([np.cos(theta), np.sin(theta)])
+
+                        # Lastly use the calculated time offset to create a distance
+                        # offset and add it to the obj position
+                        dist = time * obj.speed
+                        offset = unit_vec * -dist
+                        obj.t = (obj.t[0] + offset[1], obj.t[1], obj.t[2] + offset[0])
+
             std_utils.save_objs_to_file(persp_det, idx, out_dir, True)
 
 
