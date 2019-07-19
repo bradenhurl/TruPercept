@@ -77,7 +77,6 @@ def visualize(img_idx, show_results, alt_persp, perspID, fulcrum_of_points,
 
     if compare_pcs:
         fulcrum_of_points = False
-        fulcrum_of_points = False
 
     global text_labels
     global text_positions
@@ -88,6 +87,8 @@ def visualize(img_idx, show_results, alt_persp, perspID, fulcrum_of_points,
     altPerspect_dir = os.path.join(dataset_dir,'alt_perspective')
     if alt_persp:
         dataset_dir = dataset_dir + '/alt_perspective/' + perspStr
+    else:
+        perspID = const.ego_id()
 
     image_dir = os.path.join(dataset_dir, 'image_2')
     velo_dir = os.path.join(dataset_dir, 'velodyne')
@@ -101,7 +102,7 @@ def visualize(img_idx, show_results, alt_persp, perspID, fulcrum_of_points,
     closeView = False
     pitch = 170
     pointSize = 4
-    zoom = 3
+    zoom = 2
     if closeView:
         pitch = 180.5
         pointSize = 3
@@ -205,7 +206,7 @@ def visualize(img_idx, show_results, alt_persp, perspID, fulcrum_of_points,
     }
 
     # Load points_in_3d_boxes for each object
-    points_dict = points_in_3d_boxes.load_points_in_3d_boxes(img_idx, const.ego_id())
+    points_dict = points_in_3d_boxes.load_points_in_3d_boxes(img_idx, perspID)
     text_positions = []
     text_labels = []
 
@@ -224,7 +225,7 @@ def visualize(img_idx, show_results, alt_persp, perspID, fulcrum_of_points,
     else:
         if (not view_received_detections or receive_from_perspective != -1) and not only_receive_dets:
             gt_detections = perspective_utils.get_detections(dataset_dir, dataset_dir, img_idx,
-                                    const.ego_id(), results=show_results, filter_area=filter_area)
+                                    perspID, results=show_results, filter_area=filter_area)
 
             setPointsText(gt_detections, points_dict, show_3d_point_count)
             addScoreTextTrustObjs(gt_detections, show_3d_point_count, show_score)
@@ -234,11 +235,11 @@ def visualize(img_idx, show_results, alt_persp, perspID, fulcrum_of_points,
         if view_received_detections:
             stripped_detections = []
             if receive_from_perspective == -1:
-                perspect_detections = perspective_utils.get_all_detections(img_idx, const.ego_id(), show_results, filter_area)
+                perspect_detections = perspective_utils.get_all_detections(img_idx, perspID, show_results, filter_area)
                 if change_rec_colour:
                     for obj_list in perspect_detections:
                         obj_list[0].obj.type = "OwnObject"
-                        if obj_list[0].detector_id == const.ego_id():
+                        if obj_list[0].detector_id == perspID:
                             if compare_with_gt:
                                 for obj in obj_list:
                                     obj.obj.type = "GroundTruth"
