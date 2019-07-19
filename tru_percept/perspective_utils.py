@@ -194,7 +194,7 @@ def to_perspective(objects, perspect_dir, idx):
 # det_persp_id is the ID of the perspective detections are received from
 def get_detections(to_persp_dir, det_persp_dir, idx, det_persp_id, results=False, filter_area=False):
     if results:
-        label_dir = det_persp_dir + '/predictions/'
+        label_dir = det_persp_dir + '/' + cfg.PREDICTIONS_SUBDIR + '/'
     else:
         label_dir = det_persp_dir + '/label_2/'
 

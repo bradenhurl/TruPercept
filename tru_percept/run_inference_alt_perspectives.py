@@ -114,7 +114,7 @@ def inferPerspective(model_config, eval_config, dataset_config, additional_cls):
                                                  use_defaults=False)
 
     #Switch inference output directory
-    model_config.paths_config.pred_dir = entity_perspect_dir + '/predictions/'
+    model_config.paths_config.pred_dir = entity_perspect_dir + '/{}/'.format(cfg.AVOD_OUTPUT_DIR)
     logging.debug("Prediction directory: %s", model_config.paths_config.pred_dir)
 
     with tf.Graph().as_default():

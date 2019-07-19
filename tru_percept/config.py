@@ -22,7 +22,7 @@ MAX_IDX = sys.maxsize
 #MAX_IDX = 14
 
 # Test index can override min and max for testing single frame
-TEST_IDX = -1#13#59
+TEST_IDX = 14#59
 if TEST_IDX != -1:
     MIN_IDX = TEST_IDX
     MAX_IDX = TEST_IDX
@@ -93,8 +93,11 @@ if EVALUATE_UNFILTERED:
 else:
     LABEL_DIR = 'label_filtered_2'
 
-AVOD_OUTPUT_DIR = 'predictions'
+SYNCHRONIZED_PREDS_DIR = 'predictions_synchro'
+
 KITTI_EVAL_SUBDIR = 'kitti_native_eval'
+
+PREDICTIONS_SUBDIR = 'predictions'
 
 # Set and initialize logging
 LOG_LVL = logging.DEBUG
