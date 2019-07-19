@@ -65,6 +65,8 @@ def correct_synchro():
         # Do for all the alternate perspectives
         for entity_str in persp_dirs:
             persp_dir = os.path.join(alt_pers_dir, entity_str)
+            if not os.path.isdir(persp_dir):
+                continue
 
             persp_det = get_synchronized_dets(persp_dir, cfg.DATASET_DIR, idx, dict_ego_gt)
 
@@ -74,7 +76,7 @@ def correct_synchro():
             # Make sure directory exists if we've made it this far
             out_dir = persp_dir + '/predictions_synchro/'
             std_utils.make_dir(out_dir)
-            
+
             # If there are no detections then stop but make empty file
             # since empty file exists for predictions
             if persp_det == None:
@@ -95,8 +97,6 @@ def correct_synchro():
 # persp_dir: Base perspective directory where detections are loaded from
 # to_persp_dir: Base perspective directory detections are being synchronized with
 def get_synchronized_dets(persp_dir, to_persp_dir, idx, to_persp_dict_gt=None):
-    if not os.path.isdir(persp_dir):
-        return -1
 
     det_dir = persp_dir + '/{}'.format(cfg.PREDICTIONS_SUBDIR)
     if not os.path.isdir(det_dir):
