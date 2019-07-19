@@ -7,6 +7,7 @@ import certainty_utils
 import config as cfg
 import constants as const
 import points_in_3d_boxes as points_3d
+import perspective_utils as p_utils
 
 # Dictionary for vehicle trust values
 trust_map = {}
@@ -79,7 +80,7 @@ class VehicleTrust:
         self.count = 0.
 
 # Returns the trust object of the vehicle from the own perspective (persp_dir)
-def getPerspectiveOwnVehicleTrustObject(persp_dir, idx, persp_id):
+def getPerspectiveOwnVehicleTrustObject(persp_dir, idx, persp_id, to_persp_dir):
     ego_dir = persp_dir + '/ego_object/'
     ego_detection = obj_utils.read_labels(ego_dir, idx)
     ego_detection[0].score = 1.0
@@ -88,17 +89,22 @@ def getPerspectiveOwnVehicleTrustObject(persp_dir, idx, persp_id):
         # These weren't set in this version of synthetic data (TODO)
         ego_detection[0].t = (0, ego_detection[0].h, 0)
         ego_detection[0].ry = math.pi / 2
+    else:
+        # Need to convert to perspective coordinates if perspective is not ego vehicle
+        # All ego_object objects are in ego-vehicle coordinates
+        p_utils.to_world(ego_detection, p_utils.get_folder(const.ego_id()), idx)
+        p_utils.to_perspective(ego_detection, to_persp_dir, idx)
 
     # TODO Filter object area?
     ego_tDet = TrustDetection(persp_id, ego_detection[0], 1.0, 0)
     return ego_tDet
 
 
-def createTrustObjects(persp_dir, idx, persp_id, detections, results):
+def createTrustObjects(persp_dir, idx, persp_id, detections, results, to_persp_dir):
     trust_detections = []
 
     # Add ego object (self)
-    ego_tDet = getPerspectiveOwnVehicleTrustObject(persp_dir, idx, persp_id)
+    ego_tDet = getPerspectiveOwnVehicleTrustObject(persp_dir, idx, persp_id, to_persp_dir)
     trust_detections.append(ego_tDet)
 
     #points_dict = points_3d.load_points_in_3d_boxes(idx, persp_id)

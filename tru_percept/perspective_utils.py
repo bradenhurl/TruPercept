@@ -209,7 +209,7 @@ def get_detections(to_persp_dir, det_persp_dir, idx, det_persp_id, results=False
         detections = synchronize.get_synchronized_dets(det_persp_dir, to_persp_dir, idx)
     else:
         detections = obj_utils.read_labels(label_dir, idx, results=results)
-
+        
     logging.debug("det_persp_id: {} det_persp_dir: {}".format(det_persp_id, det_persp_dir))
     if detections is not None:
         if det_persp_dir != to_persp_dir:
@@ -228,7 +228,7 @@ def get_detections(to_persp_dir, det_persp_dir, idx, det_persp_id, results=False
             detections = filter_labels(detections)
 
         # Easier for visualizations if returning simple objects
-        return trust_utils.createTrustObjects(det_persp_dir, idx, det_persp_id, detections, results)
+        return trust_utils.createTrustObjects(det_persp_dir, idx, det_persp_id, detections, results, to_persp_dir)
 
     return []
 
