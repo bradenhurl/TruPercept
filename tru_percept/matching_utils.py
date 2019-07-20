@@ -59,6 +59,7 @@ def match_iou3ds(trust_objs, only_ego_matches):
             else:
                 # For now do not match other types as we aren't evaluating them
                 #curr_other.append(t_obj)
+                continue
 
         if len(curr_cars) > 0:
             cars.append(curr_cars)
