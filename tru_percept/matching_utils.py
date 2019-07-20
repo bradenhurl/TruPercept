@@ -9,7 +9,7 @@ import tru_percept.config as cfg
 
 # Returns indices of objects
 # This function is modified code from: https://github.com/kujason
-def get_iou3d_matches(ego_objs, objs_perspectives):
+def get_iou3d_matches(ego_objs, objs_perspectives, iou_thresh):
     all_3d_ious = []
 
     if len(ego_objs) > 0 and \
@@ -35,7 +35,7 @@ def get_iou3d_matches(ego_objs, objs_perspectives):
             max_iou_3d = np.amax(ious_3d)
             max_ious_3d[det_idx] = max_iou_3d
 
-            if max_iou_3d > cfg.IOU_MATCHING_THRESHOLD:
+            if max_iou_3d > iou_thresh:
                 max_iou_pred_indices[det_idx] = np.argmax(ious_3d)
 
         return max_ious_3d, max_iou_pred_indices
@@ -116,7 +116,7 @@ def match_obj_type(trust_objs, only_ego_matches):
             v2_trust_objs = trust_objs[v2_idx]
             stripped_v2_objs = trust_utils.strip_objs(v2_trust_objs)
 
-            max_ious, iou_indices = get_iou3d_matches(stripped_v_objs, stripped_v2_objs)
+            max_ious, iou_indices = get_iou3d_matches(stripped_v_objs, stripped_v2_objs, cfg.IOU_MATCHING_THRESHOLD)
 
             for obj_idx in range(0, len(iou_indices)):
                 if iou_indices[obj_idx] != -1:

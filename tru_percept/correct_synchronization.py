@@ -130,11 +130,9 @@ def get_synchronized_dets(persp_dir, to_persp_dir, idx, to_persp_dict_gt=None):
     if persp_det == None:
         return persp_det
 
-    # Should just match 1 to 1 with highest match
-    cfg.IOU_MATCHING_THRESHOLD = 0.01
-
     # Match predictions to their ground truth object
-    max_ious, iou_indices = matching_utils.get_iou3d_matches(persp_gt, persp_det)
+    # Should just match 1 to 1 with highest match
+    max_ious, iou_indices = matching_utils.get_iou3d_matches(persp_gt, persp_det, 0.001)
     max_speed = -1
     max_speed_idx = -1
     min_ry_diff = sys.maxsize
