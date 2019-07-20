@@ -149,6 +149,10 @@ def get_synchronized_dets(persp_dir, to_persp_dir, idx, to_persp_dict_gt=None):
                 ry_diff = abs(persp_gt[int(iou_indices[obj_idx])].ry - persp_det[obj_idx].ry)
                 if min_ry_diff > ry_diff:
                     min_ry_diff = ry_diff
+        else:
+            # Object not matched so speed is unknown
+            # No synchronization offset will be applied
+            persp_det[obj_idx].speed = 0
 
     # Adjust detection positions using velocity
     # if any detection was matched with speed > 0
@@ -157,9 +161,9 @@ def get_synchronized_dets(persp_dir, to_persp_dir, idx, to_persp_dict_gt=None):
         if key in to_persp_dict_gt:
             # Convert to ego vehicle coordinates
             p_utils.to_world(persp_det, persp_dir, idx)
-            p_utils.to_perspective(persp_det, cfg.DATASET_DIR, idx)
+            p_utils.to_perspective(persp_det, to_persp_dir, idx)
             p_utils.to_world(persp_gt, persp_dir, idx)
-            p_utils.to_perspective(persp_gt, cfg.DATASET_DIR, idx)
+            p_utils.to_perspective(persp_gt, to_persp_dir, idx)
 
             # Get the time from the object with the highest speed
             obj1 = to_persp_dict_gt[key]
@@ -169,7 +173,7 @@ def get_synchronized_dets(persp_dir, to_persp_dir, idx, to_persp_dict_gt=None):
             time = math.sqrt(np.dot(pos_diff, pos_diff.T)) / obj2.speed
 
             # Convert back to perspective coordinates then save
-            p_utils.to_world(persp_det, cfg.DATASET_DIR, idx)
+            p_utils.to_world(persp_det, to_persp_dir, idx)
             p_utils.to_perspective(persp_det, persp_dir, idx)
 
             # Adjust all the detections based on the offset time and their own speed
