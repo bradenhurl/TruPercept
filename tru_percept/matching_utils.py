@@ -41,7 +41,51 @@ def get_iou3d_matches(ego_objs, objs_perspectives):
         return max_ious_3d, max_iou_pred_indices
 
 # Returns a list of lists of objects which have been matched
+# Separates object types so matching doesn't attempt to match them together
 def match_iou3ds(trust_objs, only_ego_matches):
+    peds = []
+    cars = []
+    other = []
+
+    for t_obj_list in trust_objs:
+        curr_peds = []
+        curr_cars = []
+        curr_other = []
+        for t_obj in t_obj_list:
+            if t_obj.obj.type == 'Car':
+                curr_cars.append(t_obj)
+            elif t_obj.obj.type == 'Pedestrian':
+                curr_peds.append(t_obj)
+            else:
+                # For now do not match other types as we aren't evaluating them
+                #curr_other.append(t_obj)
+
+        if len(curr_cars) > 0:
+            cars.append(curr_cars)
+        if len(curr_peds) > 0:
+            peds.append(curr_peds)
+        if len(curr_other) > 0:
+            other.append(curr_other)
+
+    matched = []
+    if len(cars) > 0:
+        matched_cars = match_obj_type(cars, only_ego_matches)
+        for match_list in matched_cars:
+            matched.append(match_list)
+    if len(peds) > 0:
+        matched_peds = match_obj_type(peds, only_ego_matches)
+        for match_list in matched_peds:
+            matched.append(match_list)
+    if len(other) > 0:
+        matched_other = match_obj_type(other, only_ego_matches)
+        for match_list in matched_other:
+            matched.append(match_list)
+
+    return matched
+
+# Call match_iou3ds to separate object types
+# Returns a list of lists of objects which have been matched
+def match_obj_type(trust_objs, only_ego_matches):
     matched_objs = []
 
     base_idx = 0
