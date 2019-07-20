@@ -115,6 +115,8 @@ def get_synchronized_dets(persp_dir, to_persp_dir, idx, to_persp_dict_gt=None):
         to_persp_aug_label_dir = to_persp_dir + '/label_aug_2'
         to_persp_gt = obj_utils.read_labels(to_persp_aug_label_dir, idx, results=False, synthetic=True)
         to_persp_dict_gt = {}
+        if to_persp_gt == None:
+            return -1
         for obj in to_persp_gt:
             to_persp_dict_gt[obj.id] = obj
 
@@ -129,7 +131,7 @@ def get_synchronized_dets(persp_dir, to_persp_dir, idx, to_persp_dict_gt=None):
         return persp_det
 
     # Should just match 1 to 1 with highest match
-    cfg.IOU_MATCHING_THRESHOLD = 0.5
+    cfg.IOU_MATCHING_THRESHOLD = 0.01
 
     # Match predictions to their ground truth object
     max_ious, iou_indices = matching_utils.get_iou3d_matches(persp_gt, persp_det)
@@ -172,6 +174,19 @@ def get_synchronized_dets(persp_dir, to_persp_dir, idx, to_persp_dict_gt=None):
             pos_diff = pos_diff.reshape((1,3))
             time = math.sqrt(np.dot(pos_diff, pos_diff.T)) / obj2.speed
 
+            # Check if the detections are ahead or behind
+            # Set the offset direction to match
+            theta = np.arctan2(np.cos(obj2.ry), -np.sin(obj2.ry))
+            unit_vec = np.asarray([np.cos(theta), 0, np.sin(theta)])
+            offset_dir = -1
+            if np.dot(pos_diff, unit_vec) > 0:
+                offset_dir = 1
+
+            # For some reason ego vehicle is opposite
+            # TODO Figure out why
+            if to_persp_dir == cfg.DATASET_DIR:
+                offset_dir *= -1
+
             # Convert back to perspective coordinates then save
             p_utils.to_world(persp_det, to_persp_dir, idx)
             p_utils.to_perspective(persp_det, persp_dir, idx)
@@ -186,10 +201,7 @@ def get_synchronized_dets(persp_dir, to_persp_dir, idx, to_persp_dict_gt=None):
                 # Lastly use the calculated time offset to create a distance
                 # offset and add it to the obj position
                 dist = time * obj.speed
-                offset = unit_vec * -dist
+                offset = unit_vec * dist * offset_dir
                 obj.t = (obj.t[0] + offset[1], obj.t[1], obj.t[2] + offset[0])
 
     return persp_det
-
-
-correct_synchro()
