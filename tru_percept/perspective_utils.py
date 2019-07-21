@@ -226,7 +226,8 @@ def get_detections(to_persp_dir, det_persp_dir, idx, det_persp_id, results=False
 
     # Note: ego_object will be added in createTrustObjects
     # To ensure its trust/certainty value is set to 1
-    if cfg.SYNCHRONIZE_DETS and det_persp_dir != to_persp_dir:
+    if cfg.SYNCHRONIZE_DETS and det_persp_dir != to_persp_dir \
+                and results: # For loading ground truth from source
         # Returns -1 if file doesn't exist, we need to convert this to None
         detections = synchronize.get_synchronized_dets(det_persp_dir, to_persp_dir, idx, ego_detection)
         if detections == -1:
