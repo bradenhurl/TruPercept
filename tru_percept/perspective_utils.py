@@ -189,6 +189,25 @@ def to_perspective(objects, perspect_dir, idx):
         rot_y = -np.arctan2(world_forward_y, world_forward_x)
         obj.ry = rot_y
 
+# Returns the object of the perspective vehicle (persp_dir)
+# Returns it in it's own coordinate system
+def get_own_vehicle_object(persp_dir, idx, persp_id):
+    ego_dir = persp_dir + '/ego_object/'
+    ego_detection = obj_utils.read_labels(ego_dir, idx)
+    ego_detection[0].score = 1.0
+    ego_detection[0].id = persp_id
+
+    if const.ego_id() == persp_id:
+        # These weren't set in this version of synthetic data (TODO)
+        ego_detection[0].t = (0, ego_detection[0].h, 0)
+        ego_detection[0].ry = -math.pi / 2
+    else:
+        # Need to convert to perspective coordinates if perspective is not ego vehicle
+        # All ego_object objects are in ego-vehicle coordinates
+        to_world(ego_detection, get_folder(const.ego_id()), idx)
+        to_perspective(ego_detection, persp_dir, idx)
+
+    return ego_detection
 
 # to_persp_dir is the directory of the coordinate frame perspective we want the detections in
 # det_persp_dir is the perspective we are obtaining the detections from
@@ -203,15 +222,21 @@ def get_detections(to_persp_dir, det_persp_dir, idx, det_persp_id, results=False
     if not os.path.isfile(label_path):
         return []
 
+    ego_detection = get_own_vehicle_object(det_persp_dir, idx, det_persp_id)
+
     # Note: ego_object will be added in createTrustObjects
     # To ensure its trust/certainty value is set to 1
     if cfg.SYNCHRONIZE_DETS and det_persp_dir != to_persp_dir:
         # Returns -1 if file doesn't exist, we need to convert this to None
-        detections = synchronize.get_synchronized_dets(det_persp_dir, to_persp_dir, idx)
+        detections = synchronize.get_synchronized_dets(det_persp_dir, to_persp_dir, idx, ego_detection)
         if detections == -1:
             detections = None
     else:
-        detections = obj_utils.read_labels(label_dir, idx, results=results)
+        detections = ego_detection
+        p_detections = obj_utils.read_labels(label_dir, idx, results=results)
+        if p_detections is not None:
+            for obj in p_detections:
+                detections.append(obj)
 
     logging.debug("det_persp_id: {} det_persp_dir: {}".format(det_persp_id, det_persp_dir))
     if detections is not None:

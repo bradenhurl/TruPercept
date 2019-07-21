@@ -68,7 +68,9 @@ def correct_synchro():
             if not os.path.isdir(persp_dir):
                 continue
 
-            persp_det = get_synchronized_dets(persp_dir, cfg.DATASET_DIR, idx, dict_ego_gt)
+            # Do we want to save the ego detection here?
+            ego_detection = p_utils.get_own_vehicle_object(persp_dir, idx, int(entity_str))
+            persp_det = get_synchronized_dets(persp_dir, cfg.DATASET_DIR, idx, ego_detection, dict_ego_gt)
 
             if persp_det == -1:
                 continue
@@ -96,7 +98,7 @@ def correct_synchro():
 # if no detections, returns None
 # persp_dir: Base perspective directory where detections are loaded from
 # to_persp_dir: Base perspective directory detections are being synchronized with
-def get_synchronized_dets(persp_dir, to_persp_dir, idx, to_persp_dict_gt=None):
+def get_synchronized_dets(persp_dir, to_persp_dir, idx, ego_detection, to_persp_dict_gt=None):
 
     det_dir = persp_dir + '/{}'.format(cfg.PREDICTIONS_SUBDIR)
     if not os.path.isdir(det_dir):
@@ -124,8 +126,17 @@ def get_synchronized_dets(persp_dir, to_persp_dir, idx, to_persp_dict_gt=None):
     if not os.path.isfile(gt_filepath):
         return -1
 
-    persp_det = obj_utils.read_labels(det_dir, idx, results=True, synthetic=False)
+    persp_det = ego_detection
+    # TODO Need to change DeepGTAV to export speed of ego_object
+    if persp_det[0].id in to_persp_dict_gt:
+        persp_det[0].speed = to_persp_dict_gt[persp_det[0].id].speed
+
+    loaded_persp_det = obj_utils.read_labels(det_dir, idx, results=True, synthetic=False)
     persp_gt = obj_utils.read_labels(gt_dir, idx, results=False, synthetic=True)
+
+    if loaded_persp_det != None:
+        for obj in loaded_persp_det:
+            persp_det.append(obj)
 
     if persp_det == None:
         return persp_det
@@ -133,22 +144,27 @@ def get_synchronized_dets(persp_dir, to_persp_dir, idx, to_persp_dict_gt=None):
     # Match predictions to their ground truth object
     # Should just match 1 to 1 with highest match
     max_ious, iou_indices = matching_utils.get_iou3d_matches(persp_gt, persp_det, 0.001)
-    max_speed = -1
-    max_speed_idx = -1
-    min_ry_diff = sys.maxsize
+    max_speed = persp_det[0].speed
+    max_speed_idx = 0
+
+    first_obj = True
     for obj_idx in range(0, len(iou_indices)):
+        # Skip own detection (initialized with this)
+        if first_obj:
+            first_obj = False
+            continue
+
+        # Check if matched then set speed and update max
         if iou_indices[obj_idx] != -1:
             matched_speed = persp_gt[int(iou_indices[obj_idx])].speed
             persp_det[obj_idx].speed = matched_speed
             persp_det[obj_idx].id = persp_gt[int(iou_indices[obj_idx])].id
-            if matched_speed > max_speed:
+            if matched_speed > max_speed and persp_det[obj_idx].id in to_persp_dict_gt:
                 max_speed = matched_speed
                 max_speed_idx = obj_idx
 
                 # Should also try to take vehicle which turns the least (as it will affect speed/distance)
                 ry_diff = abs(persp_gt[int(iou_indices[obj_idx])].ry - persp_det[obj_idx].ry)
-                if min_ry_diff > ry_diff:
-                    min_ry_diff = ry_diff
         else:
             # Object not matched so speed is unknown
             # No synchronization offset will be applied
@@ -180,10 +196,13 @@ def get_synchronized_dets(persp_dir, to_persp_dir, idx, to_persp_dict_gt=None):
             if np.dot(pos_diff, unit_vec) > 0:
                 offset_dir = 1
 
+            skip_first_obj = False
             # For some reason ego vehicle is opposite
             # TODO Figure out why
             if to_persp_dir == cfg.DATASET_DIR:
                 offset_dir *= -1
+                # Do not need to shift persp own vehicle if in ego vehicle perspective
+                skip_first_obj = True
 
             # Convert back to perspective coordinates then save
             p_utils.to_world(persp_det, to_persp_dir, idx)
@@ -191,6 +210,11 @@ def get_synchronized_dets(persp_dir, to_persp_dir, idx, to_persp_dict_gt=None):
 
             # Adjust all the detections based on the offset time and their own speed
             for obj in persp_det:
+                # Do not need to shift persp own vehicle if in ego vehicle perspective
+                if skip_first_obj:
+                    skip_first_obj = False
+                    continue
+
                 # First need to convert ry back to proper angle
                 theta = np.arctan2(np.cos(obj.ry), -np.sin(obj.ry))
                 # Next need to extract x/y components
