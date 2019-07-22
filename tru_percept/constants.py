@@ -9,6 +9,8 @@ X = [1., 0., 0.]
 Y = [0., 1., 0.]
 Z = [0., 0., 1.]
 
+ALT_PERSP_DIR = cfg.DATASET_DIR + '/alt_perspective/'
+
 _ego_id = int(-1)
 
 def ego_id():
@@ -31,3 +33,24 @@ def root_dir():
 def top_dir():
     tru_percept_root_dir = root_dir()
     return os.path.split(tru_percept_root_dir)[0]
+
+# Returns a list of all valid perspective entity strings
+def valid_perspectives():
+    entity_strings = []
+    for entity_str in os.listdir(ALT_PERSP_DIR):
+        persp_dir = os.path.join(ALT_PERSP_DIR, entity_str)
+        if not os.path.isdir(persp_dir):
+            continue
+
+        # Check if it is valid type (only cars are valid)
+        if cfg.EXCLUDE_OTHER_VEHICLE_TYPES:
+            ego_dir = persp_dir + '/ego_object/'
+            indices = os.listdir(ego_dir)
+            idx = int(indices[0].split('.')[0])
+            ego_detection = obj_utils.read_labels(ego_dir, idx)
+            if ego_detection[0].type != 'Car':
+                continue
+
+        entity_strings.append(entity_str)
+
+    return entity_strings

@@ -41,14 +41,10 @@ def compute_points_in_3d_boxes():
     compute_perspect_points_in_3d_boxes(cfg.DATASET_DIR, const.ego_id())
 
     # Then for all the alternate perspectives
-    alt_pers_dir = cfg.DATASET_DIR + '/alt_perspective/'
-
-    persp_count = len(os.listdir(alt_pers_dir))
+    persp_count = len(os.listdir(const.ALT_PERSP_DIR))
     persp_idx = 0
-    for entity_str in os.listdir(alt_pers_dir):
-        perspect_dir = os.path.join(alt_pers_dir, entity_str)
-        if not os.path.isdir(perspect_dir):
-            continue
+    for entity_str in const.valid_perspectives():
+        perspect_dir = os.path.join(const.ALT_PERSP_DIR, entity_str)
         compute_perspect_points_in_3d_boxes(perspect_dir, int(entity_str))
 
         sys.stdout.flush()

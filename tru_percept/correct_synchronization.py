@@ -11,6 +11,7 @@ import tru_percept.perspective_utils as p_utils
 import tru_percept.matching_utils as matching_utils
 import tru_percept.config as cfg
 import tru_percept.std_utils as std_utils
+import constants as const
 
 # Perspectives are not synchronized with the ego vehicle
 # To correct this vehicle positions will be compared with ground truth from the ego vehicle
@@ -26,9 +27,6 @@ def correct_synchro():
     # Need to use augmented labels since they contain the speed and entity ID
     aug_label_dir = cfg.DATASET_DIR + '/label_aug_2'
     velo_dir = cfg.DATASET_DIR + '/velodyne'
-
-    alt_pers_dir = cfg.DATASET_DIR + '/alt_perspective/'
-    persp_dirs = os.listdir(alt_pers_dir)
 
     # Do this for every sample index
     velo_files = os.listdir(velo_dir)
@@ -63,10 +61,8 @@ def correct_synchro():
         copyfile(src_file, dst_file)
 
         # Do for all the alternate perspectives
-        for entity_str in persp_dirs:
-            persp_dir = os.path.join(alt_pers_dir, entity_str)
-            if not os.path.isdir(persp_dir):
-                continue
+        for entity_str in const.valid_perspectives():
+            persp_dir = os.path.join(const.ALT_PERSP_DIR, entity_str)
 
             # Do we want to save the ego detection here?
             ego_detection = p_utils.get_own_vehicle_object(persp_dir, idx, int(entity_str))

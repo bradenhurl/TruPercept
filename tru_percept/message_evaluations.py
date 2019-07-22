@@ -25,12 +25,8 @@ def compute_message_evals():
     compute_perspect_eval(cfg.DATASET_DIR, const.ego_id())
 
     # Then for all the alternate perspectives
-    alt_pers_dir = cfg.DATASET_DIR + '/alt_perspective/'
-
-    for entity_str in os.listdir(alt_pers_dir):
-        perspect_dir = os.path.join(alt_pers_dir, entity_str)
-        if not os.path.isdir(perspect_dir):
-            continue
+    for entity_str in const.valid_perspectives():
+        perspect_dir = os.path.join(const.ALT_PERSP_DIR, entity_str)
         compute_perspect_eval(perspect_dir, int(entity_str))
 
     print("Finished computing message evals.")
@@ -42,12 +38,8 @@ def aggregate_message_evals():
     aggregate_persp_msg_evals(cfg.DATASET_DIR, const.ego_id())
 
     # Then for all the alternate perspectives
-    alt_pers_dir = cfg.DATASET_DIR + '/alt_perspective/'
-
-    for entity_str in os.listdir(alt_pers_dir):
-        perspect_dir = os.path.join(alt_pers_dir, entity_str)
-        if not os.path.isdir(perspect_dir):
-            continue
+    for entity_str in const.valid_perspectives():
+        perspect_dir = os.path.join(const.ALT_PERSP_DIR, entity_str)
         aggregate_persp_msg_evals(perspect_dir, int(entity_str))
 
     print("Finished aggregating message evals.")
@@ -255,14 +247,10 @@ def save_agg_msg_eval(persp_id, idx, det_idx, msg_trust):
 # Key 2: det_idx
 def load_agg_msg_evals(idx):
     # Then for all the alternate perspectives
-    alt_pers_dir = cfg.DATASET_DIR + '/alt_perspective/'
-
     msg_evals_dict = {}
     msg_evals_dict[const.ego_id()] = load_agg_msg_evals_from_persp(cfg.DATASET_DIR, idx)
-    for entity_str in os.listdir(alt_pers_dir):
-        perspect_dir = os.path.join(alt_pers_dir, entity_str)
-        if not os.path.isdir(perspect_dir):
-            continue
+    for entity_str in const.valid_perspectives():
+        perspect_dir = os.path.join(const.ALT_PERSP_DIR, entity_str)
         msg_evals_dict[int(entity_str)] = load_agg_msg_evals_from_persp(perspect_dir, idx)
 
     return msg_evals_dict

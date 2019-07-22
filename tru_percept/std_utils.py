@@ -4,6 +4,7 @@ import shutil
 import logging
 
 import config as cfg
+import constants as const
 
 def make_dir(filepath):
     if not os.path.exists(os.path.dirname(filepath)):
@@ -16,9 +17,8 @@ def make_dir(filepath):
 def delete_all_subdirs(subdir):
     delete_subdir(subdir)
 
-    altPerspect_dir = cfg.DATASET_DIR + '/alt_perspective/'
-    for entity_str in os.listdir(altPerspect_dir):
-        perspect_dir = os.path.join(altPerspect_dir, entity_str)
+    for entity_str in const.valid_perspectives():
+        perspect_dir = os.path.join(const.ALT_PERSP_DIR, entity_str)
         delete_subdir(subdir, perspect_dir)
 
 def delete_subdir(subdir, basedir=cfg.DATASET_DIR):

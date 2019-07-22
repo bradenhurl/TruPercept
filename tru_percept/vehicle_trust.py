@@ -34,12 +34,8 @@ def calculate_vehicle_trusts():
         compute_vehicle_trust(cfg.DATASET_DIR, const.ego_id(), idx, trust_dict)
 
         # Then for all the alternate perspectives
-        alt_pers_dir = cfg.DATASET_DIR + '/alt_perspective/'
-
-        for entity_str in os.listdir(alt_pers_dir):
-            perspect_dir = os.path.join(alt_pers_dir, entity_str)
-            if not os.path.isdir(perspect_dir):
-                continue
+        for entity_str in const.valid_perspectives():
+            perspect_dir = os.path.join(const.ALT_PERSP_DIR, entity_str)
             compute_vehicle_trust(perspect_dir, int(entity_str), idx, trust_dict)
 
         write_trust_vals(trust_dict, idx)

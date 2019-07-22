@@ -1,14 +1,11 @@
 import os
 
 import config as cfg
+import constants as const
 
-# Then for all the alternate perspectives
-alt_pers_dir = cfg.DATASET_DIR + '/alt_perspective/'
-
-for entity_str in os.listdir(alt_pers_dir):
-    perspect_dir = os.path.join(alt_pers_dir, entity_str)
-    if not os.path.isdir(perspect_dir):
-        continue
+# For all the alternate perspectives
+for entity_str in const.valid_perspectives():
+    perspect_dir = os.path.join(const.ALT_PERSP_DIR, entity_str)
 
     velo_dir = perspect_dir + '/velodyne'
 

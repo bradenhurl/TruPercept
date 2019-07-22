@@ -281,9 +281,8 @@ def get_all_detections(idx, persp_id, results, filter_area=False):
             all_perspect_detections.append(perspect_detections)
 
     # Load detections from remaining perspectives
-    alt_persp_dir = cfg.DATASET_DIR + '/alt_perspective/'
-    for entity_str in os.listdir(alt_persp_dir):
-        other_persp_dir = os.path.join(alt_persp_dir, entity_str)
+    for entity_str in const.valid_perspectives():
+        other_persp_dir = os.path.join(const.ALT_PERSP_DIR, entity_str)
         if os.path.isdir(other_persp_dir):
             # Skip own detections since they're loaded first
             if int(entity_str) != persp_id:

@@ -56,6 +56,9 @@ AGGREGATE_METHOD = 0
 # Attempts to synchronize the detections by matching and using velocity
 SYNCHRONIZE_DETS = True
 
+# If True, excludes perspectives which are not type 'Car'
+EXCLUDE_OTHER_VEHICLE_TYPES = True
+
 # ********************************************************************** #
 # For testing
 
@@ -77,7 +80,7 @@ if TEST_IDX != -1:
 USE_RESULTS = True
 
 # Set to true to visualize matches during message evaluations
-VISUALIZE_MATCHES = True
+VISUALIZE_MATCHES = False
 
 # Set and initialize logging
 LOG_LVL = logging.DEBUG
