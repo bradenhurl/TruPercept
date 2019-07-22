@@ -248,7 +248,7 @@ def get_detections(to_persp_dir, det_persp_dir, idx, det_persp_id, results=False
         if cfg.FALSE_DETECTIONS_TYPE != None:
             false_det_list = false_dets.get_false_dets(cfg.FALSE_DETECTIONS, \
                                  det_persp_id, idx, cfg.FALSE_DETECTIONS_TYPE, \
-                                 cfg.DATASET_DIR)
+                                 to_persp_dir)
             for det in false_det_list:
                 detections.append(det)
 

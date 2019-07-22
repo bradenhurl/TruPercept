@@ -3,6 +3,8 @@ import os
 import math
 
 from wavedata.tools.obj_detection import obj_utils
+import perspective_utils as p_utils
+import config as cfg
 
 # Notes:
 # 1. Objects should be entered from the ego-vehicle perspective
@@ -54,19 +56,23 @@ def load_false_dets(dataset_dir, false_dets_subdir, false_dets_method_str):
     return det_dict
 
 def get_false_dets(false_dets_dict, persp_id, idx, false_dets_method_str,
-                    dataset_dir):
+                    to_persp_dir):
 
     if int(persp_id) not in false_dets_dict:
         return []
 
     # Return a vehicle 3 metres in front of the ego vehicle
     if false_dets_method_str == 'malicious_front':
-        ego_dir = dataset_dir + '/ego_object'
+        ego_dir = cfg.DATASET_DIR + '/ego_object'
         ego_detection = obj_utils.read_labels(ego_dir, idx)
         ego_detection[0].score = 1.0
         # These weren't set in this version of synthetic data (TODO)
         ego_detection[0].t = (0, ego_detection[0].h, 8)
         ego_detection[0].ry = math.pi / 2
+
+        # Use cfg.DATASET_DIR to put the object in front of the ego-vehicle
+        p_utils.to_world(ego_detection, cfg.DATASET_DIR, idx)
+        p_utils.to_perspective(ego_detection, to_persp_dir, idx)
         return ego_detection
 
     return []
