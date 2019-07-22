@@ -12,7 +12,8 @@ def visualize_matches(matched_objs, img_idx, show_results, alt_persp,
               compare_pcs=False,
               show_3d_point_count=False, show_orientation=False,
               final_results=False, show_score=False,
-              compare_with_gt=False, show_image=True):
+              compare_with_gt=False, show_image=True,
+              vis_eval_scores=False):
     # Setting Paths
     cam = 2
     dataset_dir = cfg.DATASET_DIR
@@ -55,8 +56,12 @@ def visualize_matches(matched_objs, img_idx, show_results, alt_persp,
     }
 
     # Load points_in_3d_boxes for each object
-    text_positions = []
-    text_labels = []
+    if vis_eval_scores:
+        text_positions = []
+        text_labels = []
+    else:
+        text_positions = None
+        text_labels = None
 
     objects = []
 
@@ -73,11 +78,18 @@ def visualize_matches(matched_objs, img_idx, show_results, alt_persp,
             obj.obj.type = color_str
             objects.append(obj.obj)
 
+            if vis_eval_scores:
+                text_positions.append(obj.obj.t)
+                txt = '{} - {} - {} - {} - {}'.format(obj.detector_id, obj.det_idx, obj.evaluator_3d_points, obj.evaluator_certainty, obj.evaluator_score)
+                text_labels.append(txt)
+
         match_idx += 1
 
+    print(text_positions)
     vis_utils.visualize_objects_in_pointcloud(objects, COLOUR_SCHEME, dataset_dir,
               img_idx, fulcrum_of_points, use_intensity,
               receive_from_perspective, compare_pcs,
               show_3d_point_count, show_orientation,
               final_results, show_score,
-              compare_with_gt, show_image)
+              compare_with_gt, show_image,
+              text_positions, text_labels)

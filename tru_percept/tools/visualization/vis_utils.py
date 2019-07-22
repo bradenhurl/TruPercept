@@ -55,8 +55,8 @@ change_rec_colour = True
 # Compare point clouds from two vehicles (for alignment issues)
 compare_pcs = False
 '''
-text_labels = []
-text_positions = []
+text_labels = None
+text_positions = None
 
 def visualize(img_idx, show_results, alt_persp, perspID, fulcrum_of_points,
               use_intensity, view_received_detections, filter_area,
@@ -77,8 +77,9 @@ def visualize(img_idx, show_results, alt_persp, perspID, fulcrum_of_points,
 
     global text_labels
     global text_positions
-    text_labels = []
-    text_positions = []
+    if show_3d_point_count or show_score:
+        text_labels = []
+        text_positions = []
 
     perspStr = '%07d' % perspID
     altPerspect_dir = os.path.join(dataset_dir,'alt_perspective')
@@ -113,8 +114,6 @@ def visualize(img_idx, show_results, alt_persp, perspID, fulcrum_of_points,
 
     # Load points_in_3d_boxes for each object
     points_dict = points_in_3d_boxes.load_points_in_3d_boxes(img_idx, perspID)
-    text_positions = []
-    text_labels = []
 
     gt_detections = []
     # Get bounding boxes
@@ -226,7 +225,14 @@ def visualize_objects_in_pointcloud(objects, COLOUR_SCHEME, dataset_dir,
               receive_from_perspective, compare_pcs=False,
               show_3d_point_count=False, show_orientation=False,
               final_results=False, show_score=False,
-              compare_with_gt=False, show_image=True):
+              compare_with_gt=False, show_image=True,
+              _text_positions=None, _text_labels=None):
+
+    global text_positions
+    global text_labels
+    if _text_positions is not None:
+        text_positions = _text_positions
+        text_labels = _text_labels
 
     image_dir = os.path.join(dataset_dir, 'image_2')
     velo_dir = os.path.join(dataset_dir, 'velodyne')
@@ -350,7 +356,7 @@ def visualize_objects_in_pointcloud(objects, COLOUR_SCHEME, dataset_dir,
     vtk_renderer.AddActor(vtk_voxel_grid.vtk_actor)
     vtk_renderer.AddActor(vtk_boxes.vtk_actor)
     #vtk_renderer.AddActor(axes)
-    if show_3d_point_count or show_score:
+    if text_positions is not None:
         vtk_text_labels = VtkTextLabels()
         vtk_text_labels.set_text_labels(text_positions, text_labels)
         vtk_renderer.AddActor(vtk_text_labels.vtk_actor)
