@@ -85,7 +85,6 @@ def visualize_matches(matched_objs, img_idx, show_results, alt_persp,
 
         match_idx += 1
 
-    print(text_positions)
     vis_utils.visualize_objects_in_pointcloud(objects, COLOUR_SCHEME, dataset_dir,
               img_idx, fulcrum_of_points, use_intensity,
               receive_from_perspective, compare_pcs,
