@@ -252,12 +252,13 @@ def get_detections(to_persp_dir, det_persp_dir, idx, det_persp_id, results=False
             for det in false_det_list:
                 detections.append(det)
 
-        #TODO Verify filter is working
+        trust_objs = trust_utils.createTrustObjects(det_persp_dir, idx, det_persp_id, detections, results, to_persp_dir)
+
         if filter_area:
-            detections = filter_labels(detections)
+            trust_objs = filter_labels(trust_objs, trust_objs=True)
 
         # Easier for visualizations if returning simple objects
-        return trust_utils.createTrustObjects(det_persp_dir, idx, det_persp_id, detections, results, to_persp_dir)
+        return trust_objs
 
     return []
 
@@ -304,12 +305,15 @@ def get_folder(persp_id):
 #####################################################################
 # These are used to filter the detections without having to create a kitti_dataset object
 # Based off of filter_lables from avod code
-def filter_labels(objects, check_distance=True):
+def filter_labels(objects, check_distance=True, trust_objs=False):
     objects = np.asanyarray(objects)
     filter_mask = np.ones(len(objects), dtype=np.bool)
 
     for obj_idx in range(len(objects)):
-        obj = objects[obj_idx]
+        if trust_objs:
+            obj = objects[obj_idx].obj
+        else:
+            obj = objects[obj_idx]
 
         if not _check_frustum(obj):
             filter_mask[obj_idx] = False

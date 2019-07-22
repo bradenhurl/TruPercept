@@ -13,6 +13,7 @@ import trust_utils
 import config as cfg
 import std_utils
 import constants as const
+from tools.visualization import vis_matches
 
 class BoxObj():
     def __init__(self, u, v, w, rearBotLeft, frontBotLeft, rearTopLeft, rearBotRight):
@@ -108,6 +109,10 @@ def save_points_in_3d_boxes(trust_objs, idx, perspect_dir, persp_id):
             for trust_obj in obj_list:
                 num_points = numPointsIn3DBox(trust_obj.obj, pc, perspect_dir, idx)
 
+                # For testing saving/loading
+                if cfg.VISUALIZE_POINTS_IN_3D_BOXES:
+                    trust_obj.evaluator_3d_points = num_points
+
                 # Fill the array to write
                 output = np.zeros([1, 3])
                 output[0,0] = trust_obj.detector_id
@@ -115,6 +120,14 @@ def save_points_in_3d_boxes(trust_objs, idx, perspect_dir, persp_id):
                 output[0,2] = num_points
 
                 np.savetxt(f, output, newline='\r\n', fmt='%i %i %i')
+
+
+        # Visualize evaluations by setting config option to True
+        if cfg.VISUALIZE_POINTS_IN_3D_BOXES:
+            alt_persp = persp_id != const.ego_id()
+            vis_matches.visualize_matches(trust_objs, idx, \
+                                           cfg.USE_RESULTS, alt_persp, persp_id, \
+                                           vis_eval_scores=True)
 
 # Returns a dictionary with the point counts in 3d boxes
 # for each received detection from a perspective and given index

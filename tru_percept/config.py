@@ -79,11 +79,14 @@ if TEST_IDX != -1:
 # Set to false to only load ground truth instead of predictions
 USE_RESULTS = True
 
+# Set to true to visualize points_in_3d_boxes during calculation
+VISUALIZE_POINTS_IN_3D_BOXES = False
+
 # Set to true to visualize matches during message evaluations
 VISUALIZE_MATCHES = False
 
 # Set to true to visualize message evaluation scores from each perspective
-VISUALIZE_MSG_EVALS = True
+VISUALIZE_MSG_EVALS = False
 
 # Set and initialize logging
 LOG_LVL = logging.DEBUG
