@@ -215,7 +215,8 @@ def visualize(img_idx, show_results, alt_persp, perspID, fulcrum_of_points,
               receive_from_perspective, compare_pcs,
               show_3d_point_count, show_orientation,
               final_results, show_score,
-              compare_with_gt, show_image)
+              compare_with_gt, show_image,
+              _text_positions=text_positions, _text_labels=text_labels)
 
 
 # Final visualization function
@@ -227,12 +228,6 @@ def visualize_objects_in_pointcloud(objects, COLOUR_SCHEME, dataset_dir,
               final_results=False, show_score=False,
               compare_with_gt=False, show_image=True,
               _text_positions=None, _text_labels=None):
-
-    global text_positions
-    global text_labels
-    if _text_positions is not None:
-        text_positions = _text_positions
-        text_labels = _text_labels
 
     image_dir = os.path.join(dataset_dir, 'image_2')
     velo_dir = os.path.join(dataset_dir, 'velodyne')
@@ -356,9 +351,9 @@ def visualize_objects_in_pointcloud(objects, COLOUR_SCHEME, dataset_dir,
     vtk_renderer.AddActor(vtk_voxel_grid.vtk_actor)
     vtk_renderer.AddActor(vtk_boxes.vtk_actor)
     #vtk_renderer.AddActor(axes)
-    if text_positions is not None:
+    if _text_positions is not None:
         vtk_text_labels = VtkTextLabels()
-        vtk_text_labels.set_text_labels(text_positions, text_labels)
+        vtk_text_labels.set_text_labels(_text_positions, _text_labels)
         vtk_renderer.AddActor(vtk_text_labels.vtk_actor)
     vtk_renderer.SetBackground(0.2, 0.3, 0.4)
 
