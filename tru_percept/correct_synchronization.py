@@ -209,6 +209,7 @@ def get_synchronized_dets(persp_dir, to_persp_dir, idx, ego_detection, to_persp_
             p_utils.to_perspective(persp_det, persp_dir, idx)
 
             # Adjust all the detections based on the offset time and their own speed
+            obj_idx = 0
             for obj in persp_det:
                 # Do not need to shift persp own vehicle if in ego vehicle perspective
                 if skip_first_obj:
@@ -220,10 +221,18 @@ def get_synchronized_dets(persp_dir, to_persp_dir, idx, ego_detection, to_persp_
                 # Next need to extract x/y components
                 unit_vec = np.asarray([np.cos(theta), np.sin(theta)])
 
+                # TODO: Investigate this
+                # If the unit vector directions do not match, reverse again
+                # angle_diff = np.pi - np.abs(np.abs(persp_gt[int(iou_indices[obj_idx])].ry - persp_det[obj_idx].ry) - np.pi)
+                # if angle_diff > (2 * np.pi / 3):
+                #     offset_dir *= -1
+
                 # Lastly use the calculated time offset to create a distance
                 # offset and add it to the obj position
                 dist = time * obj.speed
                 offset = unit_vec * dist * offset_dir
                 obj.t = (obj.t[0] + offset[1], obj.t[1], obj.t[2] + offset[0])
+
+                obj_idx += 1
 
     return persp_det
