@@ -75,9 +75,6 @@ def visualize(img_idx, show_results, alt_persp, perspID, fulcrum_of_points,
         img_idx = random.randint(0,101)
         print("Using random index: ", img_idx)
 
-    if compare_pcs:
-        fulcrum_of_points = False
-
     global text_labels
     global text_positions
     text_labels = []
@@ -90,101 +87,10 @@ def visualize(img_idx, show_results, alt_persp, perspID, fulcrum_of_points,
     else:
         perspID = const.ego_id()
 
-    image_dir = os.path.join(dataset_dir, 'image_2')
-    velo_dir = os.path.join(dataset_dir, 'velodyne')
-    calib_dir = os.path.join(dataset_dir, 'calib')
-
     if show_results:
         label_dir = os.path.join(dataset_dir, 'predictions')
     else:
         label_dir = os.path.join(dataset_dir, 'label_2')
-
-    closeView = False
-    pitch = 170
-    pointSize = 4
-    zoom = 2
-    if closeView:
-        pitch = 180.5
-        pointSize = 3
-        zoom = 35
-
-    print('=== Loading image: {:06d}.png ==='.format(img_idx))
-    print(image_dir)
-
-    image = cv2.imread(image_dir + '/{:06d}.png'.format(img_idx))
-    image_shape = (image.shape[1], image.shape[0])
-
-    if use_intensity:
-        point_cloud,intensity = obj_utils.get_lidar_point_cloud(img_idx, calib_dir, velo_dir,
-                                                    ret_i=use_intensity)
-    else:
-        point_cloud = obj_utils.get_lidar_point_cloud(img_idx, calib_dir, velo_dir,
-                                                    im_size=image_shape)
-
-    if compare_pcs:
-        receive_persp_dir = os.path.join(altPerspect_dir, '{:07d}'.format(receive_from_perspective))
-        velo_dir2 = os.path.join(receive_persp_dir, 'velodyne')
-        print(velo_dir2)
-        if not os.path.isdir(velo_dir2):
-            print("Error: cannot find velo_dir2: ", velo_dir2)
-            exit()
-        point_cloud2 = obj_utils.get_lidar_point_cloud(img_idx, calib_dir, velo_dir2,
-                                                    im_size=image_shape)
-        #Set to true to display point clouds in world coordinates (for debugging)
-        display_in_world=False
-        if display_in_world:
-            point_cloud = perspective_utils.pc_to_world(point_cloud.T, receive_persp_dir, img_idx)
-            point_cloud2 = perspective_utils.pc_to_world(point_cloud2.T, dataset_dir, img_idx)
-            point_cloud = np.hstack((point_cloud.T, point_cloud2.T))
-        else:
-            point_cloud2 = perspective_utils.pc_persp_transform(point_cloud2.T, receive_persp_dir, dataset_dir, img_idx)
-            point_cloud = np.hstack((point_cloud, point_cloud2.T))
-
-    # Reshape points into N x [x, y, z]
-    all_points = np.array(point_cloud).transpose().reshape((-1, 3))
-
-    # Define Fixed Sizes for the voxel grid
-    x_min = -85
-    x_max = 85
-    y_min = -5
-    y_max = 5
-    z_min = 3
-    z_max = 85
-
-    # Comment these out to filter points by area
-    x_min = min(point_cloud[0])
-    x_max = max(point_cloud[0])
-    y_min = min(point_cloud[1])
-    y_max = max(point_cloud[1])
-    z_min = min(point_cloud[2])
-    z_max = max(point_cloud[2])
-
-    # Filter points within certain xyz range
-    area_filter = (point_cloud[0] > x_min) & (point_cloud[0] < x_max) & \
-                  (point_cloud[1] > y_min) & (point_cloud[1] < y_max) & \
-                  (point_cloud[2] > z_min) & (point_cloud[2] < z_max)
-
-    all_points = all_points[area_filter]
-
-    if fulcrum_of_points:
-        # Get point colours
-        point_colours = vis_utils.project_img_to_point_cloud(all_points, image,
-                                                             calib_dir, img_idx)
-    elif use_intensity:
-        adjusted = intensity == 65535
-        intensity = intensity > 0
-        intensity = np.expand_dims(intensity,-1)
-        point_colours = np.hstack((intensity*255,intensity*255-adjusted*255,intensity*255-adjusted*255))
-
-    # Create Voxel Grid
-    voxel_grid = VoxelGrid()
-    voxel_grid_extents = [[x_min, x_max], [y_min, y_max], [z_min, z_max]]
-    print(voxel_grid_extents)
-
-    start_time = time.time()
-    voxel_grid.voxelize(all_points, 0.2, voxel_grid_extents)
-    end_time = time.time()
-    print("Voxelized in {} s".format(end_time - start_time))
 
     COLOUR_SCHEME = {
         "Car": (0, 0, 255),  # Blue
@@ -305,9 +211,122 @@ def visualize(img_idx, show_results, alt_persp, perspID, fulcrum_of_points,
             obj.type = "GroundTruth"
         gt_detections = gt_detections + real_gt_data
 
+    visualize_objects_in_pointcloud(gt_detections, COLOUR_SCHEME, dataset_dir,
+              img_idx, fulcrum_of_points, use_intensity,
+              receive_from_perspective, compare_pcs,
+              show_3d_point_count, show_orientation,
+              final_results, show_score,
+              compare_with_gt, show_image)
+
+
+# Final visualization function
+# Separated out obtaining objects and colour scheme
+def visualize_objects_in_pointcloud(objects, COLOUR_SCHEME, dataset_dir,
+              img_idx, fulcrum_of_points, use_intensity,
+              receive_from_perspective, compare_pcs=False,
+              show_3d_point_count=False, show_orientation=False,
+              final_results=False, show_score=False,
+              compare_with_gt=False, show_image=True):
+
+    image_dir = os.path.join(dataset_dir, 'image_2')
+    velo_dir = os.path.join(dataset_dir, 'velodyne')
+    calib_dir = os.path.join(dataset_dir, 'calib')
+
+    if compare_pcs:
+        fulcrum_of_points = False
+
+    print('=== Loading image: {:06d}.png ==='.format(img_idx))
+    print(image_dir)
+
+    image = cv2.imread(image_dir + '/{:06d}.png'.format(img_idx))
+    image_shape = (image.shape[1], image.shape[0])
+
+    if use_intensity:
+        point_cloud,intensity = obj_utils.get_lidar_point_cloud(img_idx, calib_dir, velo_dir,
+                                                    ret_i=use_intensity)
+    else:
+        point_cloud = obj_utils.get_lidar_point_cloud(img_idx, calib_dir, velo_dir,
+                                                    im_size=image_shape)
+
+    if compare_pcs:
+        receive_persp_dir = os.path.join(altPerspect_dir, '{:07d}'.format(receive_from_perspective))
+        velo_dir2 = os.path.join(receive_persp_dir, 'velodyne')
+        print(velo_dir2)
+        if not os.path.isdir(velo_dir2):
+            print("Error: cannot find velo_dir2: ", velo_dir2)
+            exit()
+        point_cloud2 = obj_utils.get_lidar_point_cloud(img_idx, calib_dir, velo_dir2,
+                                                    im_size=image_shape)
+        #Set to true to display point clouds in world coordinates (for debugging)
+        display_in_world=False
+        if display_in_world:
+            point_cloud = perspective_utils.pc_to_world(point_cloud.T, receive_persp_dir, img_idx)
+            point_cloud2 = perspective_utils.pc_to_world(point_cloud2.T, dataset_dir, img_idx)
+            point_cloud = np.hstack((point_cloud.T, point_cloud2.T))
+        else:
+            point_cloud2 = perspective_utils.pc_persp_transform(point_cloud2.T, receive_persp_dir, dataset_dir, img_idx)
+            point_cloud = np.hstack((point_cloud, point_cloud2.T))
+
+    # Reshape points into N x [x, y, z]
+    all_points = np.array(point_cloud).transpose().reshape((-1, 3))
+
+    # Define Fixed Sizes for the voxel grid
+    x_min = -85
+    x_max = 85
+    y_min = -5
+    y_max = 5
+    z_min = 3
+    z_max = 85
+
+    # Comment these out to filter points by area
+    x_min = min(point_cloud[0])
+    x_max = max(point_cloud[0])
+    y_min = min(point_cloud[1])
+    y_max = max(point_cloud[1])
+    z_min = min(point_cloud[2])
+    z_max = max(point_cloud[2])
+
+    # Filter points within certain xyz range
+    area_filter = (point_cloud[0] > x_min) & (point_cloud[0] < x_max) & \
+                  (point_cloud[1] > y_min) & (point_cloud[1] < y_max) & \
+                  (point_cloud[2] > z_min) & (point_cloud[2] < z_max)
+
+    all_points = all_points[area_filter]
+
+    point_colours = None
+    if fulcrum_of_points:
+        # Get point colours
+        point_colours = vis_utils.project_img_to_point_cloud(all_points, image,
+                                                             calib_dir, img_idx)
+    elif use_intensity:
+        adjusted = intensity == 65535
+        intensity = intensity > 0
+        intensity = np.expand_dims(intensity,-1)
+        point_colours = np.hstack((intensity*255,intensity*255-adjusted*255,intensity*255-adjusted*255))
+
+    # Create Voxel Grid
+    voxel_grid = VoxelGrid()
+    voxel_grid_extents = [[x_min, x_max], [y_min, y_max], [z_min, z_max]]
+    print(voxel_grid_extents)
+
+    start_time = time.time()
+    voxel_grid.voxelize(all_points, 0.2, voxel_grid_extents)
+    end_time = time.time()
+    print("Voxelized in {} s".format(end_time - start_time))
+
+    # Some settings for the initial camera view and point size
+    closeView = False
+    pitch = 170
+    pointSize = 4
+    zoom = 2
+    if closeView:
+        pitch = 180.5
+        pointSize = 3
+        zoom = 35
+
     # Create VtkPointCloud for visualization
     vtk_point_cloud = VtkPointCloud()
-    if fulcrum_of_points or use_intensity:
+    if point_colours is not None:
         vtk_point_cloud.set_points(all_points, point_colours)
     else:
         vtk_point_cloud.set_points(all_points)
@@ -319,7 +338,7 @@ def visualize(img_idx, show_results, alt_persp, perspID, fulcrum_of_points,
 
     # Create VtkBoxes for boxes
     vtk_boxes = VtkBoxes()
-    vtk_boxes.set_objects(gt_detections, COLOUR_SCHEME, show_orientation)#vtk_boxes.COLOUR_SCHEME_KITTI)
+    vtk_boxes.set_objects(objects, COLOUR_SCHEME, show_orientation)#vtk_boxes.COLOUR_SCHEME_KITTI)
 
     # Create Axes
     axes = vtk.vtkAxesActor()
@@ -354,6 +373,16 @@ def visualize(img_idx, show_results, alt_persp, perspID, fulcrum_of_points,
     current_cam.SetPosition(7.512679241328601, -312.20497623371926, -130.38469206536766)
     current_cam.SetViewUp(-0.01952407393317445, -0.44874501090739727, 0.893446543293314)
     current_cam.SetFocalPoint(11.624950999358777, 14.835920755080867, 33.965665867613836)
+
+    # Top down view of synchronization
+    current_cam.SetPosition(28.384757950371405, -125.46190537888288, 63.60263366961189)
+    current_cam.SetViewUp(-0.02456679343399302, 0.0030507437719906913, 0.9996935358512673)
+    current_cam.SetFocalPoint(27.042134804730317, 15.654378427929846, 63.13899801247614)
+
+    current_cam.SetPosition(14.391008769593322, -120.06549828061613, -1.567028749253062)
+    current_cam.SetViewUp(-0.02238762832327178, -0.1049057307562059, 0.9942301452644481)
+    current_cam.SetFocalPoint(10.601112314728102, 20.237110061924664, 13.151596441968126)
+
 
     # Reset the clipping range to show all points
     vtk_renderer.ResetCameraClippingRange()
