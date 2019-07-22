@@ -129,26 +129,29 @@ def strip_objs_lists(trust_objs_lists):
             stripped_objs.append(stripped_obj)
     return stripped_objs
 
-# todo should we only update trust with messages we are certain of?
+# TODO Also try incorporating a matching score? Based on IoU
 def get_message_trust_values(matching_objs, persp_dir, persp_id, idx):
     points_dict = points_3d.load_points_in_3d_boxes(idx, persp_id)
 
-    #TODO Should put a case if it is own vehicle but not any points in it
     for match_list in matching_objs:
-        # TODO - Need to find a way to put in negative message evaluations
-        # Likely add a score of 0 for non-matching detections
-        # Need to properly set certainty for these detections
-        # Distance and pointsIn3DBox based
+        # Certainty for these detections is pointsIn3DBox based
         if len(match_list) >= 1:
             for trust_obj in match_list:
                 trust_obj.evaluator_id = persp_id
                 trust_obj.evaluator_3d_points = points_dict[trust_obj.detector_id, trust_obj.det_idx]
                 trust_obj.evaluator_certainty = certainty_utils.certainty_from_3d_points( \
                                                     trust_obj.evaluator_3d_points, trust_obj.obj.type)
-                # TODO Also try incorporating a matching score? Based on IoU
-                # Set the score (confidence) to be the same as the matched detection
+                
                 if match_list[0].detector_id == persp_id:
+                    # Set the score (confidence) to be the same as the detection
+                    # from the current perspective
                     trust_obj.evaluator_score = match_list[0].obj.score
+
+                    # If we match with our own vehicle give highest evaluation score
+                    if match_list[0].det_idx == 0:
+                        trust_obj.evaluator_score = 1.0
+                        trust_obj.evaluator_certainty = 1.0
                 else:
+                    # Add a score of cfg.NEG_EVAL_SCORE for non-matching detections
                     trust_obj.evaluator_score = cfg.NEG_EVAL_SCORE
                 

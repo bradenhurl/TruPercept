@@ -64,15 +64,14 @@ def compute_perspect_eval(perspect_dir, persp_id):
 
         # Load predictions from own and nearby vehicles
         # First object in list will correspond to the ego_entity_id
+        # We want to area filter here because vehicles shouldn't be evaluating detections they can't perceive
         perspect_trust_objs = p_utils.get_all_detections(idx, persp_id, results=cfg.USE_RESULTS, filter_area=True)
 
         # Add fake detections to perspect_preds
 
         # Find matching pairs
         # Returns a list of lists of objects which have been matched
-        # TODO should set this to match all, have evaluations of zero confidence with some
-        # certainty for unmatched detections
-        matching_objs = matching_utils.match_iou3ds(perspect_trust_objs, only_ego_matches=True)
+        matching_objs = matching_utils.match_iou3ds(perspect_trust_objs, only_ego_matches=False)
 
         if cfg.VISUALIZE_MATCHES:
             alt_persp = persp_id != const.ego_id()
@@ -100,22 +99,20 @@ def compute_perspect_eval(perspect_dir, persp_id):
                                            cfg.USE_RESULTS, alt_persp, persp_id, \
                                            vis_eval_scores=True)
 
-        save_msg_evals(matching_objs, idx)
+        save_msg_evals(matching_objs, idx, persp_id)
 
-def save_msg_evals(msg_trusts, idx):
+def save_msg_evals(msg_trusts, idx, persp_id):
     logging.debug("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Save msg evals in trust")
     if msg_trusts is None:
         logging.debug("Msg trusts is none")
         return
 
     for matched_msgs in msg_trusts:
-        first_obj = True
         logging.debug("Outputting list of matched objects")
         for trust_obj in matched_msgs:
-            if first_obj:
-                #Skip first object as it is from self
-                first_obj = False
-                logging.debug("Skipping first object")
+            if trust_obj.detector_id == persp_id:
+                #Do not evaluate own detections
+                logging.debug("Not saving eval for own detection.")
                 continue
 
             # Fill the array to write
