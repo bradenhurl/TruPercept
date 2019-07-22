@@ -54,7 +54,7 @@ EVALUATE_UNFILTERED = False
 AGGREGATE_METHOD = 0
 
 # Attempts to synchronize the detections by matching and using velocity
-SYNCHRONIZE_DETS = False
+SYNCHRONIZE_DETS = True
 
 # ********************************************************************** #
 # For testing
@@ -75,6 +75,9 @@ if TEST_IDX != -1:
 
 # Set to false to only load ground truth instead of predictions
 USE_RESULTS = True
+
+# Set to true to visualize matches during message evaluations
+VISUALIZE_MATCHES = True
 
 # Set and initialize logging
 LOG_LVL = logging.DEBUG

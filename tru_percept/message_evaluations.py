@@ -12,6 +12,7 @@ import trust_utils
 import config as cfg
 import std_utils
 import constants as const
+from tools.visualization import vis_matches
 
 # Compute and save message evals for each vehicle
 # Files get saved to the base directory under message_evaluations
@@ -80,6 +81,11 @@ def compute_perspect_eval(perspect_dir, persp_id):
         # TODO should set this to match all, have evaluations of zero confidence with some
         # certainty for unmatched detections
         matching_objs = matching_utils.match_iou3ds(perspect_trust_objs, only_ego_matches=True)
+
+        if cfg.VISUALIZE_MATCHES:
+            alt_persp = persp_id != const.ego_id()
+            vis_matches.visualize_matches(matching_objs, idx, \
+                                           cfg.USE_RESULTS, alt_persp, persp_id)
 
         # Print matching objects to test with visualization
         # out_file = matching_dir + '/{:06d}.txt'.format(idx)
