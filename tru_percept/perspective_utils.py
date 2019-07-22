@@ -212,7 +212,7 @@ def get_own_vehicle_object(persp_dir, idx, persp_id):
 # to_persp_dir is the directory of the coordinate frame perspective we want the detections in
 # det_persp_dir is the perspective we are obtaining the detections from
 # det_persp_id is the ID of the perspective detections are received from
-def get_detections(to_persp_dir, det_persp_dir, idx, det_persp_id, results=False, filter_area=False):
+def get_detections(to_persp_dir, det_persp_dir, idx, to_persp_id, det_persp_id, results=False, filter_area=False):
     if results:
         label_dir = det_persp_dir + '/' + cfg.PREDICTIONS_SUBDIR + '/'
     else:
@@ -255,7 +255,8 @@ def get_detections(to_persp_dir, det_persp_dir, idx, det_persp_id, results=False
         trust_objs = trust_utils.createTrustObjects(det_persp_dir, idx, det_persp_id, detections, results, to_persp_dir)
 
         if filter_area:
-            trust_objs = filter_labels(trust_objs, trust_objs=True)
+            to_persp_ego_obj = get_own_vehicle_object(to_persp_dir, idx, to_persp_id)
+            trust_objs = filter_labels(trust_objs, trust_objs=True, ego_obj=to_persp_ego_obj[0])
 
         # Easier for visualizations if returning simple objects
         return trust_objs
@@ -269,15 +270,14 @@ def get_all_detections(idx, persp_id, results, filter_area=False):
     all_perspect_detections = []
 
     # Load predictions from persp_id vehicle
-    #TODO Attach certainty/point count values correctly
     persp_dir = get_folder(persp_id)
-    perspect_detections = get_detections(persp_dir, persp_dir, idx, persp_id, results, filter_area)
+    perspect_detections = get_detections(persp_dir, persp_dir, idx, persp_id, persp_id, results, filter_area)
     if perspect_detections is not None and len(perspect_detections) > 0:
         all_perspect_detections.append(perspect_detections)
 
     # Load detections from cfg.DATASET_DIR if ego_vehicle is not the persp_id
     if persp_id != const.ego_id():
-        perspect_detections = get_detections(persp_dir, cfg.DATASET_DIR, idx, const.ego_id(), results, filter_area)
+        perspect_detections = get_detections(persp_dir, cfg.DATASET_DIR, idx, persp_id, const.ego_id(), results, filter_area)
         if perspect_detections is not None and len(perspect_detections) > 0:
             all_perspect_detections.append(perspect_detections)
 
@@ -287,7 +287,7 @@ def get_all_detections(idx, persp_id, results, filter_area=False):
         if os.path.isdir(other_persp_dir):
             # Skip own detections since they're loaded first
             if int(entity_str) != persp_id:
-                perspect_detections = get_detections(persp_dir, other_persp_dir, idx, int(entity_str), results, filter_area)
+                perspect_detections = get_detections(persp_dir, other_persp_dir, idx, persp_id, int(entity_str), results, filter_area)
                 if perspect_detections is not None and len(perspect_detections) > 0:
                     all_perspect_detections.append(perspect_detections)
 
@@ -305,7 +305,7 @@ def get_folder(persp_id):
 #####################################################################
 # These are used to filter the detections without having to create a kitti_dataset object
 # Based off of filter_lables from avod code
-def filter_labels(objects, check_distance=True, trust_objs=False):
+def filter_labels(objects, check_distance=True, trust_objs=False, ego_obj=None):
     objects = np.asanyarray(objects)
     filter_mask = np.ones(len(objects), dtype=np.bool)
 
@@ -315,7 +315,7 @@ def filter_labels(objects, check_distance=True, trust_objs=False):
         else:
             obj = objects[obj_idx]
 
-        if not _check_frustum(obj):
+        if not _check_frustum(obj, ego_obj):
             filter_mask[obj_idx] = False
             continue
 
@@ -351,21 +351,24 @@ def _check_distance(obj):
 
     return True
 
-def _check_frustum(obj):
+def _check_frustum(obj, ego_obj):
     """This filters an object by frustum and height.
     Args:
         obj: An instance of ground-truth Object Label
     Returns: True or False depending on whether the object
         is within the front frustum and height requirements.
     """
-    
-    # Checks if in front of vehicle
-    if obj.t[2] < 0:
-        return False
 
-    # Checks if in frustrum
-    if abs(obj.t[0]) > obj.t[2] + SAFETY_FACTOR:
-        return False
+    # Checks if in front of vehicle and if in frustum (and not close to ego-vehicle)
+    if obj.t[2] < 0 or abs(obj.t[0]) > obj.t[2] + SAFETY_FACTOR:
+        if ego_obj is not None:
+            # We want to keep objects close to ego-vehicle for matching and eval purposes
+            diff = np.asanyarray(ego_obj.t) - np.asanyarray(obj.t)
+            obj_dist = math.sqrt(diff[0]**2 + diff[1]**2 + diff[2]**2)
+            if obj_dist > 1.5:
+                return False
+        else:
+            return False
 
     return True
 

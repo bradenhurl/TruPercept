@@ -129,7 +129,7 @@ def visualize(img_idx, show_results, alt_persp, perspID, fulcrum_of_points,
         addScoreText(gt_detections, show_3d_point_count, show_score)
     else:
         if (not view_received_detections or receive_from_perspective != -1) and not only_receive_dets:
-            gt_detections = perspective_utils.get_detections(dataset_dir, dataset_dir, img_idx,
+            gt_detections = perspective_utils.get_detections(dataset_dir, dataset_dir, img_idx, perspID,
                                     perspID, results=show_results, filter_area=filter_area)
 
             setPointsText(gt_detections, points_dict, show_3d_point_count)
@@ -169,7 +169,8 @@ def visualize(img_idx, show_results, alt_persp, perspID, fulcrum_of_points,
                 receive_dir = os.path.join(altPerspect_dir, receive_entity_str)
                 if os.path.isdir(receive_dir):
                     print("Using detections from: ", receive_dir)
-                    perspect_detections = perspective_utils.get_detections(dataset_dir, receive_dir, img_idx, receive_entity_str, results=show_results)
+                    perspect_detections = perspective_utils.get_detections(dataset_dir, receive_dir, img_idx, receive_from_perspective,
+                                                                            receive_entity_str, results=show_results)
                     if perspect_detections != None:
                         color_str = "Received{:07d}".format(receive_from_perspective)
                         prime_val = receive_from_perspective * 47
