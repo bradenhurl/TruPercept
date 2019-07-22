@@ -12,7 +12,7 @@ show_results = True
 
 # Sets the perspective ID if altPerspective is true
 alt_persp = True
-perspID = 139293
+perspID = 139293#26442#
 
 # Only uses points within image fulcrum
 fulcrum_of_points = True
@@ -20,7 +20,7 @@ fulcrum_of_points = True
 use_intensity = False
 
 # Filters objects with perspective area
-filter_area = False
+filter_area = True
 
 # Set to true to view detections from other vehicles
 view_received_detections = True
@@ -39,5 +39,5 @@ only_receive_dets = False # Set to true to only show received dets
 vis_utils.visualize(img_idx, show_results, alt_persp, perspID, fulcrum_of_points,
                     use_intensity, view_received_detections, filter_area,
                     receive_from_perspective, receive_det_id, only_receive_dets,
-                    change_rec_colour, compare_pcs)
+                    change_rec_colour, compare_pcs, show_orientation=True)
 
