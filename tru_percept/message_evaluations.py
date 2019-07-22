@@ -92,6 +92,14 @@ def compute_perspect_eval(perspect_dir, persp_id):
 
         # Calculate trust from received detections
         trust_utils.get_message_trust_values(matching_objs, perspect_dir, persp_id, idx)
+
+        # Visualize evaluations by setting config option to True
+        if cfg.VISUALIZE_MSG_EVALS:
+            alt_persp = persp_id != const.ego_id()
+            vis_matches.visualize_matches(matching_objs, idx, \
+                                           cfg.USE_RESULTS, alt_persp, persp_id, \
+                                           vis_eval_scores=True)
+
         save_msg_evals(matching_objs, idx)
 
 def save_msg_evals(msg_trusts, idx):

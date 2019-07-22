@@ -82,6 +82,9 @@ USE_RESULTS = True
 # Set to true to visualize matches during message evaluations
 VISUALIZE_MATCHES = False
 
+# Set to true to visualize message evaluation scores from each perspective
+VISUALIZE_MSG_EVALS = True
+
 # Set and initialize logging
 LOG_LVL = logging.DEBUG
 LOG_FILE = DATASET_DIR + '/log.txt'
