@@ -143,7 +143,8 @@ def get_message_trust_values(matching_objs, persp_dir, persp_id, idx):
             for trust_obj in match_list:
                 trust_obj.evaluator_id = persp_id
                 trust_obj.evaluator_3d_points = points_dict[trust_obj.detector_id, trust_obj.det_idx]
-                trust_obj.evaluator_certainty = certainty_utils.certainty_from_3d_points(trust_obj.evaluator_3d_points)
+                trust_obj.evaluator_certainty = certainty_utils.certainty_from_3d_points( \
+                                                    trust_obj.evaluator_3d_points, trust_obj.obj.type)
                 # TODO Also try incorporating a matching score? Based on IoU
                 # Set the score (confidence) to be the same as the matched detection
                 if match_list[0].detector_id == persp_id:

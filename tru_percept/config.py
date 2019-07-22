@@ -14,8 +14,10 @@ DATASET_DIR = os.path.expanduser('~') + '/GTAData/TruPercept/object_tru_percept{
 
 # Certainty/visibility threshold scores
 # TODO Probabilistic approach to certainty
-gamma_upper = 100
+gamma_upper = 50
 gamma_lower = 0
+gamma_upper_peds = 25
+gamma_lower_peds = 0
 
 # Filters final detections by this score threshold to speed up kitti evaluation
 SCORE_THRESHOLD = 0.09
