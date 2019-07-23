@@ -110,7 +110,7 @@ def save_msg_evals(msg_trusts, idx, persp_id):
     for matched_msgs in msg_trusts:
         logging.debug("Outputting list of matched objects")
         for trust_obj in matched_msgs:
-            if trust_obj.detector_id == persp_id:
+            if not cfg.INCLUDE_OWN_DETECTION_IN_EVAL and trust_obj.detector_id == persp_id:
                 #Do not evaluate own detections
                 logging.debug("Not saving eval for own detection.")
                 continue

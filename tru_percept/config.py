@@ -3,7 +3,7 @@ import sys
 import logging
 
 # Base dataset directory
-SCENE_NUM = 3
+SCENE_NUM = 5
 DATASET_DIR = os.path.expanduser('~') + '/GTAData/TruPercept/object_tru_percept{}/training'.format(SCENE_NUM)
 
 
@@ -36,7 +36,7 @@ DEFAULT_VEHICLE_TRUST_VAL = 0.5
 NEG_EVAL_SCORE = 0.0
 
 # Use regular vs filtered (for distance, etc) ground truth labels
-EVALUATE_UNFILTERED = False
+EVALUATE_UNFILTERED = True
 
 # Aggregation method
 # 0 is averaging
@@ -56,6 +56,9 @@ SYNCHRONIZE_DETS = True
 
 # If True, excludes perspectives which are not type 'Car'
 EXCLUDE_OTHER_VEHICLE_TYPES = True
+
+# If True, aggregates message evals with own detection
+INCLUDE_OWN_DETECTION_IN_EVAL = True
 
 # ********************************************************************** #
 # For testing
