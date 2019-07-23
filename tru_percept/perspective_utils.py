@@ -21,6 +21,10 @@ X = [1., 0., 0.]
 Y = [0., 1., 0.]
 Z = [0., 0., 1.]
 
+# Global variable for saving false detections so they don't have to be reloaded
+FALSE_DETECTIONS = false_dets.load_false_dets(cfg.DATASET_DIR, \
+                        cfg.FALSE_DETECTIONS_SUBDIR, cfg.FALSE_DETECTIONS_TYPE)
+
 class GTAPosition:
     """GTA Position Class
     3    pos          Entity position (Bottom center) x,y,z in GTA world coordinates (in meters)
@@ -213,6 +217,8 @@ def get_own_vehicle_object(persp_dir, idx, persp_id):
 # det_persp_dir is the perspective we are obtaining the detections from
 # det_persp_id is the ID of the perspective detections are received from
 def get_detections(to_persp_dir, det_persp_dir, idx, to_persp_id, det_persp_id, results=False, filter_area=False):
+    global FALSE_DETECTIONS
+
     if results:
         label_dir = det_persp_dir + '/' + cfg.PREDICTIONS_SUBDIR + '/'
     else:
@@ -246,9 +252,9 @@ def get_detections(to_persp_dir, det_persp_dir, idx, to_persp_id, det_persp_id, 
             to_perspective(detections, to_persp_dir, idx)
 
         if cfg.FALSE_DETECTIONS_TYPE != None:
-            false_det_list = false_dets.get_false_dets(cfg.FALSE_DETECTIONS, \
+            false_det_list = false_dets.get_false_dets(FALSE_DETECTIONS, \
                                  det_persp_id, idx, cfg.FALSE_DETECTIONS_TYPE, \
-                                 to_persp_dir)
+                                 to_persp_dir, cfg.DATASET_DIR)
             for det in false_det_list:
                 detections.append(det)
 

@@ -2,8 +2,6 @@ import os
 import sys
 import logging
 
-import tru_percept.false_detections as false_dets
-
 # Base dataset directory
 SCENE_NUM = 3
 DATASET_DIR = os.path.expanduser('~') + '/GTAData/TruPercept/object_tru_percept{}/training'.format(SCENE_NUM)
@@ -30,8 +28,6 @@ IOU_MATCHING_THRESHOLD = 0.1
 # malicious_front for adding detections in front of vehicles
 FALSE_DETECTIONS_TYPE = 'malicious_front'
 FALSE_DETECTIONS_SUBDIR = 'false_detections'
-FALSE_DETECTIONS = false_dets.load_false_dets(DATASET_DIR, \
-                        FALSE_DETECTIONS_SUBDIR, FALSE_DETECTIONS_TYPE)
 
 # Default trust value for first-time vehicles
 DEFAULT_VEHICLE_TRUST_VAL = 0.5
@@ -92,6 +88,9 @@ VISUALIZE_MSG_EVALS = False
 
 # Set to true to visualize aggregated msg evaluation scores from the ego vehicle perspective
 VISUALIZE_AGG_EVALS = False
+
+# Set to true to visualize the final detections with scores
+VISUALIZE_FINAL_DETS = False
 
 # Set and initialize logging
 LOG_LVL = logging.DEBUG
