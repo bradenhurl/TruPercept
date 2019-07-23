@@ -6,14 +6,15 @@ import logging
 
 from wavedata.tools.obj_detection import obj_utils
 
+import config as cfg
 import perspective_utils as p_utils
 import matching_utils
 import trust_utils
-import config as cfg
 import vehicle_trust as v_trust
 import std_utils
 import constants as const
 import message_evaluations as msg_evals
+from tools.visualization import vis_matches
 
 # Compute and save final detections
 # Only for the ego vehicle as all other vehicles are not
@@ -61,9 +62,18 @@ def compute_final_detections():
 def aggregate_msgs(matching_objs, trust_dict, idx):
     final_dets = []
 
-    msg_evals_dict = {}
-    if cfg.AGGREGATE_METHOD == 2:
-        msg_evals_dict = msg_evals.load_agg_msg_evals(idx)
+    msg_evals_dict = msg_evals.load_agg_msg_evals(idx)
+
+    if cfg.VISUALIZE_AGG_EVALS:
+        for match_list in matching_objs:
+            for trust_obj in match_list:
+                if trust_obj.detector_id in msg_evals_dict:
+                    if trust_obj.det_idx in msg_evals_dict[trust_obj.detector_id]:
+                        trust_obj.obj.score = msg_evals_dict[trust_obj.detector_id][trust_obj.det_idx]
+                        print("Setting trust_obj score to: ", trust_obj.obj.score)
+        # print(matching_objs[0][0].obj.score)
+        vis_matches.visualize_matches(matching_objs, idx, \
+                                       cfg.USE_RESULTS, False, -1, vis_eval_scores=True)
 
     for match_list in matching_objs:
         # Do not add self to the list of detections
@@ -120,7 +130,7 @@ def aggregate_score(match_list, trust_dict, idx, msg_evals_dict):
             found = False
             if trust_obj.detector_id in msg_evals_dict:
                 if trust_obj.det_idx in msg_evals_dict[trust_obj.detector_id]:
-                    num += msg_evals_dict[trust_obj.detector_id, trust_obj.det_idx]
+                    num += msg_evals_dict[trust_obj.detector_id][trust_obj.det_idx]
                     found = True
 
             if not found and trust_obj.detector_id == const.ego_id():
@@ -192,7 +202,7 @@ def aggregate_score(match_list, trust_dict, idx, msg_evals_dict):
             found = False
             if trust_obj.detector_id in msg_evals_dict:
                 if trust_obj.det_idx in msg_evals_dict[trust_obj.detector_id]:
-                    num += msg_evals_dict[trust_obj.detector_id, trust_obj.det_idx]
+                    num += msg_evals_dict[trust_obj.detector_id][trust_obj.det_idx]
                     found = True
 
             if not found and trust_obj.detector_id == const.ego_id():

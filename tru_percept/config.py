@@ -14,9 +14,9 @@ DATASET_DIR = os.path.expanduser('~') + '/GTAData/TruPercept/object_tru_percept{
 
 # Certainty/visibility threshold scores
 # TODO Probabilistic approach to certainty
-gamma_upper = 50
+gamma_upper = 100
 gamma_lower = 0
-gamma_upper_peds = 25
+gamma_upper_peds = 40
 gamma_lower_peds = 0
 
 # Filters final detections by this score threshold to speed up kitti evaluation
@@ -28,7 +28,7 @@ IOU_MATCHING_THRESHOLD = 0.1
 # False detections to use
 # None for no detections
 # malicious_front for adding detections in front of vehicles
-FALSE_DETECTIONS_TYPE = None#'malicious_front'
+FALSE_DETECTIONS_TYPE = 'malicious_front'
 FALSE_DETECTIONS_SUBDIR = 'false_detections'
 FALSE_DETECTIONS = false_dets.load_false_dets(DATASET_DIR, \
                         FALSE_DETECTIONS_SUBDIR, FALSE_DETECTIONS_TYPE)
@@ -53,7 +53,7 @@ EVALUATE_UNFILTERED = False
 #           with a score they were detected with
 # 7 is sanity check (passes through ego vehicle objects with same score)
 # 9 Same as 2 but average msg eval with ego vehicle detection confidence
-AGGREGATE_METHOD = 0
+AGGREGATE_METHOD = 9
 
 # Attempts to synchronize the detections by matching and using velocity
 SYNCHRONIZE_DETS = True
@@ -73,7 +73,7 @@ MAX_IDX = sys.maxsize
 #MAX_IDX = 14
 
 # Test index can override min and max for testing single frame
-TEST_IDX = 13#-1#58#-1#14#59
+TEST_IDX = -1#58#-1#14#59
 if TEST_IDX != -1:
     MIN_IDX = TEST_IDX
     MAX_IDX = TEST_IDX
@@ -89,6 +89,9 @@ VISUALIZE_MATCHES = False
 
 # Set to true to visualize message evaluation scores from each perspective
 VISUALIZE_MSG_EVALS = False
+
+# Set to true to visualize aggregated msg evaluation scores from the ego vehicle perspective
+VISUALIZE_AGG_EVALS = False
 
 # Set and initialize logging
 LOG_LVL = logging.DEBUG
