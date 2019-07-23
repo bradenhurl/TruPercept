@@ -134,7 +134,7 @@ def get_synchronized_dets(persp_dir, to_persp_dir, idx, ego_detection, to_persp_
         for obj in loaded_persp_det:
             persp_det.append(obj)
 
-    if persp_det == None:
+    if persp_det == None or persp_gt == None:
         return persp_det
 
     # Match predictions to their ground truth object
