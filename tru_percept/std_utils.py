@@ -18,7 +18,7 @@ def delete_all_subdirs(subdir):
     delete_subdir(subdir)
 
     for entity_str in const.valid_perspectives():
-        perspect_dir = os.path.join(const.ALT_PERSP_DIR, entity_str)
+        perspect_dir = os.path.join(cfg.ALT_PERSP_DIR, entity_str)
         delete_subdir(subdir, perspect_dir)
 
 def delete_subdir(subdir, basedir=cfg.DATASET_DIR):

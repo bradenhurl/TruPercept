@@ -1,15 +1,14 @@
 import os
-import config as cfg
-from wavedata.tools.obj_detection import obj_utils
 import logging
 
+from wavedata.tools.obj_detection import obj_utils
+
+import config as cfg
 
 # Constants for x, y, z (standard x,y,z notation)
 X = [1., 0., 0.]
 Y = [0., 1., 0.]
 Z = [0., 0., 1.]
-
-ALT_PERSP_DIR = cfg.DATASET_DIR + '/alt_perspective/'
 
 _ego_id = int(-1)
 
@@ -37,8 +36,8 @@ def top_dir():
 # Returns a list of all valid perspective entity strings
 def valid_perspectives():
     entity_strings = []
-    for entity_str in os.listdir(ALT_PERSP_DIR):
-        persp_dir = os.path.join(ALT_PERSP_DIR, entity_str)
+    for entity_str in os.listdir(cfg.ALT_PERSP_DIR):
+        persp_dir = os.path.join(cfg.ALT_PERSP_DIR, entity_str)
         if not os.path.isdir(persp_dir):
             continue
 

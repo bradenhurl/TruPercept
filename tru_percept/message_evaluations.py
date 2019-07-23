@@ -26,7 +26,7 @@ def compute_message_evals():
 
     # Then for all the alternate perspectives
     for entity_str in const.valid_perspectives():
-        perspect_dir = os.path.join(const.ALT_PERSP_DIR, entity_str)
+        perspect_dir = os.path.join(cfg.ALT_PERSP_DIR, entity_str)
         compute_perspect_eval(perspect_dir, int(entity_str))
 
     print("Finished computing message evals.")
@@ -39,7 +39,7 @@ def aggregate_message_evals():
 
     # Then for all the alternate perspectives
     for entity_str in const.valid_perspectives():
-        perspect_dir = os.path.join(const.ALT_PERSP_DIR, entity_str)
+        perspect_dir = os.path.join(cfg.ALT_PERSP_DIR, entity_str)
         aggregate_persp_msg_evals(perspect_dir, int(entity_str))
 
     print("Finished aggregating message evals.")
@@ -255,7 +255,7 @@ def load_agg_msg_evals(idx):
     msg_evals_dict = {}
     msg_evals_dict[const.ego_id()] = load_agg_msg_evals_from_persp(cfg.DATASET_DIR, idx)
     for entity_str in const.valid_perspectives():
-        perspect_dir = os.path.join(const.ALT_PERSP_DIR, entity_str)
+        perspect_dir = os.path.join(cfg.ALT_PERSP_DIR, entity_str)
         msg_evals_dict[int(entity_str)] = load_agg_msg_evals_from_persp(perspect_dir, idx)
 
     return msg_evals_dict

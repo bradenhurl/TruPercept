@@ -62,7 +62,7 @@ def correct_synchro():
 
         # Do for all the alternate perspectives
         for entity_str in const.valid_perspectives():
-            persp_dir = os.path.join(const.ALT_PERSP_DIR, entity_str)
+            persp_dir = os.path.join(cfg.ALT_PERSP_DIR, entity_str)
 
             # Do we want to save the ego detection here?
             ego_detection = p_utils.get_own_vehicle_object(persp_dir, idx, int(entity_str))

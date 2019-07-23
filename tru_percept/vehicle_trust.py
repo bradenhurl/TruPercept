@@ -35,7 +35,7 @@ def calculate_vehicle_trusts():
 
         # Then for all the alternate perspectives
         for entity_str in const.valid_perspectives():
-            perspect_dir = os.path.join(const.ALT_PERSP_DIR, entity_str)
+            perspect_dir = os.path.join(cfg.ALT_PERSP_DIR, entity_str)
             compute_vehicle_trust(perspect_dir, int(entity_str), idx, trust_dict)
 
         write_trust_vals(trust_dict, idx)

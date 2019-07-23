@@ -133,6 +133,8 @@ if EVALUATE_UNFILTERED:
 else:
     LABEL_DIR = 'label_filtered_2'
 
+ALT_PERSP_DIR = DATASET_DIR + '/alt_perspective/'
+
 
 # ********************************************************************** #
 # Set once
