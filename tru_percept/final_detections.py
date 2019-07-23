@@ -15,6 +15,7 @@ import std_utils
 import constants as const
 import message_evaluations as msg_evals
 from tools.visualization import vis_matches
+from tools.visualization import vis_objects
 
 # Compute and save final detections
 # Only for the ego vehicle as all other vehicles are not
@@ -72,8 +73,8 @@ def aggregate_msgs(matching_objs, trust_dict, idx):
                         trust_obj.obj.score = msg_evals_dict[trust_obj.detector_id][trust_obj.det_idx]
                         print("Setting trust_obj score to: ", trust_obj.obj.score)
         # print(matching_objs[0][0].obj.score)
-        vis_matches.visualize_matches(matching_objs, idx, \
-                                       cfg.USE_RESULTS, False, -1, vis_eval_scores=True)
+        vis_matches.visualize_matches(matching_objs, idx, cfg.USE_RESULTS,
+                                        False, -1, vis_eval_scores=True)
 
     for match_list in matching_objs:
         # Do not add self to the list of detections
@@ -84,6 +85,9 @@ def aggregate_msgs(matching_objs, trust_dict, idx):
         match_list[0].obj.score = aggregate_score(match_list, trust_dict, idx, msg_evals_dict)
         final_dets.append(match_list[0].obj)
         logging.debug("Adding multi object: {}".format(match_list[0].obj.t))
+
+    if cfg.VISUALIZE_FINAL_DETS:
+        vis_objects.visualize_objects(final_dets, idx, cfg.USE_RESULTS, False, -1, vis_scores=True)
 
     return final_dets
 
@@ -220,6 +224,9 @@ def aggregate_score(match_list, trust_dict, idx, msg_evals_dict):
             final_score += match_list[0].obj.score
             final_score /= 2
 
+    elif cfg.AGGREGATE_METHOD == 10:
+        # TODO Use msg evaluations and aggregate here
+        final_score = 1.0
     else:
         print("Error: Aggregation method is not properly set!!!")
 

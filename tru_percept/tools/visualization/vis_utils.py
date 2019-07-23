@@ -320,7 +320,7 @@ def visualize_objects_in_pointcloud(objects, COLOUR_SCHEME, dataset_dir,
     closeView = False
     pitch = 170
     pointSize = 4
-    zoom = 2
+    zoom = 1
     if closeView:
         pitch = 180.5
         pointSize = 3
@@ -385,6 +385,9 @@ def visualize_objects_in_pointcloud(objects, COLOUR_SCHEME, dataset_dir,
     current_cam.SetViewUp(-0.02238762832327178, -0.1049057307562059, 0.9942301452644481)
     current_cam.SetFocalPoint(10.601112314728102, 20.237110061924664, 13.151596441968126)
 
+    current_cam.SetPosition(11.168659642537031, -151.97163016078756, 17.590894639193227)
+    current_cam.SetViewUp(-0.02238762832327178, -0.1049057307562059, 0.9942301452644481)
+    current_cam.SetFocalPoint(6.5828849321501055, 17.79452593368671, 35.400431120570865)
 
     # Reset the clipping range to show all points
     vtk_renderer.ResetCameraClippingRange()
