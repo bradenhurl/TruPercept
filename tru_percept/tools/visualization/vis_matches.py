@@ -80,7 +80,7 @@ def visualize_matches(matched_objs, img_idx, show_results, alt_persp,
 
             if vis_eval_scores:
                 text_positions.append(obj.obj.t)
-                txt = '{} - {} - {} - {} - {}'.format(obj.detector_id, obj.det_idx, obj.evaluator_3d_points, obj.evaluator_certainty, obj.evaluator_score)
+                txt = '{} - {} - {} - {} - {} - {}'.format(obj.detector_id, obj.det_idx, obj.evaluator_3d_points, obj.evaluator_certainty, obj.evaluator_score, obj.obj.score)
                 text_labels.append(txt)
 
         match_idx += 1
