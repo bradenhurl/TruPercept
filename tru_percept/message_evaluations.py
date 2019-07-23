@@ -293,12 +293,12 @@ def load_agg_msg_evals_from_persp(persp_dir, idx):
             msg_eval.persp_id = int(p[idx,0])
             msg_eval.det_idx = int(p[idx,1])
             msg_eval.msg_trust = float(p[idx,2])
-            msg_evals_dict[p[idx,1]] = msg_eval
+            msg_evals_dict[int(p[idx,1])] = msg_eval.msg_trust
         else:
             msg_eval.persp_id = int(p[0])
             msg_eval.det_idx = int(p[1])
             msg_eval.msg_trust = float(p[2])
-            msg_evals_dict[p[1]] = msg_eval
+            msg_evals_dict[int(p[1])] = msg_eval.msg_trust
         logging.debug("Inserting key: %d", msg_eval.det_idx)
 
     return msg_evals_dict
