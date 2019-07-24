@@ -49,10 +49,10 @@ def filter_gt_labels(out_subdir):
         for obj in all_gt_objs:
             if obj.type == 'Person_sitting':
                 obj.type = 'Pedestrian'
-            print(obj.type)
             if not (obj.type == 'Pedestrian' or obj.type == 'Car'):
                 obj.type = 'DontCare'
-                print("Setting to DontCare")
+            if obj.type == 'Pedestrian' and obj.v_ped_is_in != 0:
+                obj.type = 'DontCare'
 
         # Save gt to output file
         save_filtered_objs(all_gt_objs, idx, out_dir)
