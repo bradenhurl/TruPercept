@@ -60,6 +60,8 @@ EXCLUDE_OTHER_VEHICLE_TYPES = True
 # If True, aggregates message evals with own detection
 INCLUDE_OWN_DETECTION_IN_EVAL = True
 
+MAX_LIDAR_DIST = 70
+
 # ********************************************************************** #
 # For testing
 

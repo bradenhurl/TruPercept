@@ -311,7 +311,7 @@ def get_folder(persp_id):
 #####################################################################
 # These are used to filter the detections without having to create a kitti_dataset object
 # Based off of filter_lables from avod code
-def filter_labels(objects, check_distance=True, trust_objs=False, ego_obj=None):
+def filter_labels(objects, check_distance=True, max_dist=cfg.MAX_LIDAR_DIST, trust_objs=False, ego_obj=None):
     objects = np.asanyarray(objects)
     filter_mask = np.ones(len(objects), dtype=np.bool)
 
@@ -325,7 +325,7 @@ def filter_labels(objects, check_distance=True, trust_objs=False, ego_obj=None):
             filter_mask[obj_idx] = False
             continue
 
-        if check_distance and not _check_distance(obj):
+        if check_distance and not _check_distance(obj, max_dist):
             filter_mask[obj_idx] = False
             continue
 
@@ -338,9 +338,7 @@ def filter_labels(objects, check_distance=True, trust_objs=False, ego_obj=None):
 # Leave 3m around frustum. Vehicles truncated up to 3m past their
 # Centre won't be filtered
 SAFETY_FACTOR = 2
-MAX_LIDAR_DIST = 70
-#TODO move these to constants or config
-def _check_distance(obj):
+def _check_distance(obj, max_dist):
     """This filters an object by distance.
     Args:
         obj: An instance of ground-truth Object Label
@@ -352,7 +350,7 @@ def _check_distance(obj):
 
     # Checks total distance
     obj_dist = math.sqrt(obj.t[0]**2 + obj.t[1]**2 + obj.t[2]**2)
-    if obj_dist > (MAX_LIDAR_DIST + SAFETY_FACTOR):
+    if obj_dist > (max_dist + SAFETY_FACTOR):
         return False
 
     return True
