@@ -146,8 +146,9 @@ def visualize(img_idx, show_results, alt_persp, perspID, fulcrum_of_points,
                         obj_list[0].obj.type = "OwnObject"
                         if obj_list[0].detector_id == perspID:
                             if compare_with_gt:
-                                for obj in obj_list:
-                                    obj.obj.type = "GroundTruth"
+                                if obj_list is not None:
+                                    for obj in obj_list:
+                                        obj.obj.type = "GroundTruth"
                             continue
                         color_str = "Received{:07d}".format(obj_list[0].detector_id)
                         prime_val = obj_list[0].detector_id * 47
@@ -208,7 +209,8 @@ def visualize(img_idx, show_results, alt_persp, perspID, fulcrum_of_points,
         label_dir = os.path.join(dataset_dir, cfg.LABEL_DIR)
         real_gt_data = obj_utils.read_labels(label_dir, img_idx, results=False)
         for obj in real_gt_data:
-            obj.type = "GroundTruth"
+            if obj.type != "DontCare":
+                obj.type = "GroundTruth"
         gt_detections = gt_detections + real_gt_data
 
     visualize_objects_in_pointcloud(gt_detections, COLOUR_SCHEME, dataset_dir,
@@ -457,10 +459,11 @@ def addScoreText(obj_list, show_3d_point_count, show_score):
     global text_positions
 
     idx = 0
-    for obj in obj_list:
-        text = ' s:{}'.format(obj.score)
-        if not show_3d_point_count:
-            text_positions.append(obj.t)
-            text_labels.append(text)
-        else:
-            text_labels[idx] += text
+    if obj_list is not None:
+        for obj in obj_list:
+            text = ' s:{}'.format(obj.score)
+            if not show_3d_point_count:
+                text_positions.append(obj.t)
+                text_labels.append(text)
+            else:
+                text_labels[idx] += text
