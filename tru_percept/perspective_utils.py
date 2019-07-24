@@ -222,7 +222,7 @@ def get_detections(to_persp_dir, det_persp_dir, idx, to_persp_id, det_persp_id, 
     if results:
         label_dir = det_persp_dir + '/' + cfg.PREDICTIONS_SUBDIR + '/'
     else:
-        label_dir = det_persp_dir + '/label_2/'
+        label_dir = det_persp_dir + '/' + cfg.LABEL_DIR + '/'
 
     label_path = label_dir + '{:06d}.txt'.format(idx)
     if not os.path.isfile(label_path):

@@ -3,7 +3,7 @@ import sys
 import config as cfg
 
 def create_split(base_dir, alt_perspective_dir, split):
-    data_dir = alt_perspective_dir + '/label_2/'
+    data_dir = alt_perspective_dir + '/' + cfg.LABEL_DIR + '/'
 
     indices = []
 
