@@ -143,6 +143,10 @@ def get_synchronized_dets(persp_dir, to_persp_dir, idx, ego_detection, to_persp_
     max_speed = persp_det[0].speed
     max_speed_idx = 0
 
+    # Convert gt to perspective coordinates for calculating angle difference
+    p_utils.to_world(to_persp_gt, to_persp_dir, idx)
+    p_utils.to_perspective(to_persp_gt, persp_dir, idx)
+
     first_obj = True
     for obj_idx in range(0, len(iou_indices)):
         # Skip own detection (initialized with this)
@@ -155,16 +159,24 @@ def get_synchronized_dets(persp_dir, to_persp_dir, idx, ego_detection, to_persp_
             matched_speed = persp_gt[int(iou_indices[obj_idx])].speed
             persp_det[obj_idx].speed = matched_speed
             persp_det[obj_idx].id = persp_gt[int(iou_indices[obj_idx])].id
-            if matched_speed > max_speed and persp_det[obj_idx].id in to_persp_dict_gt:
-                max_speed = matched_speed
-                max_speed_idx = obj_idx
+
+            if persp_det[obj_idx].id in to_persp_dict_gt:
+                if matched_speed > max_speed:
+                    max_speed = matched_speed
+                    max_speed_idx = obj_idx
 
                 # Should also try to take vehicle which turns the least (as it will affect speed/distance)
-                ry_diff = abs(persp_gt[int(iou_indices[obj_idx])].ry - persp_det[obj_idx].ry)
+                persp_det[obj_idx].ry_diff = persp_gt[int(iou_indices[obj_idx])].ry - to_persp_dict_gt[persp_det[obj_idx].id].ry
+
         else:
             # Object not matched so speed is unknown
             # No synchronization offset will be applied
             persp_det[obj_idx].speed = 0
+            persp_det[obj_idx].ry_diff = 0
+
+    # Convert to_persp_dir gt back to original coordinats (ry_diff already calculated)
+    p_utils.to_world(to_persp_gt, persp_dir, idx)
+    p_utils.to_perspective(to_persp_gt, to_persp_dir, idx)
 
     # Adjust detection positions using velocity
     # if any detection was matched with speed > 0
@@ -200,7 +212,7 @@ def get_synchronized_dets(persp_dir, to_persp_dir, idx, ego_detection, to_persp_
                 # Do not need to shift persp own vehicle if in ego vehicle perspective
                 skip_first_obj = True
 
-            # Convert back to perspective coordinates then save
+            # Convert back to perspective coordinates
             p_utils.to_world(persp_det, to_persp_dir, idx)
             p_utils.to_perspective(persp_det, persp_dir, idx)
 
@@ -211,6 +223,9 @@ def get_synchronized_dets(persp_dir, to_persp_dir, idx, ego_detection, to_persp_
                 if skip_first_obj:
                     skip_first_obj = False
                     continue
+
+                # Correct angle difference by half (average)
+                correct_half_angle(obj)
 
                 # First need to convert ry back to proper angle
                 theta = np.arctan2(np.cos(obj.ry), -np.sin(obj.ry))
@@ -229,6 +244,21 @@ def get_synchronized_dets(persp_dir, to_persp_dir, idx, ego_detection, to_persp_
                 offset = unit_vec * dist * offset_dir
                 obj.t = (obj.t[0] + offset[1], obj.t[1], obj.t[2] + offset[0])
 
+                # Correct angle difference by the remaining half since position transform is complete
+                correct_half_angle(obj)
+
                 obj_idx += 1
 
     return persp_det
+
+def correct_half_angle(obj):
+    try:
+        obj.ry -= (obj.ry_diff / 2.0)
+
+        if obj.ry > math.pi:
+            obj.ry -= (2 * math.pi)
+
+        if obj.ry < math.pi:
+            obj.ry += (2 * math.pi)
+    except AttributeError:
+        return
