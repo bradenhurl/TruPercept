@@ -227,13 +227,8 @@ def aggregate_score(match_list, trust_dict, idx, msg_evals_dict):
 
         # No need to plausibility check ego-vehicle detections or null detections
         if match_list[0].detector_id != const.ego_id() and final_score > 0:
-
-            filtered_obj = p_utils.filter_labels([match_list[0].obj])
-            # Plausibility check on detections in the fov of the ego-vehicle sensors
-            if len(filtered_obj) > 0:
-
-                if not plausibility_checker.is_plausible(match_list[0].obj, idx):
-                    final_score = 0.0
+            if not plausibility_checker.is_plausible(match_list[0].obj, idx, match_list[0].detector_id, match_list[0].det_idx):
+                final_score = 0.0
 
     elif cfg.AGGREGATE_METHOD == 10:
         den = 0.0
@@ -257,13 +252,8 @@ def aggregate_score(match_list, trust_dict, idx, msg_evals_dict):
 
         # No need to plausibility check ego-vehicle detections or null detections
         if match_list[0].detector_id != const.ego_id() and final_score > 0:
-
-            filtered_obj = p_utils.filter_labels([match_list[0].obj])
-            # Plausibility check on detections in the fov of the ego-vehicle sensors
-            if len(filtered_obj) > 0:
-
-                if not plausibility_checker.is_plausible(match_list[0].obj, idx):
-                    final_score = 0.0
+            if not plausibility_checker.is_plausible(match_list[0].obj, idx, match_list[0].detector_id, match_list[0].det_idx):
+                final_score = 0.0
 
     else:
         print("Error: Aggregation method is not properly set!!!")
