@@ -371,7 +371,7 @@ def _check_frustum(obj, ego_obj):
             # We want to keep objects close to ego-vehicle for matching and eval purposes
             diff = np.asanyarray(ego_obj.t) - np.asanyarray(obj.t)
             obj_dist = math.sqrt(diff[0]**2 + diff[1]**2 + diff[2]**2)
-            if obj_dist > 1.5:
+            if obj_dist > 1.5 or obj.type != 'Car':
                 return False
         else:
             return False
