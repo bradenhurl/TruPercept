@@ -213,19 +213,23 @@ def aggregate_persp_msg_evals(persp_dir, persp_id):
         trust_sum = 0
         logging.debug(eval_lists)
         for det_idx, eval_list in eval_lists.items():
-            num = 0
-            den = 0
-            logging.debug("det_idx: %d", det_idx)
-            logging.debug("Eval list: {}".format(eval_list))
-            logging.debug("Eval list len: %d", len(eval_list))
-            for eval_item in eval_list:
-                num += eval_item.evaluator_certainty * eval_item.evaluator_score
-                den += eval_item.evaluator_certainty
-                eval_count += 1
-            if den == 0:
-                msg_trust = 0
+            msg_trust = 0
+            if cfg.AGG_AVG:
+                num = 0
+                den = 0
+                logging.debug("det_idx: %d", det_idx)
+                logging.debug("Eval list: {}".format(eval_list))
+                logging.debug("Eval list len: %d", len(eval_list))
+                for eval_item in eval_list:
+                    num += eval_item.evaluator_certainty * eval_item.evaluator_score
+                    den += eval_item.evaluator_certainty
+                    eval_count += 1
+                if den != 0:
+                    msg_trust = num / den
             else:
-                msg_trust = num / den
+                for eval_item in eval_list:
+                    # Aggregate additively
+                    msg_trust += eval_item.evaluator_certainty * eval_item.evaluator_score
 
             #TODO add option for +/- message aggregation
             save_agg_msg_eval(persp_id, idx, det_idx, msg_trust)
