@@ -9,7 +9,7 @@ import config as cfg
 import perspective_utils as p_utils
 
 #Example usage:
-#python filter_gt_labels.py --out_subdir='label_filtered_2'
+#python filter_labels.py --out_subdir='label_aug_filtered_2'
 
 def filter_gt_labels(out_subdir):
     """Plots detection errors for xyz, lwh, ry, and shows 3D IoU with
