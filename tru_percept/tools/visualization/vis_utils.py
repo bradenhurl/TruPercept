@@ -391,6 +391,11 @@ def visualize_objects_in_pointcloud(objects, COLOUR_SCHEME, dataset_dir,
     current_cam.SetViewUp(-0.02238762832327178, -0.1049057307562059, 0.9942301452644481)
     current_cam.SetFocalPoint(6.5828849321501055, 17.79452593368671, 35.400431120570865)
 
+    # Top down view of scenario 1
+    current_cam.SetPosition(2.075612197299923, -76.19063612245675, 5.948366424752178)
+    current_cam.SetViewUp(-0.02238762832327178, -0.1049057307562059, 0.9942301452644481)
+    current_cam.SetFocalPoint(-0.5129380758134061, 19.637933198314016, 16.00138547483155)
+
     # Reset the clipping range to show all points
     vtk_renderer.ResetCameraClippingRange()
 
@@ -467,3 +472,122 @@ def addScoreText(obj_list, show_3d_point_count, show_score):
                 text_labels.append(text)
             else:
                 text_labels[idx] += text
+
+def vis_pc(pc, obj_list):
+
+    # Define Fixed Sizes for the voxel grid
+    x_min = -85
+    x_max = 85
+    y_min = -5
+    y_max = 5
+    z_min = 3
+    z_max = 85
+
+    # Comment these out to filter points by area
+    x_min = min(pc[0])
+    x_max = max(pc[0])
+    y_min = min(pc[1])
+    y_max = max(pc[1])
+    z_min = min(pc[2])
+    z_max = max(pc[2])
+
+    # Reshape points into N x [x, y, z]
+    all_points = np.array(pc).transpose().reshape((-1, 3))
+
+    # Filter points within certain xyz range
+    area_filter = (pc[0] > x_min) & (pc[0] < x_max) & \
+                  (pc[1] > y_min) & (pc[1] < y_max) & \
+                  (pc[2] > z_min) & (pc[2] < z_max)
+
+    all_points = all_points[area_filter]
+
+    # Create Voxel Grid
+    voxel_grid = VoxelGrid()
+    voxel_grid_extents = [[x_min, x_max], [y_min, y_max], [z_min, z_max]]
+    print(voxel_grid_extents)
+
+    start_time = time.time()
+    voxel_grid.voxelize(all_points, 0.2, voxel_grid_extents)
+    end_time = time.time()
+    print("Voxelized in {} s".format(end_time - start_time))
+
+    # Some settings for the initial camera view and point size
+    closeView = False
+    pitch = 170
+    pointSize = 4
+    zoom = 1
+    if closeView:
+        pitch = 180.5
+        pointSize = 3
+        zoom = 35
+
+    # Create VtkPointCloud for visualization
+    vtk_point_cloud = VtkPointCloud()
+    vtk_point_cloud.set_points(all_points)
+    vtk_point_cloud.vtk_actor.GetProperty().SetPointSize(pointSize)
+
+    # Create VtkVoxelGrid for visualization
+    vtk_voxel_grid = VtkVoxelGrid()
+    vtk_voxel_grid.set_voxels(voxel_grid)
+
+    # Create VtkBoxes for boxes
+    vtk_boxes = VtkBoxes()
+    vtk_boxes.set_objects(obj_list, vtk_boxes.COLOUR_SCHEME_KITTI, False)
+
+    # Create Axes
+    axes = vtk.vtkAxesActor()
+    axes.SetTotalLength(5, 5, 5)
+
+    # Create Voxel Grid Renderer in bottom half
+    vtk_renderer = vtk.vtkRenderer()
+    vtk_renderer.AddActor(vtk_point_cloud.vtk_actor)
+    vtk_renderer.AddActor(vtk_voxel_grid.vtk_actor)
+    vtk_renderer.AddActor(vtk_boxes.vtk_actor)
+    #vtk_renderer.AddActor(axes)
+    vtk_renderer.SetBackground(0.2, 0.3, 0.4)
+
+    # Setup Camera
+    current_cam = vtk_renderer.GetActiveCamera()
+    current_cam.Pitch(pitch)
+    current_cam.Roll(180.0)
+
+    # Zooms out to fit all points on screen
+    vtk_renderer.ResetCamera()
+
+    # Zoom in slightly
+    current_cam.Zoom(zoom)
+
+    # Zoom/navigate to the desired camera view then exit
+    # Three lines will be output. Paste these here
+    # Above forward view
+    current_cam.SetPosition(7.512679241328601, -312.20497623371926, -130.38469206536766)
+    current_cam.SetViewUp(-0.01952407393317445, -0.44874501090739727, 0.893446543293314)
+    current_cam.SetFocalPoint(11.624950999358777, 14.835920755080867, 33.965665867613836)
+
+    # Reset the clipping range to show all points
+    vtk_renderer.ResetCameraClippingRange()
+
+    # Setup Render Window
+    vtk_render_window = vtk.vtkRenderWindow()
+    vtk_render_window.SetWindowName(
+        "Point Cloud and Voxel Grid")
+    vtk_render_window.SetSize(1920, 1080)
+    vtk_render_window.AddRenderer(vtk_renderer)
+
+    # Setup custom interactor style, which handles mouse and key events
+    vtk_render_window_interactor = vtk.vtkRenderWindowInteractor()
+    vtk_render_window_interactor.SetRenderWindow(vtk_render_window)
+
+    # Add custom interactor to toggle actor visibilities
+
+    vtk_render_window_interactor.SetInteractorStyle(
+        vis_utils.ToggleActorsInteractorStyle([
+            vtk_point_cloud.vtk_actor,
+            vtk_voxel_grid.vtk_actor,
+            vtk_boxes.vtk_actor,
+        ]))
+
+    # Render in VTK
+    vtk_render_window.Render()
+
+    vtk_render_window_interactor.Start()  # Blocking
