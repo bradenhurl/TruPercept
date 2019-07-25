@@ -14,6 +14,7 @@ import vehicle_trust as v_trust
 import std_utils
 import constants as const
 import message_evaluations as msg_evals
+import plausibility_checker
 from tools.visualization import vis_matches
 from tools.visualization import vis_objects
 
@@ -200,7 +201,7 @@ def aggregate_score(match_list, trust_dict, idx, msg_evals_dict):
     # Aggregate based on overall message evaluations
     # Same as 2 but average msg evals with ego vehicle confidence
     elif cfg.AGGREGATE_METHOD == 9:
-        den = 0
+        den = 0.0
         num = 0.0
         for trust_obj in match_list:
             found = False
@@ -212,7 +213,7 @@ def aggregate_score(match_list, trust_dict, idx, msg_evals_dict):
             if not found and trust_obj.detector_id == const.ego_id():
                 num += trust_obj.obj.score
 
-            den += 1
+            den += 1.0
 
         if den == 0:
             final_score = 0
@@ -225,8 +226,35 @@ def aggregate_score(match_list, trust_dict, idx, msg_evals_dict):
             final_score /= 2
 
     elif cfg.AGGREGATE_METHOD == 10:
-        # TODO Use msg evaluations and aggregate here
-        final_score = 1.0
+        den = 0.0
+        num = 0.0
+        for trust_obj in match_list:
+            found = False
+            if trust_obj.detector_id in msg_evals_dict:
+                if trust_obj.det_idx in msg_evals_dict[trust_obj.detector_id]:
+                    num += msg_evals_dict[trust_obj.detector_id][trust_obj.det_idx]
+                    found = True
+
+            if not found:
+                num += trust_obj.obj.score
+
+            den += 1.0
+
+        if den == 0:
+            final_score = 0.0
+        else:
+            final_score = num / den
+
+        # No need to plausibility check ego-vehicle detections or null detections
+        if match_list[0].detector_id != const.ego_id() and final_score > 0:
+
+            filtered_obj = p_utils.filter_labels([match_list[0].obj])
+            # Plausibility check on detections in the fov of the ego-vehicle sensors
+            if len(filtered_obj) > 0:
+
+                if not plausibility_checker.is_plausible(match_list[0].obj, idx):
+                    final_score = 0.0
+
     else:
         print("Error: Aggregation method is not properly set!!!")
 
