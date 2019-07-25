@@ -387,14 +387,15 @@ def visualize_objects_in_pointcloud(objects, COLOUR_SCHEME, dataset_dir,
     current_cam.SetViewUp(-0.02238762832327178, -0.1049057307562059, 0.9942301452644481)
     current_cam.SetFocalPoint(10.601112314728102, 20.237110061924664, 13.151596441968126)
 
+    # Top down view of whole detection area
     current_cam.SetPosition(11.168659642537031, -151.97163016078756, 17.590894639193227)
     current_cam.SetViewUp(-0.02238762832327178, -0.1049057307562059, 0.9942301452644481)
     current_cam.SetFocalPoint(6.5828849321501055, 17.79452593368671, 35.400431120570865)
 
-    # Top down view of scenario 1
-    current_cam.SetPosition(2.075612197299923, -76.19063612245675, 5.948366424752178)
-    current_cam.SetViewUp(-0.02238762832327178, -0.1049057307562059, 0.9942301452644481)
-    current_cam.SetFocalPoint(-0.5129380758134061, 19.637933198314016, 16.00138547483155)
+    # Top down view of scenario
+    # current_cam.SetPosition(2.075612197299923, -76.19063612245675, 5.948366424752178)
+    # current_cam.SetViewUp(-0.02238762832327178, -0.1049057307562059, 0.9942301452644481)
+    # current_cam.SetFocalPoint(-0.5129380758134061, 19.637933198314016, 16.00138547483155)
 
     # Reset the clipping range to show all points
     vtk_renderer.ResetCameraClippingRange()
