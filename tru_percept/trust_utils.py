@@ -35,6 +35,7 @@ class TrustDetection:
         self.evaluator_score = -1
         self.matched = False
         self.trust = 0.
+        self.false_det = False
 
 class MessageEvaluation:
     """Everything from an evaluated message
@@ -146,6 +147,10 @@ def get_message_trust_values(matching_objs, persp_dir, persp_id, idx):
                     # Set the score (confidence) to be the same as the detection
                     # from the current perspective
                     trust_obj.evaluator_score = match_list[0].obj.score
+
+                    if trust_obj.false_det:
+                        trust_obj.evaluator_certainty = 1.0
+                        trust_obj.evaluator_3d_points = 2000
 
                     # If we match with our own vehicle give highest evaluation score
                     if match_list[0].det_idx == 0:

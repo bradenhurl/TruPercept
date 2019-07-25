@@ -251,14 +251,16 @@ def get_detections(to_persp_dir, det_persp_dir, idx, to_persp_id, det_persp_id, 
             to_world(detections, det_persp_dir, idx)
             to_perspective(detections, to_persp_dir, idx)
 
+        trust_objs = trust_utils.createTrustObjects(det_persp_dir, idx, det_persp_id, detections, results, to_persp_dir)
+
         if cfg.FALSE_DETECTIONS_TYPE != None:
             false_det_list = false_dets.get_false_dets(FALSE_DETECTIONS, \
                                  det_persp_id, idx, cfg.FALSE_DETECTIONS_TYPE, \
                                  to_persp_dir, cfg.DATASET_DIR)
-            for det in false_det_list:
-                detections.append(det)
-
-        trust_objs = trust_utils.createTrustObjects(det_persp_dir, idx, det_persp_id, detections, results, to_persp_dir)
+            false_trust_objs = trust_utils.createTrustObjects(det_persp_dir, idx, det_persp_id, false_det_list, results, to_persp_dir)
+            for trust_obj in false_trust_objs:
+                trust_obj.false_det = True
+                trust_objs.append(trust_obj)
 
         if filter_area:
             to_persp_ego_obj = get_own_vehicle_object(to_persp_dir, idx, to_persp_id)
