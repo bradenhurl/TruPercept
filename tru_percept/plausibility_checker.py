@@ -102,7 +102,7 @@ def is_plausible(obj, idx, detector_id, det_idx):
     # To visualize the resulting points
     # vis_utils.vis_pc(pc_closer.T, [obj])
 
-    # Return True if < 10% of points are closer
+    # Return True if > 10% of points are closer
     if num_closer_points / float(num_points) > 0.1:
         return True
 
