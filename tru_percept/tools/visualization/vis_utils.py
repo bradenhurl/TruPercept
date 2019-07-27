@@ -163,6 +163,7 @@ def visualize(img_idx, show_results, alt_persp, perspID, fulcrum_of_points,
 
                 for obj_list in perspect_detections:
                     setPointsText(obj_list, points_dict, show_3d_point_count)
+                    addScoreTextTrustObjs(obj_list, show_3d_point_count, show_score)
 
                 stripped_detections = trust_utils.strip_objs_lists(perspect_detections)
             else:
@@ -171,8 +172,8 @@ def visualize(img_idx, show_results, alt_persp, perspID, fulcrum_of_points,
                 if os.path.isdir(receive_dir):
                     print("Using detections from: ", receive_dir)
                     perspect_detections = perspective_utils.get_detections(dataset_dir, receive_dir, img_idx, receive_from_perspective,
-                                                                            receive_entity_str, results=show_results)
-                    if perspect_detections != None:
+                                                                            receive_entity_str, results=show_results, filter_area=filter_area)
+                    if perspect_detections is not None:
                         color_str = "Received{:07d}".format(receive_from_perspective)
                         prime_val = receive_from_perspective * 47
                         entity_colour = (prime_val + 13 % 255, (prime_val / 255) % 255, prime_val % 255)
@@ -184,6 +185,7 @@ def visualize(img_idx, show_results, alt_persp, perspID, fulcrum_of_points,
                                 continue
                             obj.obj.type = color_str
                         setPointsText(perspect_detections, points_dict, show_3d_point_count)
+                        addScoreTextTrustObjs(perspect_detections, show_3d_point_count, show_score)
                         stripped_detections = trust_utils.strip_objs(perspect_detections)
                 else:
                     print("Could not find directory: ", receive_dir)
@@ -197,7 +199,8 @@ def visualize(img_idx, show_results, alt_persp, perspID, fulcrum_of_points,
                 for obj in stripped_detections:
                     obj.type = "Received"
 
-            stripped_detections[0].type = "OwnObject"
+            if len(stripped_detections) > 0:
+                stripped_detections[0].type = "OwnObject"
 
             if only_receive_dets:
                 gt_detections = stripped_detections
@@ -383,19 +386,24 @@ def visualize_objects_in_pointcloud(objects, COLOUR_SCHEME, dataset_dir,
     current_cam.SetViewUp(-0.02456679343399302, 0.0030507437719906913, 0.9996935358512673)
     current_cam.SetFocalPoint(27.042134804730317, 15.654378427929846, 63.13899801247614)
 
-    current_cam.SetPosition(14.391008769593322, -120.06549828061613, -1.567028749253062)
-    current_cam.SetViewUp(-0.02238762832327178, -0.1049057307562059, 0.9942301452644481)
-    current_cam.SetFocalPoint(10.601112314728102, 20.237110061924664, 13.151596441968126)
+    current_cam.SetPosition(30.3869590224831, -50.28910856489952, 60.097631136698965)
+    current_cam.SetViewUp(-0.0237472244952177, -0.06015048799392083, 0.997906803325274)
+    current_cam.SetFocalPoint(27.06695416156647, 15.347824332314035, 63.97499987548391)
 
-    # Top down view of whole detection area
-    current_cam.SetPosition(11.168659642537031, -151.97163016078756, 17.590894639193227)
-    current_cam.SetViewUp(-0.02238762832327178, -0.1049057307562059, 0.9942301452644481)
-    current_cam.SetFocalPoint(6.5828849321501055, 17.79452593368671, 35.400431120570865)
+
+    # current_cam.SetPosition(14.391008769593322, -120.06549828061613, -1.567028749253062)
+    # current_cam.SetViewUp(-0.02238762832327178, -0.1049057307562059, 0.9942301452644481)
+    # current_cam.SetFocalPoint(10.601112314728102, 20.237110061924664, 13.151596441968126)
+
+    # # Top down view of whole detection area
+    # current_cam.SetPosition(11.168659642537031, -151.97163016078756, 17.590894639193227)
+    # current_cam.SetViewUp(-0.02238762832327178, -0.1049057307562059, 0.9942301452644481)
+    # current_cam.SetFocalPoint(6.5828849321501055, 17.79452593368671, 35.400431120570865)
 
     # Top down view of scenario
-    # current_cam.SetPosition(2.075612197299923, -76.19063612245675, 5.948366424752178)
-    # current_cam.SetViewUp(-0.02238762832327178, -0.1049057307562059, 0.9942301452644481)
-    # current_cam.SetFocalPoint(-0.5129380758134061, 19.637933198314016, 16.00138547483155)
+    current_cam.SetPosition(2.075612197299923, -76.19063612245675, 5.948366424752178)
+    current_cam.SetViewUp(-0.02238762832327178, -0.1049057307562059, 0.9942301452644481)
+    current_cam.SetFocalPoint(-0.5129380758134061, 19.637933198314016, 16.00138547483155)
 
     # Reset the clipping range to show all points
     vtk_renderer.ResetCameraClippingRange()
