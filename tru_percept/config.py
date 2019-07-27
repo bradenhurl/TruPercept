@@ -25,8 +25,9 @@ IOU_MATCHING_THRESHOLD = 0.1
 
 # False detections to use
 # None for no detections
-# malicious_front for adding detections in front of vehicles
-FALSE_DETECTIONS_TYPE = 'malicious_front'
+# malicious_front for adding detections in front of ego-vehicle
+# many_malicious_front for adding 3 detections in front of ego-vehicle
+FALSE_DETECTIONS_TYPE = 'many_malicious_front'
 FALSE_DETECTIONS_SUBDIR = 'false_detections'
 
 # Default trust value for first-time vehicles
@@ -54,7 +55,7 @@ EVALUATE_UNFILTERED = False
 AGGREGATE_METHOD = 10
 
 # Attempts to synchronize the detections by matching and using velocity
-SYNCHRONIZE_DETS = True
+SYNCHRONIZE_DETS = False
 
 # If True, excludes perspectives which are not type 'Car'
 EXCLUDE_OTHER_VEHICLE_TYPES = True
@@ -99,6 +100,13 @@ VISUALIZE_AGG_EVALS = False
 # Set to true to visualize the final detections with scores
 VISUALIZE_FINAL_DETS = False
 
+# Scenario 1:
+# Vehicle across is ID: 50434
+# Vehicle in distance with view of ped is: 27650
+
+VISUALIZE_ORIENTATION = True
+VISUALIZE_AREA_FILTER = True
+
 # Set and initialize logging
 LOG_LVL = logging.DEBUG
 LOG_FILE = DATASET_DIR + '/log.txt'
@@ -106,6 +114,8 @@ LOG_FILE = DATASET_DIR + '/log.txt'
 logging.basicConfig(filename=LOG_FILE, level=LOG_LVL, format='%(levelname)s: %(filename)s(%(lineno)d): %(message)s')
 
 ALLOW_FILE_OVERWRITE = True
+
+FALSE_DETS_START_IDX = 25
 
 
 # ********************************************************************** #

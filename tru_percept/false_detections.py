@@ -1,9 +1,11 @@
 import numpy as np
 import os
 import math
+import copy
 
 from wavedata.tools.obj_detection import obj_utils
 
+import config as cfg
 import perspective_utils as p_utils
 
 # Notes:
@@ -61,6 +63,10 @@ def get_false_dets(false_dets_dict, persp_id, idx, false_dets_method_str,
     if int(persp_id) not in false_dets_dict:
         return []
 
+    # For testing vehicle trust, allows vehicle to accrue positive trust score
+    if idx < cfg.FALSE_DETS_START_IDX:
+        return []
+
     # Return a vehicle 3 metres in front of the ego vehicle
     if false_dets_method_str == 'malicious_front':
         ego_dir = dataset_dir + '/ego_object'
@@ -69,6 +75,30 @@ def get_false_dets(false_dets_dict, persp_id, idx, false_dets_method_str,
         # These weren't set in this version of synthetic data (TODO)
         ego_detection[0].t = (0, ego_detection[0].h, 8)
         ego_detection[0].ry = math.pi / 2
+
+        # Use dataset_dir to put the object in front of the ego-vehicle
+        p_utils.to_world(ego_detection, dataset_dir, idx)
+        p_utils.to_perspective(ego_detection, to_persp_dir, idx)
+        return ego_detection
+    # Return a vehicle 3 metres in front of the ego vehicle
+    elif false_dets_method_str == 'many_malicious_front':
+        ego_dir = dataset_dir + '/ego_object'
+        ego_detection = obj_utils.read_labels(ego_dir, idx)
+        ego_detection[0].score = 1.0
+        # These weren't set in this version of synthetic data (TODO)
+        ego_detection[0].t = (0, ego_detection[0].h, 0)
+        ego_detection[0].ry = math.pi / 2
+
+        new_obj = copy.deepcopy(ego_detection[0])
+        new_obj.t = (-4, ego_detection[0].h, 8)
+        ego_detection.append(new_obj)
+
+        new_obj_2 = copy.deepcopy(ego_detection[0])
+        new_obj_2.t = (-2, ego_detection[0].h, 15)
+        ego_detection.append(new_obj_2)
+
+        # Set the position of the false detection after copying
+        ego_detection[0].t = (0, ego_detection[0].h, 8)
 
         # Use dataset_dir to put the object in front of the ego-vehicle
         p_utils.to_world(ego_detection, dataset_dir, idx)
