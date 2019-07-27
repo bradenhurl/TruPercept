@@ -3,7 +3,7 @@ import sys
 import logging
 
 # Base dataset directory
-SCENE_NUM = 5
+SCENE_NUM = 7
 DATASET_DIR = os.path.expanduser('~') + '/GTAData/TruPercept/object_tru_percept{}/training'.format(SCENE_NUM)
 
 
@@ -33,10 +33,12 @@ FALSE_DETECTIONS_SUBDIR = 'false_detections'
 DEFAULT_VEHICLE_TRUST_VAL = 0.5
 
 # Message evaluation value for negative matches
-NEG_EVAL_SCORE = 0.0
+NEG_EVAL_SCORE = -1.0
+# Set to true to use averaging message aggregation, otherwise it will be additive
+AGG_AVG = False
 
 # Use regular vs filtered (for distance, etc) ground truth labels
-EVALUATE_UNFILTERED = True
+EVALUATE_UNFILTERED = False
 
 # Aggregation method
 # 0 is averaging
@@ -49,7 +51,7 @@ EVALUATE_UNFILTERED = True
 #           with a score they were detected with
 # 7 is sanity check (passes through ego vehicle objects with same score)
 # 9 Same as 2 but average msg eval with ego vehicle detection confidence
-AGGREGATE_METHOD = 9
+AGGREGATE_METHOD = 10
 
 # Attempts to synchronize the detections by matching and using velocity
 SYNCHRONIZE_DETS = True
@@ -74,7 +76,7 @@ MAX_IDX = sys.maxsize
 #MAX_IDX = 14
 
 # Test index can override min and max for testing single frame
-TEST_IDX = -1#58#-1#14#59
+TEST_IDX = -1#13#2#58#-1#14#59
 if TEST_IDX != -1:
     MIN_IDX = TEST_IDX
     MAX_IDX = TEST_IDX
@@ -102,6 +104,8 @@ LOG_LVL = logging.DEBUG
 LOG_FILE = DATASET_DIR + '/log.txt'
 # Initialize logging
 logging.basicConfig(filename=LOG_FILE, level=LOG_LVL, format='%(levelname)s: %(filename)s(%(lineno)d): %(message)s')
+
+ALLOW_FILE_OVERWRITE = True
 
 
 # ********************************************************************** #
@@ -136,6 +140,8 @@ if EVALUATE_UNFILTERED:
     LABEL_DIR = 'label_2'
 else:
     LABEL_DIR = 'label_filtered_2'
+
+LABEL_DIR = 'label_aug_filtered_2'
 
 ALT_PERSP_DIR = DATASET_DIR + '/alt_perspective/'
 
