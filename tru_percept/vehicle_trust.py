@@ -62,9 +62,11 @@ def compute_vehicle_trust(persp_dir, persp_id, idx, trust_dict):
         logging.debug("Eval list: {}".format(eval_list))
         logging.debug("Eval list len: %d", len(eval_list))
         for eval_item in eval_list:
-            num += eval_item.evaluator_certainty * eval_item.evaluator_score
-            den += eval_item.evaluator_certainty
-            eval_count += 1
+            # Don't use own evaluations for vehicle trust
+            if eval_item.evaluator_id != persp_id:
+                num += eval_item.evaluator_certainty * eval_item.evaluator_score
+                den += eval_item.evaluator_certainty
+                eval_count += 1
         if den == 0:
             msg_trust = 0
         else:
