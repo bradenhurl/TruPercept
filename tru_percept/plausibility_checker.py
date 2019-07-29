@@ -19,8 +19,16 @@ def is_plausible(obj, idx, detector_id, det_idx):
     # Check if object is more than MAX_LIDAR_DIST away
     # If yes then it is plausible since our sensors don't go that far
     obj_pos = np.asanyarray(obj.t)
-    obj_dist = np.dot(obj_pos, obj_pos.T)
+    obj_dist = np.sqrt(np.dot(obj_pos, obj_pos.T))
     if obj_dist >= cfg.MAX_LIDAR_DIST:
+        return True
+
+    # If it is truncated by more than half, return True
+    if np.abs(obj.t[2]) < np.abs(obj.t[0]):
+        return True
+
+    # If the center of the object is above our center, return True (only 2 degrees up)
+    if obj.t[1] - (obj.h / 2) < 0:
         return True
 
     # TODO - Do we want to check this or is it better to only check frustum?
@@ -95,8 +103,9 @@ def is_plausible(obj, idx, detector_id, det_idx):
     num_points = pc.shape[0]
 
     # Compute if remaining points are closer or further than the object centre
-    point_distances = np.sum(np.multiply(pc, pc), axis=1)
-    pc_closer = pc[point_distances < obj_dist]
+    point_distances = np.sqrt(np.sum(np.multiply(pc, pc), axis=1))
+    # Added in a safety factor of 0.25 (sometimes pedestrians are positioned poorly)
+    pc_closer = pc[point_distances < (obj_dist + 0.25)]
     num_closer_points = pc_closer.shape[0]
 
     # To visualize the resulting points
