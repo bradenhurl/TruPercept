@@ -17,7 +17,7 @@ import trust_utils
 
 import vtk
 
-idx = 7
+idx = 419
 
 def main():
     # Setting Paths
@@ -27,11 +27,12 @@ def main():
     data_set = 'training'
     dataset_dir = os.path.expanduser('~') + '/wavedata-dev/demos/gta'
     #dataset_dir = os.path.expanduser('~') + '/Kitti/object/'
+    dataset_dir = os.path.expanduser('~') + '/GTAData/TruPercept/object_tru_percept8/'
 
     #Set to true to see predictions (results) from all perspectives
     use_results = True
     altPerspective = False
-    perspID = 30210
+    perspID = 48133
     perspStr = '%07d' % perspID
     altPerspect_dir = os.path.join(dataset_dir, data_set + '/alt_perspective/')
     if altPerspective:
@@ -162,13 +163,14 @@ def main():
 
     # Get bounding boxes
     gt_detections = obj_utils.read_labels(label_dir, img_idx, results=use_results)
-    print(len(gt_detections))
+    if gt_detections is None:
+        gt_detections = []
 
     #perspective_utils.to_world(gt_detections, base_dir, img_idx)
     #perspective_utils.to_perspective(gt_detections, base_dir, img_idx)
     for entity_str in os.listdir(altPerspect_dir):
         if os.path.isdir(os.path.join(altPerspect_dir, entity_str)):
-            perspect_detections = perspective_utils.get_detections(base_dir, altPerspect_dir, img_idx, entity_str, results=use_results)
+            perspect_detections = perspective_utils.get_detections(base_dir, altPerspect_dir, img_idx, perspID, entity_str, results=use_results)
             if perspect_detections != None:
                 if use_results:
                     stripped_detections = trust_utils.strip_objs(perspect_detections)
