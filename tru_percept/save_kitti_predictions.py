@@ -124,7 +124,7 @@ def convertPredictionsToKitti(dataset, predictions_root_dir, additional_cls):
                     np.savetxt(kitti_predictions_3d_file_path, [])
                 continue
 
-            all_predictions = np.loadtxt(predictions_file_path)
+            all_predictions = np.loadtxt(predictions_file_path, ndmin=2)
 
             # # Swap l, w for predictions where w > l
             # swapped_indices = all_predictions[:, 4] > all_predictions[:, 3]
