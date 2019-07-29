@@ -22,6 +22,7 @@ import create_split
 import save_kitti_predictions
 import certainty_utils
 import config as cfg
+import constants as const
 
 #python run_inference_alt_perspectives.py --checkpoint_name='pyramid_people_gta_40k_constantlr' --ckpt_indices=98 --base_dir='/home/bradenhurl/wavedata-dev/demos/gta/'
 
@@ -71,7 +72,7 @@ def inference(model_config, eval_config,
     altPerspect_dir = base_dir + dataset_config.data_split_dir + '/alt_perspective/'
 
     p_idx = 0
-    perspective_dirs = [ name for name in os.listdir(altPerspect_dir) if os.path.isdir(os.path.join(altPerspect_dir, name)) ]
+    perspective_dirs = const.valid_perspectives()
     perspective_dirs.sort(key=float)
     p_count = len(perspective_dirs)
     for entity_str in perspective_dirs:
