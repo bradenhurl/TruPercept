@@ -12,7 +12,7 @@ def visualize_objects(objects, img_idx, show_results, alt_persp,
               use_intensity=False, view_received_detections=True,
               receive_from_perspective=-1, only_receive_dets=False,
               compare_pcs=False,
-              show_3d_point_count=False, show_orientation=False,
+              show_3d_point_count=False, show_orientation=cfg.VISUALIZE_ORIENTATION,
               final_results=False, show_score=False,
               compare_with_gt=True, show_image=True,
               vis_scores=False):

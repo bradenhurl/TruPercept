@@ -59,12 +59,13 @@ text_labels = None
 text_positions = None
 
 def visualize(img_idx, show_results, alt_persp, perspID, fulcrum_of_points,
-              use_intensity, view_received_detections, filter_area,
+              use_intensity, view_received_detections,
               receive_from_perspective, receive_det_id, only_receive_dets,
               change_rec_colour, compare_pcs, alt_colour_peach=False,
-              show_3d_point_count=False, show_orientation=False,
+              show_3d_point_count=False, show_orientation=cfg.VISUALIZE_ORIENTATION,
               final_results=False, show_score=False,
-              compare_with_gt=False, show_image=True):
+              compare_with_gt=False, show_image=True,
+              filter_area=cfg.VISUALIZE_AREA_FILTER):
     # Setting Paths
     cam = 2
     dataset_dir = cfg.DATASET_DIR
@@ -230,7 +231,7 @@ def visualize(img_idx, show_results, alt_persp, perspID, fulcrum_of_points,
 def visualize_objects_in_pointcloud(objects, COLOUR_SCHEME, dataset_dir,
               img_idx, fulcrum_of_points, use_intensity,
               receive_from_perspective, compare_pcs=False,
-              show_3d_point_count=False, show_orientation=False,
+              show_3d_point_count=False, show_orientation=cfg.VISUALIZE_ORIENTATION,
               final_results=False, show_score=False,
               compare_with_gt=False, show_image=True,
               _text_positions=None, _text_labels=None):

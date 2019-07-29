@@ -19,9 +19,6 @@ fulcrum_of_points = True
 # Uses the intensity value as colour instead of the image colour
 use_intensity = False
 
-# Filters objects with perspective area
-filter_area = False
-
 # Set to true to view detections from other vehicles
 view_received_detections = False
 receive_from_perspective = -1#61954 # Set to -1 to receive from all perspectives
@@ -37,7 +34,7 @@ receive_det_id = -1 # Set to -1 to show all detections
 only_receive_dets = False # Set to true to only show received dets
 
 vis_utils.visualize(img_idx, show_results, alt_persp, perspID, fulcrum_of_points,
-                    use_intensity, view_received_detections, filter_area,
+                    use_intensity, view_received_detections,
                     receive_from_perspective, receive_det_id, only_receive_dets,
-                    change_rec_colour, compare_pcs, show_score=True)
+                    change_rec_colour, compare_pcs, show_score=True, compare_with_gt=True)
 

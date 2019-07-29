@@ -10,7 +10,7 @@ def visualize_matches(matched_objs, img_idx, show_results, alt_persp,
               use_intensity=False, view_received_detections=True,
               receive_from_perspective=-1, only_receive_dets=False,
               compare_pcs=False,
-              show_3d_point_count=False, show_orientation=False,
+              show_3d_point_count=False, show_orientation=cfg.VISUALIZE_ORIENTATION,
               final_results=False, show_score=False,
               compare_with_gt=False, show_image=True,
               vis_eval_scores=False):
