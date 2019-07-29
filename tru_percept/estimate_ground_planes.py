@@ -69,6 +69,7 @@ def estimate_ground_planes(base_dir, dataset_config, plane_method=0, specific_id
                 plane = loadKittiPlane(m)
                 #ground_points_failed = checkBadSlices(point_cloud, plane, kitti_utils)
         
+        ransac_failed = False
         if plane_method == ransac or ground_points_failed:
             logging.debug("PC shape: {}".format(point_cloud.shape))
             points = point_cloud.T
@@ -81,16 +82,21 @@ def estimate_ground_planes(base_dir, dataset_config, plane_method=0, specific_id
                 (points[:, 2] > 2.0)]
             n = all_points_near.shape[0]
             logging.debug("Number of points near: %d", n)
-            max_iterations = 100
-            goal_inliers = n * 0.5
-            m, b = run_ransac(all_points_near, lambda x, y: is_inlier(x, y, 0.2), 3, goal_inliers, max_iterations)
-            a, b, c, d = m
-        elif plane_method == moose:
+            if n < 3:
+                ransac_failed = True
+            else:
+                max_iterations = 100
+                goal_inliers = n * 0.5
+                m, b = run_ransac(all_points_near, lambda x, y: is_inlier(x, y, 0.2), 3, goal_inliers, max_iterations)
+                a, b, c, d = m
+        
+        if plane_method == moose or ransac_failed:
             plane_coeffs = estimate_plane_coeffs(point_cloud.T)
 
         with open(planes_file, 'w+') as f:
             f.write('# Plane\nWidth 4\nHeight 1\n')
-            if plane_method == ransac or plane_method == use_ground_points:
+            if (plane_method == ransac and not ransac_failed) or \
+                    (plane_method == use_ground_points and not ground_points_failed):
                 coeff_string = '%.6e %.6e %.6e %.6e' % (a,b,c,d)
             else:
                 coeff_string = '%.6e %.6e %.6e %.6e' % (plane_coeffs[0], plane_coeffs[1], plane_coeffs[2], plane_coeffs[3])
