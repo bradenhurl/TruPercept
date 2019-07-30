@@ -22,13 +22,15 @@ class TrustDetection:
     evaluator_certainty certainty_score of evaluation
     evaluator_score     Unused right now, should be used to signify if evaluator 
                         believes detection is true or not
+    detector_dist       Detector distance to object
     """
 
-    def __init__(self, persp_id, obj, persp_certainty, det_idx):
+    def __init__(self, persp_id, obj, persp_certainty, det_idx, detector_dist):
         self.obj = obj
         self.det_idx = det_idx
         self.detector_id = persp_id
         self.detector_certainty = persp_certainty
+        self.detector_dist = detector_dist
         self.evaluator_id = -1
         self.evaluator_certainty = -1
         self.evaluator_3d_points = -1
@@ -81,7 +83,7 @@ class VehicleTrust:
         self.count = 0.
 
 
-def createTrustObjects(persp_dir, idx, persp_id, detections, results, to_persp_dir):
+def createTrustObjects(persp_dir, idx, persp_id, detections, results, to_persp_dir, detector_dists=None):
     trust_detections = []
 
     #points_dict = points_3d.load_points_in_3d_boxes(idx, persp_id)
@@ -94,23 +96,27 @@ def createTrustObjects(persp_dir, idx, persp_id, detections, results, to_persp_d
 
         c_idx = 0
         # Detection idx starts as 1 since own vehicle is detection with index 0
-        det_idx = 1
-        first_det = True
+        det_idx = 0
         for det in detections:
-            if first_det:
+            if detector_dists is None:
+                detector_dist = 0
+            else:
+                detector_dist = detector_dists[det_idx]
+
+            if det_idx == 0:
                 # Add ego object (self) - it is always first in detections list
-                ego_tDet = TrustDetection(persp_id, det, 1.0, 0)
+                ego_tDet = TrustDetection(persp_id, det, 1.0, 0, detector_dist)
                 trust_detections.append(ego_tDet)
-                first_det = False
             else:
                 certainty = 1
                 if results:
                     pointsInBox = -1#points_dict[persp_id, det_idx]
                     certainty = -1#certainty_utils.certainty_from_3d_points(pointsInBox)
-                tDet = TrustDetection(persp_id, det, certainty, det_idx)
+                tDet = TrustDetection(persp_id, det, certainty, det_idx, detector_dist)
                 trust_detections.append(tDet)
                 c_idx += 1
-                det_idx += 1
+
+            det_idx += 1
 
     return trust_detections
 

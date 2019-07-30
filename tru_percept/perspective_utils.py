@@ -247,11 +247,17 @@ def get_detections(to_persp_dir, det_persp_dir, idx, to_persp_id, det_persp_id, 
 
     logging.debug("det_persp_id: {} det_persp_dir: {}".format(det_persp_id, det_persp_dir))
     if detections is not None:
+        obj_dists = []
+        for obj in detections:
+            obj_pos = np.asanyarray(obj.t)
+            obj_dist = np.sqrt(np.dot(obj_pos, obj_pos.T))
+            obj_dists.append(obj_dist)
+
         if det_persp_dir != to_persp_dir:
             to_world(detections, det_persp_dir, idx)
             to_perspective(detections, to_persp_dir, idx)
 
-        trust_objs = trust_utils.createTrustObjects(det_persp_dir, idx, det_persp_id, detections, results, to_persp_dir)
+        trust_objs = trust_utils.createTrustObjects(det_persp_dir, idx, det_persp_id, detections, results, to_persp_dir, obj_dists)
 
         if cfg.FALSE_DETECTIONS_TYPE != None:
             false_det_list = false_dets.get_false_dets(FALSE_DETECTIONS, \
@@ -354,6 +360,10 @@ def _check_distance(obj, max_dist):
     obj_dist = math.sqrt(obj.t[0]**2 + obj.t[1]**2 + obj.t[2]**2)
     if obj_dist > (max_dist + SAFETY_FACTOR):
         return False
+
+    # For scenario to remove self
+    # if obj.t[2] < 2:
+    #     return False
 
     return True
 

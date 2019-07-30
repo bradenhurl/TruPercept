@@ -255,6 +255,18 @@ def aggregate_score(match_list, trust_dict, idx, msg_evals_dict):
             if not plausibility_checker.is_plausible(match_list[0].obj, idx, match_list[0].detector_id, match_list[0].det_idx):
                 final_score = 0.0
 
+    # Only use ego vehicle detections but adjust position
+    elif cfg.AGGREGATE_METHOD == 11:
+        # No need to plausibility check ego-vehicle detections or null detections
+        if match_list[0].detector_id == const.ego_id():
+            final_score = match_list[0].obj.score
+            min_dist = sys.float_info.max
+            for trust_obj in match_list:
+                if trust_obj.detector_dist < min_dist:
+                    min_dist = trust_obj.detector_dist
+                    match_list[0].t = trust_obj.obj.t
+                    match_list[0].ry = trust_obj.obj.ry
+
     else:
         print("Error: Aggregation method is not properly set!!!")
 
