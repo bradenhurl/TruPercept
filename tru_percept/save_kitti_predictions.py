@@ -30,7 +30,7 @@ def convertPredictionsToKitti(dataset, predictions_root_dir, additional_cls):
     save_to_base = True
     # global_steps = [28000, 19000, 33000, 34000]
 
-    score_threshold = 0.1
+    score_threshold = 0.01
 
     save_2d = False  # Save 2D predictions
     save_3d = True   # Save 2D and 3D predictions together
