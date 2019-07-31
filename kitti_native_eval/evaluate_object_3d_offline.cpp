@@ -35,15 +35,15 @@ const int32_t N_TESTIMAGES = 7518;
 //const int32_t N_TESTIMAGES = 7480;
 
 // easy, moderate and hard evaluation level
-enum DIFFICULTY{EASY=0, MODERATE=1, HARD=2};
+enum DIFFICULTY{EASY=0, MODERATE=1, HARD=2, REMAINING=3};
 
 // evaluation metrics: image, ground or 3D
 enum METRIC{IMAGE=0, GROUND=1, BOX3D=2};
 
 // evaluation parameter
-const int32_t MIN_HEIGHT[3]     = {40, 25, 25};     // minimum height for evaluated groundtruth/detections
-const int32_t MAX_OCCLUSION[3]  = {0, 1, 2};        // maximum occlusion level of the groundtruth used for evaluation
-const double  MAX_TRUNCATION[3] = {0.15, 0.3, 0.5}; // maximum truncation level of the groundtruth used for evaluation
+const int32_t MIN_HEIGHT[4]     = {40, 25, 25, 0};     // minimum height for evaluated groundtruth/detections
+const int32_t MAX_OCCLUSION[4]  = {0, 1, 2, 3};        // maximum occlusion level of the groundtruth used for evaluation
+const double  MAX_TRUNCATION[4] = {0.15, 0.3, 0.5, 1.0}; // maximum truncation level of the groundtruth used for evaluation
 
 // evaluated object classes
 enum CLASSES{CAR=0, PEDESTRIAN=1, CYCLIST=2};
@@ -744,11 +744,11 @@ bool eval_class (FILE *fp_det, FILE *fp_ori,CLASSES current_class,
 
 void printAp(string file_name, vector<double> vals[]){
 
-  float sum[3] = {0, 0, 0};
-  for (int v = 0; v < 3; ++v)
+  float sum[4] = {0, 0, 0, 0};
+  for (int v = 0; v < 4; ++v)
     for (int i = 0; i < vals[v].size(); i = i + 4)
       sum[v] += vals[v][i];
-  printf("%s AP: %f %f %f\n", file_name.c_str(), sum[0] / 11 * 100, sum[1] / 11 * 100, sum[2] / 11 * 100);
+  printf("%s AP: %f %f %f %f\n", file_name.c_str(), sum[0] / 11 * 100, sum[1] / 11 * 100, sum[2] / 11 * 100, sum[3] / 11 * 100);
 
   if (file_name.c_str() == "car_detection_3D" || file_name.c_str() == "pedestrian_detection_3D")
     printf("Testing");
@@ -765,13 +765,13 @@ void saveAndPlotPlots(string dir_name,string file_name,string obj_type,vector<do
     fprintf(fp,"%f %f %f %f\n",(double)i/(N_SAMPLE_PTS-1.0),vals[0][i],vals[1][i],vals[2][i]);
   fclose(fp);
 
-  float sum[3] = {0, 0, 0};
-  for (int v = 0; v < 3; ++v)
+  float sum[4] = {0, 0, 0, 0};
+  for (int v = 0; v < 4; ++v)
       for (int i = 0; i < vals[v].size(); i = i + 4)
           sum[v] += vals[v][i];
-  printf("%s AP: %f %f %f\n", file_name.c_str(), sum[0] / 11 * 100, sum[1] / 11 * 100, sum[2] / 11 * 100);
+  printf("%s AP: %f %f %f %f\n", file_name.c_str(), sum[0] / 11 * 100, sum[1] / 11 * 100, sum[2] / 11 * 100, sum[3] / 11 * 100);
   if (strcmp(file_name.c_str(),"car_detection_3D") == 0 || strcmp(file_name.c_str(),"pedestrian_detection_3D") == 0)
-    printf("%s AP (Latex table): %.1f \\% & %.1f \\% & %.1f\n", file_name.c_str(), sum[0] / 11 * 100, sum[1] / 11 * 100, sum[2] / 11 * 100);
+    printf("%s AP (Latex table): %.1f \\% & %.1f \\% & %.1f \\% & %.1f\n", file_name.c_str(), sum[0] / 11 * 100, sum[1] / 11 * 100, sum[2] / 11 * 100, sum[3] / 11 * 100);
 
   // create png + eps
   for (int32_t j=0; j<2; j++) {
@@ -807,6 +807,7 @@ void saveAndPlotPlots(string dir_name,string file_name,string obj_type,vector<do
     fprintf(fp,"\"%s.txt\" using 1:2 title 'Easy' with lines ls 1 lw %d,",file_name.c_str(),lw);
     fprintf(fp,"\"%s.txt\" using 1:3 title 'Moderate' with lines ls 2 lw %d,",file_name.c_str(),lw);
     fprintf(fp,"\"%s.txt\" using 1:4 title 'Hard' with lines ls 3 lw %d",file_name.c_str(),lw);
+    // fprintf(fp,"\"%s.txt\" using 1:4 title 'Remaining' with lines ls 4 lw %d",file_name.c_str(),lw);
 
     // close file
     fclose(fp);
@@ -918,10 +919,11 @@ bool eval(string gt_dir, string result_dir, Mail* mail){
       fp_det = fopen((result_dir + "/stats_" + CLASS_NAMES[c] + "_detection.txt").c_str(), "w");
       if(compute_aos)
         fp_ori = fopen((result_dir + "/stats_" + CLASS_NAMES[c] + "_orientation.txt").c_str(),"w");
-      vector<double> precision[3], aos[3], aos_ground[3];
+      vector<double> precision[4], aos[4], aos_ground[4];
       if(   !eval_class(fp_det, fp_ori, cls, groundtruth, detections, compute_aos,compute_aos_ground, imageBoxOverlap, precision[0], aos[0],aos_ground[0], EASY, IMAGE)
-         || !eval_class(fp_det, fp_ori, cls, groundtruth, detections, compute_aos,compute_aos_ground, imageBoxOverlap, precision[1], aos[1],aos_ground[0], MODERATE, IMAGE)
-         || !eval_class(fp_det, fp_ori, cls, groundtruth, detections, compute_aos,compute_aos_ground, imageBoxOverlap, precision[2], aos[2],aos_ground[0], HARD, IMAGE)) {
+         || !eval_class(fp_det, fp_ori, cls, groundtruth, detections, compute_aos,compute_aos_ground, imageBoxOverlap, precision[1], aos[1],aos_ground[1], MODERATE, IMAGE)
+         || !eval_class(fp_det, fp_ori, cls, groundtruth, detections, compute_aos,compute_aos_ground, imageBoxOverlap, precision[2], aos[2],aos_ground[2], HARD, IMAGE)
+         || !eval_class(fp_det, fp_ori, cls, groundtruth, detections, compute_aos,compute_aos_ground, imageBoxOverlap, precision[3], aos[3],aos_ground[3], REMAINING, IMAGE)) {
         mail->msg("%s evaluation failed.", CLASS_NAMES[c].c_str());
         return false;
       }
@@ -942,10 +944,11 @@ bool eval(string gt_dir, string result_dir, Mail* mail){
     CLASSES cls = (CLASSES)c;
     if (eval_ground[c]) {
       fp_det = fopen((result_dir + "/stats_" + CLASS_NAMES[c] + "_detection_ground.txt").c_str(), "w");
-      vector<double> precision[3], aos[3], aos_ground[3];
+      vector<double> precision[4], aos[4], aos_ground[4];
       if(   !eval_class(fp_det, fp_ori, cls, groundtruth, detections, compute_aos,compute_aos_ground, groundBoxOverlap, precision[0], aos[0],aos_ground[0], EASY, GROUND)
          || !eval_class(fp_det, fp_ori, cls, groundtruth, detections, compute_aos,compute_aos_ground, groundBoxOverlap, precision[1], aos[1],aos_ground[1], MODERATE, GROUND)
-         || !eval_class(fp_det, fp_ori, cls, groundtruth, detections, compute_aos,compute_aos_ground, groundBoxOverlap, precision[2], aos[2],aos_ground[2], HARD, GROUND)) {
+         || !eval_class(fp_det, fp_ori, cls, groundtruth, detections, compute_aos,compute_aos_ground, groundBoxOverlap, precision[2], aos[2],aos_ground[2], HARD, GROUND)
+         || !eval_class(fp_det, fp_ori, cls, groundtruth, detections, compute_aos,compute_aos_ground, groundBoxOverlap, precision[3], aos[3],aos_ground[3], REMAINING, GROUND)) {
         mail->msg("%s evaluation failed.", CLASS_NAMES[c].c_str());
         return false;
       }
@@ -961,10 +964,11 @@ bool eval(string gt_dir, string result_dir, Mail* mail){
     CLASSES cls = (CLASSES)c;
     if (eval_3d[c]) {
       fp_det = fopen((result_dir + "/stats_" + CLASS_NAMES[c] + "_detection_ground.txt").c_str(), "w");
-      vector<double> precision[3], aos[3], aos_ground[3];
+      vector<double> precision[4], aos[4], aos_ground[4];
       if(   !eval_class(fp_det, fp_ori,cls, groundtruth, detections, compute_aos,compute_aos_ground, box3DOverlap, precision[0], aos[0],aos_ground[0], EASY, BOX3D)
          || !eval_class(fp_det, fp_ori,cls, groundtruth, detections, compute_aos,compute_aos_ground, box3DOverlap, precision[1], aos[1],aos_ground[1], MODERATE, BOX3D)
-         || !eval_class(fp_det, fp_ori,cls, groundtruth, detections, compute_aos,compute_aos_ground, box3DOverlap, precision[2], aos[2],aos_ground[2], HARD, BOX3D)) {
+         || !eval_class(fp_det, fp_ori,cls, groundtruth, detections, compute_aos,compute_aos_ground, box3DOverlap, precision[2], aos[2],aos_ground[2], HARD, BOX3D)
+         || !eval_class(fp_det, fp_ori,cls, groundtruth, detections, compute_aos,compute_aos_ground, box3DOverlap, precision[3], aos[3],aos_ground[3], REMAINING, BOX3D)) {
         mail->msg("%s evaluation failed.", CLASS_NAMES[c].c_str());
         return false;
       }
