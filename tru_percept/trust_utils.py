@@ -8,6 +8,7 @@ import config as cfg
 import constants as const
 import points_in_3d_boxes as points_3d
 import perspective_utils as p_utils
+import plausibility_checker
 
 # Dictionary for vehicle trust values
 trust_map = {}
@@ -81,6 +82,8 @@ class VehicleTrust:
         self.val = cfg.DEFAULT_VEHICLE_TRUST_VAL
         self.sum = 0.
         self.count = 0.
+        self.curr_score = 0.
+        self.curr_count = 0.
 
 
 def createTrustObjects(persp_dir, idx, persp_id, detections, results, to_persp_dir, detector_dists=None):
@@ -165,4 +168,6 @@ def get_message_trust_values(matching_objs, persp_dir, persp_id, idx):
                 else:
                     # Add a score of cfg.NEG_EVAL_SCORE for non-matching detections
                     trust_obj.evaluator_score = cfg.NEG_EVAL_SCORE
+                    if plausibility_checker.is_plausible(trust_obj.obj, idx, trust_obj.detector_id, trust_obj.det_idx) == False:
+                        trust_obj.evaluator_certainty = 1.0
                 

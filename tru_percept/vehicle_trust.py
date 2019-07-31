@@ -30,19 +30,24 @@ def calculate_vehicle_trusts():
             logging.debug("Stopping at idx: %d", idx)
             break
 
+        # Load stale trust dict if we need it (past msg fresh period)
+        stale_trust_dict = {}
+        if (idx - cfg.STALE_EVALS_TIME) >= 0:
+            stale_trust_dict = load_vehicle_trust_objs(idx - cfg.STALE_EVALS_TIME)
+
         # First for the ego vehicle
-        compute_vehicle_trust(cfg.DATASET_DIR, const.ego_id(), idx, trust_dict)
+        compute_vehicle_trust(cfg.DATASET_DIR, const.ego_id(), idx, trust_dict, stale_trust_dict)
 
         # Then for all the alternate perspectives
         for entity_str in const.valid_perspectives():
             perspect_dir = os.path.join(cfg.ALT_PERSP_DIR, entity_str)
-            compute_vehicle_trust(perspect_dir, int(entity_str), idx, trust_dict)
+            compute_vehicle_trust(perspect_dir, int(entity_str), idx, trust_dict, stale_trust_dict)
 
         write_trust_vals(trust_dict, idx)
 
     print("Finished calculating vehicle trusts")
 
-def compute_vehicle_trust(persp_dir, persp_id, idx, trust_dict):
+def compute_vehicle_trust(persp_dir, persp_id, idx, trust_dict, stale_trust_dict):
     msg_evals = message_evaluations.load_msg_evals(persp_dir, idx)
 
     eval_lists = {}
@@ -66,13 +71,16 @@ def compute_vehicle_trust(persp_dir, persp_id, idx, trust_dict):
             if eval_item.evaluator_id != persp_id:
                 num += eval_item.evaluator_certainty * eval_item.evaluator_score
                 den += eval_item.evaluator_certainty
-                eval_count += 1
         if den == 0:
             msg_trust = 0
         else:
             msg_trust = num / den
 
+        msg_trust = max(msg_trust, -1.0)
+        msg_trust = min(msg_trust, 1.0)
+
         trust_sum += msg_trust
+        eval_count += 1
 
     # Obtain VehicleTrust object, create new object if new vehicle
     print_test = False
@@ -85,9 +93,18 @@ def compute_vehicle_trust(persp_dir, persp_id, idx, trust_dict):
         trust_dict[persp_id] = v_trust
         print_test = True
 
-    # Update trust
+    # Update trust with current evaluations
     v_trust.sum += trust_sum
     v_trust.count += eval_count
+    v_trust.curr_score = trust_sum
+    v_trust.curr_count = eval_count
+
+    # Remove stale evaluations
+    if (idx - cfg.STALE_EVALS_TIME) >= 0:
+        if persp_id in stale_trust_dict:
+            v_trust.sum -= stale_trust_dict[persp_id].curr_score
+            v_trust.count -= stale_trust_dict[persp_id].curr_count
+
     if v_trust.count > 0:
         v_trust.val = v_trust.sum / v_trust.count
     else:
@@ -121,7 +138,7 @@ def load_vehicle_trust_objs(idx):
 
     p = np.loadtxt(filepath, delimiter=' ',
                    dtype=str,
-                   usecols=np.arange(start=0, step=1, stop=4))
+                   usecols=np.arange(start=0, step=1, stop=6))
 
     # Check if the output is single dimensional or multi dimensional
     if len(p.shape) > 1:
@@ -136,33 +153,41 @@ def load_vehicle_trust_objs(idx):
             trust_obj.val = float(p[idx,1])
             trust_obj.sum = float(p[idx,2])
             trust_obj.count = int(p[idx,3])
-            v_trust_dict[p[idx,0]] = trust_obj
+            trust_obj.curr_score = float(p[idx,4])
+            trust_obj.curr_count = int(p[idx,5])
+            v_trust_dict[int(p[idx,0])] = trust_obj
         else:
             trust_obj.val = float(p[1])
             trust_obj.sum = float(p[2])
             trust_obj.count = int(p[3])
-            v_trust_dict[p[0]] = trust_obj
+            trust_obj.curr_score = float(p[4])
+            trust_obj.curr_count = int(p[5])
+            v_trust_dict[int(p[0])] = trust_obj
 
     return v_trust_dict
 
 def vehicle_trust_value(trust_values, v_id):
     if v_id in trust_values:
-        return trust_values[v_id]
+        trust_val = trust_values[v_id]
+        trust_val = max(0., trust_val)
+        return trust_val
     else:
         return cfg.DEFAULT_VEHICLE_TRUST_VAL
 
 def write_trust_vals(trust_dict, idx):
-    trust_vals_array = np.zeros([len(trust_dict), 4])
+    trust_vals_array = np.zeros([len(trust_dict), 6])
     v_count = 0
     for entity_id, trust_obj in trust_dict.items():
         trust_vals_array[v_count,0] = entity_id
         trust_vals_array[v_count,1] = trust_obj.val
         trust_vals_array[v_count,2] = trust_obj.sum
         trust_vals_array[v_count,3] = trust_obj.count
+        trust_vals_array[v_count,4] = trust_obj.curr_score
+        trust_vals_array[v_count,5] = trust_obj.curr_count
         v_count += 1
 
     filepath = cfg.DATASET_DIR + '/' + cfg.V_TRUST_SUBDIR + '/{:06d}.txt'.format(idx)
     std_utils.make_dir(filepath)
     with open(filepath, 'w+') as f:
         np.savetxt(f, trust_vals_array,
-               newline='\r\n', fmt='%i %f %f %i')
+               newline='\r\n', fmt='%i %f %f %i %f %i')
