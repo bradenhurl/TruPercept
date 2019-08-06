@@ -127,6 +127,7 @@ def aggregate_score(match_list, trust_dict, idx, msg_evals_dict):
             weight = trust_obj.detector_certainty * v_trust.vehicle_trust_value(trust_dict, trust_obj.detector_id)
             final_score += trust_obj.obj.score * weight
 
+    # TruPercept 1
     # Aggregate based on overall message evaluations
     elif cfg.AGGREGATE_METHOD == 2:
         den = 0
@@ -230,6 +231,7 @@ def aggregate_score(match_list, trust_dict, idx, msg_evals_dict):
             if not plausibility_checker.is_plausible(match_list[0].obj, idx, match_list[0].detector_id, match_list[0].det_idx):
                 final_score = 0.0
 
+    # TruPercept 2
     elif cfg.AGGREGATE_METHOD == 10:
         den = 0.0
         num = 0.0
@@ -267,7 +269,8 @@ def aggregate_score(match_list, trust_dict, idx, msg_evals_dict):
                     match_list[0].t = trust_obj.obj.t
                     match_list[0].ry = trust_obj.obj.ry
 
-    # Only use ego vehicle detections but adjust position
+    # TruPercept 3
+    # Ego-vehicle if visible in range, otherwise use trupercept
     elif cfg.AGGREGATE_METHOD == 12:
         trust_obj = match_list[0]
         # No need to plausibility check ego-vehicle detections or null detections
@@ -287,6 +290,35 @@ def aggregate_score(match_list, trust_dict, idx, msg_evals_dict):
                 if trust_obj.detector_id in msg_evals_dict:
                     if trust_obj.det_idx in msg_evals_dict[trust_obj.detector_id]:
                         final_score = msg_evals_dict[trust_obj.detector_id][trust_obj.det_idx]
+
+    # Ego-vehicle if visible in range, otherwise use trupercept. With position corrections.
+    elif cfg.AGGREGATE_METHOD == 13:
+        trust_obj = match_list[0]
+        # No need to plausibility check ego-vehicle detections or null detections
+        if trust_obj.detector_id == const.ego_id():
+            final_score = trust_obj.obj.score
+        else:
+            #Check if in range
+            obj_pos = np.asanyarray(trust_obj.obj.t)
+            obj_dist = np.sqrt(np.dot(obj_pos, obj_pos.T))
+            if obj_dist < cfg.MAX_LIDAR_DIST:
+                # exclude if >= 10 points in box (Should detect if visible)
+                if trust_obj.evaluator_3d_points < 10:
+                    # if not many points in box then add if it is plausible
+                    if plausibility_checker.is_plausible(match_list[0].obj, idx, match_list[0].detector_id, match_list[0].det_idx):
+                        final_score = trust_obj.obj.score
+            else:
+                if trust_obj.detector_id in msg_evals_dict:
+                    if trust_obj.det_idx in msg_evals_dict[trust_obj.detector_id]:
+                        final_score = msg_evals_dict[trust_obj.detector_id][trust_obj.det_idx]
+
+        if final_score > 0.0:
+            min_dist = sys.float_info.max
+            for obj in match_list:
+                if obj.detector_dist < min_dist:
+                    min_dist = obj.detector_dist
+                    match_list[0].t = obj.obj.t
+                    match_list[0].ry = obj.obj.ry
 
     else:
         print("Error: Aggregation method is not properly set!!!")

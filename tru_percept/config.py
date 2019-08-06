@@ -3,7 +3,7 @@ import sys
 import logging
 
 # Base dataset directory
-SCENE_NUM = 7
+SCENE_NUM = 3
 DATASET_DIR = os.path.expanduser('~') + '/GTAData/TruPercept/object_tru_percept{}/training'.format(SCENE_NUM)
 
 
@@ -18,16 +18,16 @@ gamma_upper_peds = 40
 gamma_lower_peds = 0
 
 # Filters final detections by this score threshold to speed up kitti evaluation
-SCORE_THRESHOLD = 0.09
+SCORE_THRESHOLD = 0.01
 
 # Minimum iou to be considered a match
-IOU_MATCHING_THRESHOLD = 0.1
+IOU_MATCHING_THRESHOLD = 0.3
 
 # False detections to use
 # None for no detections
 # malicious_front for adding detections in front of ego-vehicle
 # many_malicious_front for adding 3 detections in front of ego-vehicle
-FALSE_DETECTIONS_TYPE = 'many_malicious_front'
+FALSE_DETECTIONS_TYPE = 'malicious_front'
 FALSE_DETECTIONS_SUBDIR = 'false_detections'
 
 # Default trust value for first-time vehicles
@@ -44,7 +44,7 @@ EVALUATE_UNFILTERED = False
 # Aggregation method
 # 0 is averaging
 # 1 is additive
-# 2 is based on msg evaluations
+# 2 is based on msg evaluations TruPercept1
 # 3 is believe all with score 1.0
 # 4 is believe all with score 1.0 unless non-matching, then confidence
 # 5 is believe all ego which are matches
@@ -52,10 +52,14 @@ EVALUATE_UNFILTERED = False
 #           with a score they were detected with
 # 7 is sanity check (passes through ego vehicle objects with same score)
 # 9 Same as 2 but average msg eval with ego vehicle detection confidence
-AGGREGATE_METHOD = 10
+# 10 TruPercept 2
+# 11 Uses ego vehicle detections, positions and orientation from closest vehicle
+# 12 TruPercept 3
+# 13 TruPercept 3 with positional/rotational
+AGGREGATE_METHOD = 12
 
 # Attempts to synchronize the detections by matching and using velocity
-SYNCHRONIZE_DETS = False
+SYNCHRONIZE_DETS = True
 
 # If True, excludes perspectives which are not type 'Car'
 EXCLUDE_OTHER_VEHICLE_TYPES = True
@@ -113,9 +117,10 @@ LOG_FILE = DATASET_DIR + '/log.txt'
 # Initialize logging
 logging.basicConfig(filename=LOG_FILE, level=LOG_LVL, format='%(levelname)s: %(filename)s(%(lineno)d): %(message)s')
 
-ALLOW_FILE_OVERWRITE = True
+ALLOW_FILE_OVERWRITE = False
 
-FALSE_DETS_START_IDX = 25
+FALSE_DETS_START_IDX = 50
+STALE_EVALS_TIME = 50
 
 
 # ********************************************************************** #
