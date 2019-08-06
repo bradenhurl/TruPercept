@@ -168,9 +168,7 @@ def load_vehicle_trust_objs(idx):
 
 def vehicle_trust_value(trust_values, v_id):
     if v_id in trust_values:
-        trust_val = trust_values[v_id]
-        trust_val = max(0., trust_val)
-        return trust_val
+        return trust_values[v_id].val
     else:
         return cfg.DEFAULT_VEHICLE_TRUST_VAL
 
@@ -179,7 +177,7 @@ def write_trust_vals(trust_dict, idx):
     v_count = 0
     for entity_id, trust_obj in trust_dict.items():
         trust_vals_array[v_count,0] = entity_id
-        trust_vals_array[v_count,1] = trust_obj.val
+        trust_vals_array[v_count,1] = max(0., trust_obj.val)
         trust_vals_array[v_count,2] = trust_obj.sum
         trust_vals_array[v_count,3] = trust_obj.count
         trust_vals_array[v_count,4] = trust_obj.curr_score
