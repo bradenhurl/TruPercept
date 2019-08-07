@@ -20,8 +20,9 @@ def run_kitti_native_script(score_threshold, only_evaluate_avod=False):
         make_script = script_folder + 'run_make.sh'
         subprocess.call([make_script, script_folder])
 
+    # Chooses which output dir (Area filtered or extended)
     final_dets_subdir = cfg.FINAL_DETS_SUBDIR_AF
-    if cfg.EVALUATE_UNFILTERED:
+    if cfg.EVALUATE_EXTENDED:
         final_dets_subdir = cfg.FINAL_DETS_SUBDIR
 
     # Sets up the eval to output in the dataset directory

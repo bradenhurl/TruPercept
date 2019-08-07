@@ -21,7 +21,7 @@ gamma_lower_peds = 0
 SCORE_THRESHOLD = 0.01
 
 # Minimum iou to be considered a match
-IOU_MATCHING_THRESHOLD = 0.3
+IOU_MATCHING_THRESHOLD = 0.1
 
 # False detections to use
 # None for no detections
@@ -39,7 +39,17 @@ NEG_EVAL_SCORE = -1.0
 AGG_AVG = False
 
 # Use regular vs filtered (for distance, etc) ground truth labels
-EVALUATE_UNFILTERED = False
+# For experiments this was set to False
+# TODO: When set to True the TruPercept scores are much lower
+EVALUATE_EXTENDED = True
+EVAL_DIST = 140 # For filtered labels
+# Use regular vs filtered (for distance, etc) ground truth labels
+# Regular is kitti filter, aug labels contain every detection within far distance
+# aug labels can then be filtered using tools/filter_labels.py
+if EVALUATE_EXTENDED:
+    LABEL_DIR = 'label_aug_filtered_2'
+else:
+    LABEL_DIR = 'label_2'
 
 # Aggregation method
 # 0 is averaging
@@ -56,7 +66,7 @@ EVALUATE_UNFILTERED = False
 # 11 Uses ego vehicle detections, positions and orientation from closest vehicle
 # 12 TruPercept 3
 # 13 TruPercept 3 with positional/rotational
-AGGREGATE_METHOD = 12
+AGGREGATE_METHOD = 2
 
 # Attempts to synchronize the detections by matching and using velocity
 SYNCHRONIZE_DETS = True
@@ -149,14 +159,6 @@ KITTI_EVAL_SUBDIR = 'kitti_native_eval'
 
 AVOD_OUTPUT_DIR = 'predictions'
 PREDICTIONS_SUBDIR = 'predictions'
-
-# Use regular vs filtered (for distance, etc) ground truth labels
-if EVALUATE_UNFILTERED:
-    LABEL_DIR = 'label_2'
-else:
-    LABEL_DIR = 'label_filtered_2'
-
-LABEL_DIR = 'label_aug_filtered_2'
 
 ALT_PERSP_DIR = DATASET_DIR + '/alt_perspective/'
 

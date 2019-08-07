@@ -44,7 +44,7 @@ def filter_gt_labels(out_subdir):
         if all_gt_objs != None:
             all_gt_objs = p_utils.filter_labels(
                                 all_gt_objs,
-                                max_dist=140)
+                                max_dist=cfg.EVAL_DIST)
 
         for obj in all_gt_objs:
             if obj.type == 'Person_sitting':

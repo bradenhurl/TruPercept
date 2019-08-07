@@ -352,7 +352,7 @@ def output_final_dets(objects, idx):
             if obj.score >= cfg.SCORE_THRESHOLD:
                 filtered_objects.append(obj)
 
-        #filtered_objects = p_utils.filter_labels(filtered_objects, False)
+        filtered_objects = p_utils.filter_labels(filtered_objects, max_dist=cfg.EVAL_DIST)
 
         # Filter for area
         area_filtered_objects = p_utils.filter_labels(filtered_objects)
