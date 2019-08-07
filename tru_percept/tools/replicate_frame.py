@@ -14,7 +14,7 @@ if cfg.ALLOW_FILE_OVERWRITE == False:
 # label_aug_2 needs to be copied for data synchronization
 subdirs_to_overwrite = [cfg.AVOD_OUTPUT_DIR, 'label_aug_2', 'calib', 'velodyne', 'image_2', 'ego_object', 'position_world']
 exts_to_overwrite = ['txt', 'txt', 'txt', 'bin', 'png', 'txt', 'txt',]
-idx_to_copy = 2
+idx_to_copy = 0
 max_idx = 100
 
 
