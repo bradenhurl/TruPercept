@@ -216,34 +216,42 @@ def get_own_vehicle_object(persp_dir, idx, persp_id):
 # to_persp_dir is the directory of the coordinate frame perspective we want the detections in
 # det_persp_dir is the perspective we are obtaining the detections from
 # det_persp_id is the ID of the perspective detections are received from
-def get_detections(to_persp_dir, det_persp_dir, idx, to_persp_id, det_persp_id, results=False, filter_area=False):
+def get_detections(to_persp_dir, det_persp_dir, idx, to_persp_id, det_persp_id,
+                   results=False, filter_area=False, override_load=False):
     global FALSE_DETECTIONS
 
-    if results:
-        label_dir = det_persp_dir + '/' + cfg.PREDICTIONS_SUBDIR + '/'
+    if cfg.FALSE_DETECTIONS_TYPE != 'random_add_remove' or override_load:
+        if results:
+            label_dir = det_persp_dir + '/' + cfg.PREDICTIONS_SUBDIR + '/'
+        else:
+            label_dir = det_persp_dir + '/' + cfg.LABEL_DIR + '/'
+
+        label_path = label_dir + '{:06d}.txt'.format(idx)
+        if not os.path.isfile(label_path):
+            return []
+
+        ego_detection = get_own_vehicle_object(det_persp_dir, idx, det_persp_id)
+
+        # Note: ego_object will be added in createTrustObjects
+        # To ensure its trust/certainty value is set to 1
+        if cfg.SYNCHRONIZE_DETS and det_persp_dir != to_persp_dir \
+                    and results: # For loading ground truth from source
+            # Returns -1 if file doesn't exist, we need to convert this to None
+            detections = synchronize.get_synchronized_dets(det_persp_dir, to_persp_dir, idx, ego_detection)
+            if detections == -1:
+                detections = None
+        else:
+            detections = ego_detection
+            p_detections = obj_utils.read_labels(label_dir, idx, results=results)
+            if p_detections is not None:
+                for obj in p_detections:
+                    detections.append(obj)
     else:
-        label_dir = det_persp_dir + '/' + cfg.LABEL_DIR + '/'
-
-    label_path = label_dir + '{:06d}.txt'.format(idx)
-    if not os.path.isfile(label_path):
-        return []
-
-    ego_detection = get_own_vehicle_object(det_persp_dir, idx, det_persp_id)
-
-    # Note: ego_object will be added in createTrustObjects
-    # To ensure its trust/certainty value is set to 1
-    if cfg.SYNCHRONIZE_DETS and det_persp_dir != to_persp_dir \
-                and results: # For loading ground truth from source
-        # Returns -1 if file doesn't exist, we need to convert this to None
-        detections = synchronize.get_synchronized_dets(det_persp_dir, to_persp_dir, idx, ego_detection)
-        if detections == -1:
-            detections = None
-    else:
-        detections = ego_detection
-        p_detections = obj_utils.read_labels(label_dir, idx, results=results)
-        if p_detections is not None:
-            for obj in p_detections:
-                detections.append(obj)
+        label_dir = det_persp_dir + cfg.FALSE_DETECTIONS_SUBSUBDIR
+        label_path = label_dir + '{:06d}.txt'.format(idx)
+        if not os.path.isfile(label_path):
+            return []
+        detections = obj_utils.read_labels(label_dir, idx, results=True)
 
     logging.debug("det_persp_id: {} det_persp_dir: {}".format(det_persp_id, det_persp_dir))
     if detections is not None:
@@ -259,10 +267,11 @@ def get_detections(to_persp_dir, det_persp_dir, idx, to_persp_id, det_persp_id, 
 
         trust_objs = trust_utils.createTrustObjects(det_persp_dir, idx, det_persp_id, detections, results, to_persp_dir, obj_dists)
 
-        if cfg.FALSE_DETECTIONS_TYPE != None:
+        if cfg.FALSE_DETECTIONS_TYPE != None and \
+                        (override_load or cfg.FALSE_DETECTIONS_TYPE != 'random_add_remove'):
             false_det_list = false_dets.get_false_dets(FALSE_DETECTIONS, \
                                  det_persp_id, idx, cfg.FALSE_DETECTIONS_TYPE, \
-                                 to_persp_dir, cfg.DATASET_DIR)
+                                 to_persp_dir, cfg.DATASET_DIR, trust_objs)
             false_trust_objs = trust_utils.createTrustObjects(det_persp_dir, idx, det_persp_id, false_det_list, results, to_persp_dir)
             for trust_obj in false_trust_objs:
                 trust_obj.false_det = True

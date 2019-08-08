@@ -2,10 +2,12 @@ import numpy as np
 import os
 import math
 import copy
+import random
 
 from wavedata.tools.obj_detection import obj_utils
 
 import config as cfg
+import std_utils
 import perspective_utils as p_utils
 
 # Notes:
@@ -19,6 +21,10 @@ def load_false_dets(dataset_dir, false_dets_subdir, false_dets_method_str):
 
     if false_dets_method_str == None:
         return {}
+
+    # Random vehicle choices should be kept consistent between random methods
+    if false_dets_method_str == 'random_add_remove':
+        false_dets_method_str = 'random_{}'.format(cfg.RANDOM_MALICIOUS_PROBABILITY)
 
     filepath = dataset_dir + '/' + false_dets_subdir + '/' + \
                false_dets_method_str + '.txt'
@@ -58,7 +64,7 @@ def load_false_dets(dataset_dir, false_dets_subdir, false_dets_method_str):
     return det_dict
 
 def get_false_dets(false_dets_dict, persp_id, idx, false_dets_method_str,
-                    to_persp_dir, dataset_dir):
+                    to_persp_dir, dataset_dir, trust_objs):
 
     if int(persp_id) not in false_dets_dict:
         return []
@@ -104,5 +110,26 @@ def get_false_dets(false_dets_dict, persp_id, idx, false_dets_method_str,
         p_utils.to_world(ego_detection, dataset_dir, idx)
         p_utils.to_perspective(ego_detection, to_persp_dir, idx)
         return ego_detection
+    elif false_dets_method_str == 'random_add_remove':
+        det_size = len(trust_objs)
+        if det_size == 0:
+            return []
+
+        # Add a new object with set probability for each existing detection
+        false_dets = []
+        for i in range(0, det_size):
+            if std_utils.decision_true(cfg.RANDOM_MALICIOUS_PROBABILITY):
+                det_to_add = copy.deepcopy(trust_objs[i].obj)
+                det_to_add.ry = np.pi * (random.random() - 0.5)
+                fwd = 70 * random.random()
+                det_to_add.t = (fwd * (random.random() - 0.5), det_to_add.t[1], fwd)
+
+        new_trust_objs = []
+        for obj in trust_objs:
+            if std_utils.decision_true(1 - cfg.RANDOM_MALICIOUS_PROBABILITY):
+                new_trust_objs.append(obj)
+        trust_objs = new_trust_objs
+
+        return false_dets
 
     return []

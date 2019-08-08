@@ -27,8 +27,12 @@ IOU_MATCHING_THRESHOLD = 0.1
 # None for no detections
 # malicious_front for adding detections in front of ego-vehicle
 # many_malicious_front for adding 3 detections in front of ego-vehicle
-FALSE_DETECTIONS_TYPE = 'malicious_front'
+FALSE_DETECTIONS_TYPE = 'random_add_remove'
 FALSE_DETECTIONS_SUBDIR = 'false_detections'
+RANDOM_MALICIOUS_PROBABILITY = 0.1
+FALSE_DETECTIONS_SUBSUBDIR = '/{}/{}_{}/'.format(FALSE_DETECTIONS_SUBDIR,
+                                                 FALSE_DETECTIONS_TYPE,
+                                                 str(RANDOM_MALICIOUS_PROBABILITY))
 
 # Default trust value for first-time vehicles
 DEFAULT_VEHICLE_TRUST_VAL = 0.5
@@ -129,8 +133,8 @@ logging.basicConfig(filename=LOG_FILE, level=LOG_LVL, format='%(levelname)s: %(f
 
 ALLOW_FILE_OVERWRITE = False
 
-FALSE_DETS_START_IDX = 50
-STALE_EVALS_TIME = 50
+FALSE_DETS_START_IDX = 0
+STALE_EVALS_TIME = sys.maxsize
 
 
 # ********************************************************************** #

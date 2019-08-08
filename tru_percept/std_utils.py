@@ -2,6 +2,7 @@ import os
 import errno
 import shutil
 import logging
+import random
 
 import config as cfg
 import constants as const
@@ -50,3 +51,7 @@ def save_objs_to_file(objs, idx, out_dir, results=False):
                     obj.y2, obj.h, obj.w, obj.l, obj.t[0], obj.t[1], obj.t[2], obj.ry)
 
             f.write('%s\r\n' % kitti_text_3d)
+
+# Returns a boolean True with the given probability
+def decision_true(probability):
+    return random.random() < probability
