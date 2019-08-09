@@ -23,7 +23,9 @@ def load_false_dets(dataset_dir, false_dets_subdir, false_dets_method_str):
         return {}
 
     # Random vehicle choices should be kept consistent between random methods
-    if false_dets_method_str == 'random_add_remove':
+    if false_dets_method_str == 'random_add_remove' or \
+            false_dets_method_str == 'random_add' or \
+            false_dets_method_str == 'random_remove':
         false_dets_method_str = 'random_{}'.format(cfg.RANDOM_MALICIOUS_PROBABILITY)
 
     filepath = dataset_dir + '/' + false_dets_subdir + '/' + \
@@ -129,6 +131,21 @@ def get_false_dets(false_dets_dict, persp_id, idx, false_dets_method_str,
             if std_utils.decision_true(1 - cfg.RANDOM_MALICIOUS_PROBABILITY):
                 new_trust_objs.append(obj)
         trust_objs = new_trust_objs
+
+        return false_dets
+    elif false_dets_method_str == 'random_add':
+        det_size = len(trust_objs)
+        if det_size == 0:
+            return []
+
+        # Add a new object with set probability for each existing detection
+        false_dets = []
+        for i in range(0, det_size):
+            if std_utils.decision_true(cfg.RANDOM_MALICIOUS_PROBABILITY):
+                det_to_add = copy.deepcopy(trust_objs[i].obj)
+                det_to_add.ry = np.pi * (random.random() - 0.5)
+                fwd = 70 * random.random()
+                det_to_add.t = (fwd * (random.random() - 0.5), det_to_add.t[1], fwd)
 
         return false_dets
 

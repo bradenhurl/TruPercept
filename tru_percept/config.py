@@ -27,9 +27,9 @@ IOU_MATCHING_THRESHOLD = 0.1
 # None for no detections
 # malicious_front for adding detections in front of ego-vehicle
 # many_malicious_front for adding 3 detections in front of ego-vehicle
-FALSE_DETECTIONS_TYPE = 'random_add_remove'
+FALSE_DETECTIONS_TYPE = 'random_add'
 FALSE_DETECTIONS_SUBDIR = 'false_detections'
-RANDOM_MALICIOUS_PROBABILITY = 0.1
+RANDOM_MALICIOUS_PROBABILITY = 0.3
 FALSE_DETECTIONS_SUBSUBDIR = '/{}/{}_{}/'.format(FALSE_DETECTIONS_SUBDIR,
                                                  FALSE_DETECTIONS_TYPE,
                                                  str(RANDOM_MALICIOUS_PROBABILITY))
@@ -70,7 +70,7 @@ else:
 # 11 Uses ego vehicle detections, positions and orientation from closest vehicle
 # 12 TruPercept 3
 # 13 TruPercept 3 with positional/rotational
-AGGREGATE_METHOD = 2
+AGGREGATE_METHOD = 12
 
 # Attempts to synchronize the detections by matching and using velocity
 SYNCHRONIZE_DETS = True
