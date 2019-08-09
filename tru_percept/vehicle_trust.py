@@ -10,6 +10,7 @@ import trust_utils
 import std_utils
 import constants as const
 import message_evaluations
+import perspective_utils as p_utils
 
 def calculate_vehicle_trusts():
 
@@ -49,6 +50,8 @@ def calculate_vehicle_trusts():
 
 def compute_vehicle_trust(persp_dir, persp_id, idx, trust_dict, stale_trust_dict):
     msg_evals = message_evaluations.load_msg_evals(persp_dir, idx)
+    detections = p_utils.get_detections(persp_dir, persp_dir, idx,
+                                        persp_id, persp_id, results=cfg.USE_RESULTS)
 
     eval_lists = {}
     for msg_eval in msg_evals:
@@ -79,8 +82,8 @@ def compute_vehicle_trust(persp_dir, persp_id, idx, trust_dict, stale_trust_dict
         msg_trust = max(msg_trust, -1.0)
         msg_trust = min(msg_trust, 1.0)
 
-        trust_sum += msg_trust
-        eval_count += 1
+        trust_sum += msg_trust * detections[det_idx].obj.score
+        eval_count += detections[det_idx].obj.score
 
     # Obtain VehicleTrust object, create new object if new vehicle
     print_test = False
