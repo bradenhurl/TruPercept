@@ -27,9 +27,9 @@ IOU_MATCHING_THRESHOLD = 0.1
 # None for no detections
 # malicious_front for adding detections in front of ego-vehicle
 # many_malicious_front for adding 3 detections in front of ego-vehicle
-FALSE_DETECTIONS_TYPE = 'random_add'
+FALSE_DETECTIONS_TYPE = None#'malicious_front'
 FALSE_DETECTIONS_SUBDIR = 'false_detections'
-RANDOM_MALICIOUS_PROBABILITY = 0.3
+RANDOM_MALICIOUS_PROBABILITY = 0.1
 FALSE_DETECTIONS_SUBSUBDIR = '/{}/{}_{}/'.format(FALSE_DETECTIONS_SUBDIR,
                                                  FALSE_DETECTIONS_TYPE,
                                                  str(RANDOM_MALICIOUS_PROBABILITY))
@@ -92,7 +92,7 @@ MAX_LIDAR_DIST = 70
 MIN_IDX = 0
 MAX_IDX = sys.maxsize
 # MIN_IDX = 7
-#MAX_IDX = 14
+# MAX_IDX = 14
 
 # Test index can override min and max for testing single frame
 TEST_IDX = -1#13#2#58#-1#14#59
