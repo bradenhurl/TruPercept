@@ -149,6 +149,11 @@ def aggregate_score(match_list, trust_dict, idx, msg_evals_dict):
         else:
             final_score = num / den
 
+        # No need to plausibility check ego-vehicle detections or null detections
+        if match_list[0].detector_id != const.ego_id() and final_score > 0:
+            if not plausibility_checker.is_plausible(match_list[0].obj, idx, match_list[0].detector_id, match_list[0].det_idx):
+                final_score = 0.0
+
     # BA 1
     elif cfg.AGGREGATE_METHOD == 3:
         final_score = 1.0
