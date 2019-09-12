@@ -1,14 +1,13 @@
-## Autonomous Vehicle Trust Modelling and Cooperative Perception
+## TruPercept: Synthetic Data and Trust Modelling for Autonomous Vehicle Cooperative Perception
 
-This repo is used for testing cooperative perception and trust modelling techniques for cooperative perception.
+This repo contains an end-to-end autonomous vehicle cooperative perception model with integrated trust modelling. It also contains testing scripts to be used with the TruPercept dataset located at https://uwaterloo.ca/waterloo-intelligent-systems-engineering-lab/projects/trupercept.
 
 # Setup
 Please install avod (https://github.com/kujason/avod) as well as the submodule wavedata from avod according to the instructions on the avod page. Create an environment using the avod requirements.txt
 
 Clone this repository then add the base tru_percept folder to the python path.
 
-Download our dataset from: TODO
-Download our pretrained models from: 
+Download our dataset and pretrained avod models (for presil data) from: https://uwaterloo.ca/waterloo-intelligent-systems-engineering-lab/projects/trupercept
 
 # How to run
 cd to the tru_percept directory
