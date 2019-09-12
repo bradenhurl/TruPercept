@@ -23,13 +23,10 @@ def load_false_dets(dataset_dir, false_dets_subdir, false_dets_method_str):
         return {}
 
     # Random vehicle choices should be kept consistent between random methods
-    if false_dets_method_str == 'random_add_remove' or \
-            false_dets_method_str == 'random_add' or \
-            false_dets_method_str == 'random_remove':
-        false_dets_method_str = 'random_{}'.format(cfg.RANDOM_MALICIOUS_PROBABILITY)
+    random_substr = 'random_{}'.format(cfg.RANDOM_MALICIOUS_PROBABILITY)
 
     filepath = dataset_dir + '/' + false_dets_subdir + '/' + \
-               false_dets_method_str + '.txt'
+               random_substr + '.txt'
 
     if not os.path.isfile(filepath):
         print("Could not find false detections filepath: ", filepath)
