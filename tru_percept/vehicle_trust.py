@@ -23,7 +23,7 @@ def calculate_vehicle_trusts():
 
     velo_dir = cfg.DATASET_DIR + '/velodyne'
     velo_files = os.listdir(velo_dir)
-    for idx in range(cfg.MIN_IDX, cfg.MAX_IDX):
+    for idx in range(cfg.MIN_IDX, cfg.MAX_IDX + 1):
         filepath = velo_dir + '/{:06d}.bin'.format(idx)
 
         if not os.path.isfile(filepath):
