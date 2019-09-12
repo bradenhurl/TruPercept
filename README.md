@@ -1,4 +1,6 @@
-## av_trust_and_perception
+## Autonomous Vehicle Trust Modelling and Cooperative Perception
+
+This repo is used for testing cooperative perception and trust modelling techniques for cooperative perception.
 
 # Setup
 Please install avod (https://github.com/kujason/avod) as well as the submodule wavedata from avod according to the instructions on the avod page. Create an environment using the avod requirements.txt
