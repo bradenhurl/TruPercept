@@ -10,14 +10,18 @@ Clone this repository then add the base tru_percept folder to the python path.
 Download our dataset and pretrained avod models (for presil data) from: https://uwaterloo.ca/waterloo-intelligent-systems-engineering-lab/projects/trupercept
 
 ## How to run
-cd to the tru_percept directory
-
+cd to the tru_percept directory\
 Use the files in the scripts directory to run
-python run_all.py will run all including inference for both cars and pedestrians
-You will need to have done the avod preprocessing and have trained avod (or have valid checkpoints and configuration files) if you want to run inference.
+
+You will need to have done the avod preprocessing and have trained avod (or have valid checkpoints and configuration files) if you want to run inference. To run inference for both cars and pedestrians then all tru_percept code:
+```
+python scripts/run_all.py
+```
 
 If using the included predictions then you only need to run the second stage:
+```
 python scripts/run_stage2.py
+```
 
 ## Order of Operations:
 
