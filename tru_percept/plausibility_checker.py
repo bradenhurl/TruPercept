@@ -43,6 +43,9 @@ def is_plausible(obj, idx, detector_id, det_idx):
     velo_dir = cfg.DATASET_DIR + '/velodyne'
     calib_dir = cfg.DATASET_DIR + '/calib'
     pc = obj_utils.get_lidar_point_cloud(idx, calib_dir, velo_dir)
+    
+    # Vis regular PC
+    # vis_utils.vis_pc(pc, [obj])
 
     # Obtain unit vector to object
     unit_vec_forward = obj_pos / np.linalg.norm(obj_pos)
@@ -108,8 +111,10 @@ def is_plausible(obj, idx, detector_id, det_idx):
     pc_closer = pc[point_distances < (obj_dist + 0.25)]
     num_closer_points = pc_closer.shape[0]
 
-    # To visualize the resulting points
-    # vis_utils.vis_pc(pc_closer.T, [obj])
+    # To visualize the resulting points with frustum lines
+    # print(pc_closer.shape)
+    # if pc_closer.shape[0] > 0:
+    #     vis_utils.vis_pc(pc_closer.T, [obj], frustum_points=[top_left, top_right, bot_right, bot_left])
 
     # Return True if > 10% of points are closer
     if num_closer_points / float(num_points) > 0.1:

@@ -57,6 +57,25 @@ compare_pcs = False
 '''
 text_labels = None
 text_positions = None
+    
+COLOUR_SCHEME = {
+    "Car": (0, 0, 255),  # Blue
+    "Pedestrian": (255, 0, 0),  # Red
+    "Bus": (0, 0, 255), #Blue
+    "Cyclist": (150, 50, 100),  # Purple
+
+    "Van": (255, 150, 150),  # Peach
+    "Person_sitting": (150, 200, 255),  # Sky Blue
+
+    "Truck": (0, 0, 255),  # Light Grey
+    "Tram": (150, 150, 150),  # Grey
+    "Misc": (100, 100, 100),  # Dark Grey
+    "DontCare": (255, 255, 255),  # White
+
+    "Received": (255, 150, 150),  # Peach
+    "OwnObject": (51, 255, 255),  # Cyan
+    "GroundTruth": (0, 255, 0), # Green
+}
 
 def visualize(img_idx, show_results, alt_persp, perspID, fulcrum_of_points,
               use_intensity, view_received_detections,
@@ -78,6 +97,7 @@ def visualize(img_idx, show_results, alt_persp, perspID, fulcrum_of_points,
 
     global text_labels
     global text_positions
+    global COLOUR_SCHEME
     if show_3d_point_count or show_score:
         text_labels = []
         text_positions = []
@@ -93,25 +113,6 @@ def visualize(img_idx, show_results, alt_persp, perspID, fulcrum_of_points,
         label_dir = os.path.join(dataset_dir, 'predictions')
     else:
         label_dir = os.path.join(dataset_dir, 'label_2')
-
-    COLOUR_SCHEME = {
-        "Car": (0, 0, 255),  # Blue
-        "Pedestrian": (255, 0, 0),  # Red
-        "Bus": (0, 0, 255), #Blue
-        "Cyclist": (150, 50, 100),  # Purple
-
-        "Van": (255, 150, 150),  # Peach
-        "Person_sitting": (150, 200, 255),  # Sky Blue
-
-        "Truck": (0, 0, 255),  # Light Grey
-        "Tram": (150, 150, 150),  # Grey
-        "Misc": (100, 100, 100),  # Dark Grey
-        "DontCare": (255, 255, 255),  # White
-
-        "Received": (255, 150, 150),  # Peach
-        "OwnObject": (51, 255, 255),  # Cyan
-        "GroundTruth": (0, 255, 0), # Green
-    }
 
     # Load points_in_3d_boxes for each object
     points_dict = points_in_3d_boxes.load_points_in_3d_boxes(img_idx, perspID)
@@ -325,7 +326,7 @@ def visualize_objects_in_pointcloud(objects, COLOUR_SCHEME, dataset_dir,
     # Some settings for the initial camera view and point size
     closeView = False
     pitch = 170
-    pointSize = 4
+    pointSize = 2
     zoom = 1
     if closeView:
         pitch = 180.5
@@ -357,7 +358,7 @@ def visualize_objects_in_pointcloud(objects, COLOUR_SCHEME, dataset_dir,
     vtk_renderer.AddActor(vtk_point_cloud.vtk_actor)
     vtk_renderer.AddActor(vtk_voxel_grid.vtk_actor)
     vtk_renderer.AddActor(vtk_boxes.vtk_actor)
-    #vtk_renderer.AddActor(axes)
+    vtk_renderer.AddActor(axes)
     if _text_positions is not None:
         vtk_text_labels = VtkTextLabels()
         vtk_text_labels.set_text_labels(_text_positions, _text_labels)
@@ -483,7 +484,7 @@ def addScoreText(obj_list, show_3d_point_count, show_score):
             else:
                 text_labels[idx] += text
 
-def vis_pc(pc, obj_list):
+def vis_pc(pc, obj_list, frustum_points=None):
 
     # Define Fixed Sizes for the voxel grid
     x_min = -85
@@ -542,19 +543,25 @@ def vis_pc(pc, obj_list):
 
     # Create VtkBoxes for boxes
     vtk_boxes = VtkBoxes()
-    vtk_boxes.set_objects(obj_list, vtk_boxes.COLOUR_SCHEME_KITTI, False)
+    vtk_boxes.set_objects(obj_list, COLOUR_SCHEME, False)
 
     # Create Axes
     axes = vtk.vtkAxesActor()
-    axes.SetTotalLength(5, 5, 5)
+    axes.SetTotalLength(2, 2, 2)
 
     # Create Voxel Grid Renderer in bottom half
     vtk_renderer = vtk.vtkRenderer()
     vtk_renderer.AddActor(vtk_point_cloud.vtk_actor)
     vtk_renderer.AddActor(vtk_voxel_grid.vtk_actor)
     vtk_renderer.AddActor(vtk_boxes.vtk_actor)
-    #vtk_renderer.AddActor(axes)
+    vtk_renderer.AddActor(axes)
     vtk_renderer.SetBackground(0.2, 0.3, 0.4)
+
+
+    # Add lines for frustum
+    if frustum_points is not None:
+        frustum_actor = get_frustum_actor(frustum_points)
+        vtk_renderer.AddActor(frustum_actor)
 
     # Setup Camera
     current_cam = vtk_renderer.GetActiveCamera()
@@ -601,3 +608,98 @@ def vis_pc(pc, obj_list):
     vtk_render_window.Render()
 
     vtk_render_window_interactor.Start()  # Blocking
+
+def get_frustum_actor(frustum_points):
+
+    # Create frustum with lines
+    pts = vtk.vtkPoints()
+    origin = [0.0, 0.0, 0.0]
+    pts.InsertNextPoint(origin)
+    print(len(frustum_points))
+    for idx in range(0,len(frustum_points)):
+        print("point")
+        pts.InsertNextPoint(frustum_points[idx])
+
+    # Setup color
+    green = [0, 255, 0]
+
+    # Setup the colors array
+    colors = vtk.vtkUnsignedCharArray()
+    colors.SetNumberOfComponents(3)
+    colors.SetName("Colors")
+
+    for idx in range(0,8):
+        # Add the colors to the colors array
+        colors.InsertNextTypedTuple(green)
+
+    # Create the lines
+
+    # Create the first line (between Origin and P0)
+    line0 = vtk.vtkLine()
+    line0.GetPointIds().SetId(0,0) # the second 0 is the index of the Origin in the vtkPoints
+    line0.GetPointIds().SetId(1,1) # the second 1 is the index of P0 in the vtkPoints
+
+    # Create the second line (between Origin and P1)
+    line1 = vtk.vtkLine()
+    line1.GetPointIds().SetId(0,0) # the second 0 is the index of the Origin in the vtkPoints
+    line1.GetPointIds().SetId(1,2) # 2 is the index of P1 in the vtkPoints
+
+    # Next two lines from origin
+    line2 = vtk.vtkLine()
+    line2.GetPointIds().SetId(0,0)
+    line2.GetPointIds().SetId(1,3)
+    line3 = vtk.vtkLine()
+    line3.GetPointIds().SetId(0,0)
+    line3.GetPointIds().SetId(1,4)
+
+    # Create box lines
+    line4 = vtk.vtkLine()
+    line4.GetPointIds().SetId(0,1)
+    line4.GetPointIds().SetId(1,2)
+    line5 = vtk.vtkLine()
+    line5.GetPointIds().SetId(0,2)
+    line5.GetPointIds().SetId(1,3)
+    line6 = vtk.vtkLine()
+    line6.GetPointIds().SetId(0,3)
+    line6.GetPointIds().SetId(1,4)
+    line7 = vtk.vtkLine()
+    line7.GetPointIds().SetId(0,4)
+    line7.GetPointIds().SetId(1,1)
+
+    # Create a cell array to store the lines in and add the lines to it
+    lines = vtk.vtkCellArray()
+    lines.InsertNextCell(line0)
+    lines.InsertNextCell(line1)
+    lines.InsertNextCell(line2)
+    lines.InsertNextCell(line3)
+    lines.InsertNextCell(line4)
+    lines.InsertNextCell(line5)
+    lines.InsertNextCell(line6)
+    lines.InsertNextCell(line7)
+
+    # Create a polydata to store everything in
+    linesPolyData = vtk.vtkPolyData()
+
+    # Add the points to the dataset
+    linesPolyData.SetPoints(pts)
+
+    # Add the lines to the dataset
+    linesPolyData.SetLines(lines)
+
+    # Color the lines - associate the first component (red) of the
+    # colors array with the first component of the cell array (line 0)
+    # and the second component (green) of the colors array with the
+    # second component of the cell array (line 1)
+    linesPolyData.GetCellData().SetScalars(colors)
+
+    # Visualize
+    mapper = vtk.vtkPolyDataMapper()
+    if vtk.VTK_MAJOR_VERSION <= 5:
+        mapper.SetInput(linesPolyData)
+    else:
+        mapper.SetInputData(linesPolyData)
+
+    actor = vtk.vtkActor()
+    actor.SetMapper(mapper)
+
+    return actor
