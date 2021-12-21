@@ -47,3 +47,10 @@ There is a bug in avod which does not allow no samples to be in a file. If it cr
 ## TODO
 - Create settings reader and different preset settings files for experiments
 - Probabilistic models
+
+
+
+## TEST
+
+In this part ,I will show my opinion
+
