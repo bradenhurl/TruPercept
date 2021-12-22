@@ -11,6 +11,8 @@ Clone this repository then add the base tru_percept folder to the python path.
 
 Download our dataset and pretrained avod models (for presil data) from: https://uwaterloo.ca/waterloo-intelligent-systems-engineering-lab/projects/trupercept
 
+Move the four .py files in folder "other_vtk_tools" to your own "wavedata/tools/visualizaton" path
+
 ## How to run
 cd to the tru_percept directory\
 Use the files in the scripts directory to run
@@ -37,6 +39,15 @@ vehicle_trust.py
 final_detections.py
 eval_utils.py
 
+Modify file path on lines 17 and 18 of the file "run_all.py", which should correspond to the folder name under "avod/data/outputs" 
+
+**Other modification about path :**
+
+1) File "config.py", line 7 , correspond to the downloaded dataset ”trupercept1/training“
+
+2. File "tru_percept/tools/print_difficulty_stats.py", line17 , modify '/GTAData/object/' to your own path of dataset 'XXX/XXX/trupercept1/'
+3. Same as the operation in 2 above , file "vtk_vis_perspectives.py", line30
+
 
 ## Debugging:
 The error "Number of samples is less than number of clusters" is due to not having run the AVOD preprocessing scripts before inference. Please follow the steps in the AVOD README for preprocessing mini-batches. This is only required for inference in this project.
@@ -44,13 +55,25 @@ Note this same error message could also be due to not having any samples from a 
 
 There is a bug in avod which does not allow no samples to be in a file. If it crashes during inference in \_filter_labels_by_class then add the index it crashed on to config.INDICES_TO_SKIP
 
+Modify the file "config.py", line 48, when you use 'True' would generate Error alert
+
+Modify the file "constants.py", line 21 ; "correct_synchronization.py", line 114/130/131. The use of function: `obj_utils.read_labels` has three parameters, you can modify the arguments according to your needself
+
+In path "wavedata/tools/obj_detection/obj_utils", add 'self.id' and 'self.speed' in function:`__init__(self)` 
+
+## Suggestion:
+
+If your terminal return an Error about `nan_mask` and `point_clouds`, you can modify on the file "points_in_3d_boxes.py", comment the code on line 175, thus line 176 should be `point_cloud = all_points.T` 
+
 ## TODO
 - Create settings reader and different preset settings files for experiments
 - Probabilistic models
 
 
 
-## TEST
+## Other options:
 
-In this part ,I will show my opinion
+You can use Anaconda3 to create a virtual environment. All codes from avod to TruPercept can be run in this way. 
+
+If you use Anaconda3, run `source ~/.bashrc`, add your dynamic lib path,such as `export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/xxxxx/anaconda3/pkgs/libboost-1.73.0-h3ff78a5_11/lib` to the end of the file 
 
