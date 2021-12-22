@@ -111,7 +111,7 @@ def get_synchronized_dets(persp_dir, to_persp_dir, idx, ego_detection, to_persp_
     if to_persp_dict_gt is None:
         # Create dictionary for quickly obtaining speed of object
         to_persp_aug_label_dir = to_persp_dir + '/label_aug_2'
-        to_persp_gt = obj_utils.read_labels(to_persp_aug_label_dir, idx, results=False, synthetic=True)
+        to_persp_gt = obj_utils.read_labels(to_persp_aug_label_dir, idx, False)
         to_persp_dict_gt = {}
         if to_persp_gt == None:
             return -1
@@ -127,7 +127,7 @@ def get_synchronized_dets(persp_dir, to_persp_dir, idx, ego_detection, to_persp_
     if persp_det[0].id in to_persp_dict_gt:
         persp_det[0].speed = to_persp_dict_gt[persp_det[0].id].speed
 
-    loaded_persp_det = obj_utils.read_labels(det_dir, idx, results=True, synthetic=False)
+    loaded_persp_det = obj_utils.read_labels(det_dir, idx, False)
     persp_gt = obj_utils.read_labels(gt_dir, idx, results=False, synthetic=True)
 
     if loaded_persp_det != None:
