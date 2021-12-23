@@ -18,7 +18,7 @@ def ego_id():
     # Obtain the ego ID if not set yet
     if _ego_id == -1:
         ego_folder = cfg.DATASET_DIR + '/ego_object'
-        ego_info = obj_utils.read_labels(ego_folder, 0, synthetic=True)
+        ego_info = obj_utils.read_labels(ego_folder, 0, True)
         _ego_id = int(ego_info[0].id)
         logging.info("Setting ego ID as: {:d}".format(_ego_id))
 
